@@ -3,6 +3,8 @@
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/storage/database.hpp"
 
+#include <atomic>
+#include <csignal>
 #include <cstddef>
 #include <exception>
 #include <iostream>
@@ -10,6 +12,11 @@
 #include <vector>
 
 namespace {
+
+// Set by SIGINT. The indexer checks it between files and commits what it has.
+std::atomic<bool> g_cancel{false};
+
+extern "C" void on_interrupt(int /*signal*/) { g_cancel.store(true); }
 
 constexpr int kExitOk = 0;
 constexpr int kExitError = 1;
@@ -61,7 +68,20 @@ int main(int argc, char** argv) {
     const veylqora::SystemClock clock;
 
     if (command == "index" && args.size() == 1) {
-      const auto s = veylqora::index_project(db, clock, args[0]);
+      veylqora::IndexOptions options;
+      options.cancel = &g_cancel;
+      options.on_progress = [](std::size_t done, std::size_t total) {
+        std::cerr << "  " << done << "/" << total << " files" << std::flush;
+      };
+      std::signal(SIGINT, on_interrupt);
+      const auto s = veylqora::index_project(db, clock, args[0], options);
+      std::cerr << '
+';
+      if (s.canceled) {
+        std::cout << "interrupted: re-run the same command to resume
+";
+        return kExitError;
+      }
       std::cout << "indexed " << s.files_indexed << " file(s), unchanged "
                 << s.files_unchanged << ", removed " << s.files_removed
                 << ", symbols written " << s.symbols_written << '\n';

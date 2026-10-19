@@ -3,6 +3,8 @@ add_library(veylqora_core
   core/log.cpp
   core/runtime.cpp
   index/indexer.cpp
+  ingestion/process.cpp
+  ingestion/source.cpp
   index/python_symbols.cpp
   storage/database.cpp)
 

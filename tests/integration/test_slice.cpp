@@ -5,6 +5,7 @@
 #include "veylqora/core/runtime.hpp"
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/storage/database.hpp"
+#include "support/temp_dir.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -16,27 +17,11 @@
 
 namespace fs = std::filesystem;
 
+using veylqora::test::TempDir;
+
 namespace {
 
 const fs::path kFixtures = VEYLQORA_FIXTURE_DIR "/python";
-
-// A temporary directory removed on destruction.
-class TempDir {
- public:
-  TempDir()
-      : path_(fs::temp_directory_path() /
-              ("veylqora-test-" + std::to_string(std::random_device{}()))) {
-    fs::create_directories(path_);
-  }
-  ~TempDir() {
-    std::error_code ec;
-    fs::remove_all(path_, ec);
-  }
-  const fs::path& path() const { return path_; }
-
- private:
-  fs::path path_;
-};
 
 struct Expected {
   std::string name;
@@ -68,7 +53,7 @@ void copy_tree(const fs::path& from, const fs::path& to) {
 }  // namespace
 
 TEST_CASE("slice: index, search, restart, and get the same answers") {
-  TempDir tmp;
+  veylqora::test::TempDir tmp;
   const fs::path db_file = tmp.path() / "veylqora.db";
   const veylqora::SystemClock clock;
 
@@ -94,7 +79,7 @@ TEST_CASE("slice: index, search, restart, and get the same answers") {
 }
 
 TEST_CASE("slice: re-indexing an unchanged tree parses nothing") {
-  TempDir tmp;
+  veylqora::test::TempDir tmp;
   const fs::path db_file = tmp.path() / "veylqora.db";
   const veylqora::SystemClock clock;
   veylqora::Database db(db_file);
@@ -107,7 +92,7 @@ TEST_CASE("slice: re-indexing an unchanged tree parses nothing") {
 }
 
 TEST_CASE("slice: an edited file is re-parsed and its symbols replaced") {
-  TempDir tmp;
+  veylqora::test::TempDir tmp;
   const fs::path src = tmp.path() / "src";
   copy_tree(kFixtures, src);
   const fs::path db_file = tmp.path() / "veylqora.db";
@@ -127,7 +112,7 @@ TEST_CASE("slice: an edited file is re-parsed and its symbols replaced") {
 }
 
 TEST_CASE("slice: a deleted file's symbols disappear from search") {
-  TempDir tmp;
+  veylqora::test::TempDir tmp;
   const fs::path src = tmp.path() / "src";
   copy_tree(kFixtures, src);
   const fs::path db_file = tmp.path() / "veylqora.db";
@@ -144,7 +129,7 @@ TEST_CASE("slice: a deleted file's symbols disappear from search") {
 }
 
 TEST_CASE("slice: projects sharing one database do not see each other") {
-  TempDir tmp;
+  veylqora::test::TempDir tmp;
   const fs::path a = tmp.path() / "a";
   const fs::path b = tmp.path() / "b";
   copy_tree(kFixtures, a);
@@ -162,7 +147,7 @@ TEST_CASE("slice: projects sharing one database do not see each other") {
 }
 
 TEST_CASE("slice: unknown names and unknown projects return no hits") {
-  TempDir tmp;
+  veylqora::test::TempDir tmp;
   const fs::path db_file = tmp.path() / "veylqora.db";
   const veylqora::SystemClock clock;
   veylqora::Database db(db_file);
