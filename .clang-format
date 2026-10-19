@@ -1,0 +1,13 @@
+BasedOnStyle: Google
+Standard: c++20
+ColumnLimit: 90
+DerivePointerAlignment: false
+PointerAlignment: Left
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^"veylqora/'
+    Priority: 1
+  - Regex: '^<catch2/'
+    Priority: 3
+  - Regex: '^<'
+    Priority: 2
