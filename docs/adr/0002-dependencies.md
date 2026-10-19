@@ -52,3 +52,43 @@ release.
 - No binary caching across sandbox sessions, so a `ccache` volume or a prebuilt
   base image becomes worthwhile once dependency build time exceeds ~2 minutes.
 - Module 2.1's work is implementing the index, not choosing it.
+
+## Addendum — spike S3 result (2026-10-20)
+
+Measured with `spikes/s3_usearch` (USearch v2.26.5, cosine, f32, 128 dims,
+20k vectors, 50-cluster Gaussian mixture, 200 queries, k=10, exact brute-force
+ground truth). Raw output: `docs/research/s3-usearch-deletion.txt`.
+
+| HNSW (M / expansion_add / expansion_search) | Deleted | recall@10 (tombstoned) | recall@10 (rebuilt) | search µs |
+|---|---|---|---|---|
+| 16 / 128 / 64 | 0% | 0.484 | 0.518 | 311 |
+| 16 / 128 / 64 | 50% | 0.644 | 0.647 | 601 |
+| 32 / 256 / 256 | 0% | 0.978 | 0.983 | 1552 |
+| 32 / 256 / 256 | 25% | 0.984 | 0.990 | 1948 |
+| 32 / 256 / 256 | 50% | 0.995 | 0.997 | 2315 |
+
+Findings:
+
+1. **Default-like HNSW settings fail the 0.90 gate** on this corpus, even with
+   no deletions. The index must be built with M=32, expansion_add=256,
+   expansion_search=256 (or measured higher settings) — this is now a pinned
+   requirement for Module 2.1, not a default.
+2. **Tombstoned search matches a rebuild** within ±0.006 recall at every
+   deletion level tested. Compaction is therefore needed for storage reclaim
+   and index hygiene, not for recall, on this workload.
+3. **No deleted key was ever returned** (`leaked=0` in every row).
+4. **Search latency rises with tombstones** (1552 → 2315 µs/query, 0 → 50%).
+   Compaction threshold should be set by latency, not only by tombstone ratio.
+5. Deletion is cheap: ≤2 ms for 10k removals.
+
+Limits of this spike (recorded so they are not forgotten):
+
+- Random deletion only. Deleting high-connectivity hub vectors, or deleting in
+  clustered batches, may degrade recall more; not tested.
+- Synthetic corpus. Real code-chunk embeddings have different geometry and must
+  be re-measured in M2.1 before the numbers are used as a gate.
+- Single-threaded build and query (`threads = 1`) for reproducibility.
+
+**Decision:** ADR-0002 stands. Reversal criteria are unchanged. Module 2.1 pins
+M=32 / expansion 256 and re-runs this spike on real chunks before the gate is
+set.

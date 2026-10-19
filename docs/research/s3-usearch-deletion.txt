@@ -1,13 +1,18 @@
-94dc490 Fix broken printf string in spike S3
-/home/agent/s3/spikes/s3_usearch/main.cpp:160:15: error: missing terminating " character
-/home/agent/s3/spikes/s3_usearch/main.cpp:162:1: warning: missing terminating " character
-  162 | ",
-      | ^
-/home/agent/s3/spikes/s3_usearch/main.cpp:162:1: error: missing terminating " character
-  162 | ",
-      | ^~
-/home/agent/s3/spikes/s3_usearch/main.cpp: In function 'int main()':
-/home/agent/s3/spikes/s3_usearch/main.cpp:161:1: error: 'HNSW' was not declared in this scope
-  161 | HNSW M=%zu expansion_add=%zu expansion_search=%zu
-      | ^~~~
-ninja: build stopped: subcommand failed.
+330b6fb Repair printf string literal in spike S3
+== run
+
+HNSW M=16 expansion_add=128 expansion_search=64
+corpus: n=20000 dims=128 clusters=50 queries=200 k=10 metric=cos f32
+deleted    live     index_size  remove_ms    recall@10      rebuild@10   search_us 
+0.00       20000    20000       0.0          0.484          0.518        311.0       leaked=0
+0.10       18000    18000       0.9          0.524          0.520        390.9       leaked=0
+0.25       15000    15000       1.5          0.550          0.566        482.0       leaked=0
+0.50       10000    10000       1.0          0.644          0.647        600.6       leaked=0
+
+HNSW M=32 expansion_add=256 expansion_search=256
+corpus: n=20000 dims=128 clusters=50 queries=200 k=10 metric=cos f32
+deleted    live     index_size  remove_ms    recall@10      rebuild@10   search_us 
+0.00       20000    20000       0.0          0.978          0.983        1552.3      leaked=0
+0.10       18000    18000       1.2          0.981          0.987        1737.6      leaked=0
+0.25       15000    15000       0.9          0.984          0.990        1948.3      leaked=0
+0.50       10000    10000       1.9          0.995          0.997        2315.1      leaked=0
