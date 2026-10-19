@@ -4,9 +4,10 @@ No index, no storage: the spike only proves protocol negotiation, tool
 discovery, schema validation and one round trip. It is throwaway.
 """
 
-from mcp.server.fastmcp import FastMCP
+# mcp>=2 renamed FastMCP to MCPServer; mcp<2 code will not import (see ADR-0007).
+from mcp.server.mcpserver import MCPServer
 
-mcp = FastMCP("veylqora-stub")
+mcp = MCPServer("veylqora-stub")
 
 
 @mcp.tool()
