@@ -1,0 +1,13 @@
+requests   first: indexed 37 file(s), unchanged 0, removed 0, skipped 0, unreadable 0, symbols written 807
+requests   second: indexed 0 file(s), unchanged 37, removed 0, skipped 0, unreadable 0, symbols written 0
+requests   first run 0.0s, re-index 0.0s, db 516096 bytes, search "Session": src/requests/sessions.py:395  class  src.requests.sessions.Session
+requests: PASS
+flask      first: indexed 83 file(s), unchanged 0, removed 0, skipped 0, unreadable 0, symbols written 1658
+flask      second: indexed 0 file(s), unchanged 83, removed 0, skipped 0, unreadable 0, symbols written 0
+flask      first run 0.1s, re-index 0.0s, db 995328 bytes, search "Flask": src/flask/app.py:109  class  src.flask.app.Flask
+flask: PASS
+django     first: indexed 2933 file(s), unchanged 0, removed 0, skipped 0, unreadable 0, symbols written 44029
+django     second: indexed 0 file(s), unchanged 2933, removed 0, skipped 0, unreadable 0, symbols written 0
+django     first run 8.1s, re-index 0.3s, db 27258880 bytes, search "QuerySet": django/db/models/query.py:374  class  django.db.models.query.QuerySet
+django: PASS
+corpus failures: 0

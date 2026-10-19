@@ -41,6 +41,17 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san"],
         },
     },
+    "1.2": {
+        "title": "Repository ingestion: git-aware listing, classification, batching",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "scripts/ci.sh", "scripts/corpus.sh", "scripts/certify.py",
+            "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
+        },
+    },
     "1.1": {
         "title": "Vertical slice: runtime, SQLite schema, Python indexer, CLI",
         "sources": [
