@@ -19,6 +19,7 @@ import hashlib
 import json
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 
@@ -68,7 +69,19 @@ def manifest_digest(manifest: dict) -> str:
     return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
 
 
+def resolve(cmd: list[str]) -> list[str]:
+    # On Windows, CreateProcess searches System32 before PATH, so a bare "bash"
+    # starts WSL's launcher, not Git Bash. Resolve the executable explicitly.
+    if cmd[0] == "bash":
+        found = shutil.which("bash")
+        if found is None:
+            die("bash not found on PATH; install Git for Windows or run from a Linux host")
+        cmd = [found, *cmd[1:]]
+    return cmd
+
+
 def run_check(name: str, cmd: list[str], logdir: pathlib.Path) -> dict:
+    cmd = resolve(cmd)
     proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, errors="replace")
     text = proc.stdout + proc.stderr
     (logdir / f"{name}.log").write_text(text, encoding="utf-8")
