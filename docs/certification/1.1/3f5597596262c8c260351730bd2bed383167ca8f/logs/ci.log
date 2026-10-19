@@ -1,0 +1,190 @@
+gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+Ubuntu clang version 21.1.8 (6ubuntu1)
+cmake version 4.2.3
+testing 3f55975 Add CLI smoke test and certification entry for M1.1
+
+[1m== format[0m
+[32m   PASS[0m  format
+
+[1m== gcc[0m
+Test project /home/agent/ci-work/build-gcc
+      Start  1: repeated names in one scope get distinct overloads
+ 1/21 Test  #1: repeated names in one scope get distinct overloads ..................   Passed    0.00 sec
+      Start  2: symbol ids are stable and well formed
+ 2/21 Test  #2: symbol ids are stable and well formed ...............................   Passed    0.00 sec
+      Start  3: a body ends at its last code line, not at trailing blank lines
+ 3/21 Test  #3: a body ends at its last code line, not at trailing blank lines ......   Passed    0.00 sec
+      Start  4: empty and whitespace-only bodies fingerprint identically
+ 4/21 Test  #4: empty and whitespace-only bodies fingerprint identically ............   Passed    0.00 sec
+      Start  5: functions, classes, methods and nested functions get dotted names
+ 5/21 Test  #5: functions, classes, methods and nested functions get dotted names ...   Passed    0.00 sec
+      Start  6: comments inside a body do not end it
+ 6/21 Test  #6: comments inside a body do not end it ................................   Passed    0.00 sec
+      Start  7: body fingerprint ignores formatting-only changes
+ 7/21 Test  #7: body fingerprint ignores formatting-only changes ....................   Passed    0.00 sec
+      Start  8: timestamps format as UTC ISO-8601 to the second
+ 8/21 Test  #8: timestamps format as UTC ISO-8601 to the second .....................   Passed    0.00 sec
+      Start  9: identity distinguishes every identity-bearing field
+ 9/21 Test  #9: identity distinguishes every identity-bearing field .................   Passed    0.00 sec
+      Start 10: fixed clock returns exactly the instant it was given
+10/21 Test #10: fixed clock returns exactly the instant it was given ................   Passed    0.00 sec
+      Start 11: CRLF line endings produce the same symbols
+11/21 Test #11: CRLF line endings produce the same symbols ..........................   Passed    0.00 sec
+      Start 12: field boundaries cannot be forged by moving text between fields
+12/21 Test #12: field boundaries cannot be forged by moving text between fields .....   Passed    0.00 sec
+      Start 13: body fingerprint detects real changes
+13/21 Test #13: body fingerprint detects real changes ...............................   Passed    0.00 sec
+      Start 14: source with no definitions yields no symbols
+14/21 Test #14: source with no definitions yields no symbols ........................   Passed    0.00 sec
+      Start 15: slice: an edited file is re-parsed and its symbols replaced
+15/21 Test #15: slice: an edited file is re-parsed and its symbols replaced .........   Passed    0.01 sec
+      Start 16: slice: projects sharing one database do not see each other
+16/21 Test #16: slice: projects sharing one database do not see each other ..........   Passed    0.01 sec
+      Start 17: slice: a deleted file's symbols disappear from search
+17/21 Test #17: slice: a deleted file's symbols disappear from search ...............   Passed    0.00 sec
+      Start 18: slice: index, search, restart, and get the same answers
+18/21 Test #18: slice: index, search, restart, and get the same answers .............   Passed    0.01 sec
+      Start 19: slice: unknown names and unknown projects return no hits
+19/21 Test #19: slice: unknown names and unknown projects return no hits ............   Passed    0.00 sec
+      Start 20: slice: re-indexing an unchanged tree parses nothing
+20/21 Test #20: slice: re-indexing an unchanged tree parses nothing .................   Passed    0.00 sec
+      Start 21: cli_slice
+21/21 Test #21: cli_slice ...........................................................***Failed    0.03 sec
+unexpected search output: auth/tokens.py:8  function  auth.tokens.verify_token
+
+
+95% tests passed, 1 tests failed out of 21
+
+Total Test time (real) =   0.10 sec
+
+The following tests FAILED:
+	 21 - cli_slice (Failed)
+[31m   FAIL[0m  gcc
+
+[1m== clang[0m
+Test project /home/agent/ci-work/build-clang
+      Start  1: timestamps format as UTC ISO-8601 to the second
+ 1/21 Test  #1: timestamps format as UTC ISO-8601 to the second .....................   Passed    0.00 sec
+      Start  2: field boundaries cannot be forged by moving text between fields
+ 2/21 Test  #2: field boundaries cannot be forged by moving text between fields .....   Passed    0.00 sec
+      Start  3: symbol ids are stable and well formed
+ 3/21 Test  #3: symbol ids are stable and well formed ...............................   Passed    0.00 sec
+      Start  4: comments inside a body do not end it
+ 4/21 Test  #4: comments inside a body do not end it ................................   Passed    0.00 sec
+      Start  5: source with no definitions yields no symbols
+ 5/21 Test  #5: source with no definitions yields no symbols ........................   Passed    0.00 sec
+      Start  6: repeated names in one scope get distinct overloads
+ 6/21 Test  #6: repeated names in one scope get distinct overloads ..................   Passed    0.00 sec
+      Start  7: body fingerprint ignores formatting-only changes
+ 7/21 Test  #7: body fingerprint ignores formatting-only changes ....................   Passed    0.00 sec
+      Start  8: body fingerprint detects real changes
+ 8/21 Test  #8: body fingerprint detects real changes ...............................   Passed    0.00 sec
+      Start  9: fixed clock returns exactly the instant it was given
+ 9/21 Test  #9: fixed clock returns exactly the instant it was given ................   Passed    0.00 sec
+      Start 10: functions, classes, methods and nested functions get dotted names
+10/21 Test #10: functions, classes, methods and nested functions get dotted names ...   Passed    0.00 sec
+      Start 11: empty and whitespace-only bodies fingerprint identically
+11/21 Test #11: empty and whitespace-only bodies fingerprint identically ............   Passed    0.00 sec
+      Start 12: a body ends at its last code line, not at trailing blank lines
+12/21 Test #12: a body ends at its last code line, not at trailing blank lines ......   Passed    0.00 sec
+      Start 13: CRLF line endings produce the same symbols
+13/21 Test #13: CRLF line endings produce the same symbols ..........................   Passed    0.00 sec
+      Start 14: identity distinguishes every identity-bearing field
+14/21 Test #14: identity distinguishes every identity-bearing field .................   Passed    0.00 sec
+      Start 15: slice: an edited file is re-parsed and its symbols replaced
+15/21 Test #15: slice: an edited file is re-parsed and its symbols replaced .........   Passed    0.01 sec
+      Start 16: slice: a deleted file's symbols disappear from search
+16/21 Test #16: slice: a deleted file's symbols disappear from search ...............   Passed    0.00 sec
+      Start 17: slice: unknown names and unknown projects return no hits
+17/21 Test #17: slice: unknown names and unknown projects return no hits ............   Passed    0.00 sec
+      Start 18: slice: projects sharing one database do not see each other
+18/21 Test #18: slice: projects sharing one database do not see each other ..........   Passed    0.01 sec
+      Start 19: slice: re-indexing an unchanged tree parses nothing
+19/21 Test #19: slice: re-indexing an unchanged tree parses nothing .................   Passed    0.00 sec
+      Start 20: slice: index, search, restart, and get the same answers
+20/21 Test #20: slice: index, search, restart, and get the same answers .............   Passed    0.01 sec
+      Start 21: cli_slice
+21/21 Test #21: cli_slice ...........................................................***Failed    0.01 sec
+unexpected search output: auth/tokens.py:8  function  auth.tokens.verify_token
+
+
+95% tests passed, 1 tests failed out of 21
+
+Total Test time (real) =   0.07 sec
+
+The following tests FAILED:
+	 21 - cli_slice (Failed)
+[31m   FAIL[0m  clang
+
+[1m== san[0m
+Test project /home/agent/ci-work/build-san
+      Start  1: a body ends at its last code line, not at trailing blank lines
+ 1/21 Test  #1: a body ends at its last code line, not at trailing blank lines ......   Passed    0.01 sec
+      Start  2: body fingerprint ignores formatting-only changes
+ 2/21 Test  #2: body fingerprint ignores formatting-only changes ....................   Passed    0.01 sec
+      Start  3: body fingerprint detects real changes
+ 3/21 Test  #3: body fingerprint detects real changes ...............................   Passed    0.01 sec
+      Start  4: symbol ids are stable and well formed
+ 4/21 Test  #4: symbol ids are stable and well formed ...............................   Passed    0.01 sec
+      Start  5: repeated names in one scope get distinct overloads
+ 5/21 Test  #5: repeated names in one scope get distinct overloads ..................   Passed    0.01 sec
+      Start  6: functions, classes, methods and nested functions get dotted names
+ 6/21 Test  #6: functions, classes, methods and nested functions get dotted names ...   Passed    0.01 sec
+      Start  7: source with no definitions yields no symbols
+ 7/21 Test  #7: source with no definitions yields no symbols ........................   Passed    0.01 sec
+      Start  8: empty and whitespace-only bodies fingerprint identically
+ 8/21 Test  #8: empty and whitespace-only bodies fingerprint identically ............   Passed    0.01 sec
+      Start  9: timestamps format as UTC ISO-8601 to the second
+ 9/21 Test  #9: timestamps format as UTC ISO-8601 to the second .....................   Passed    0.01 sec
+      Start 10: field boundaries cannot be forged by moving text between fields
+10/21 Test #10: field boundaries cannot be forged by moving text between fields .....   Passed    0.01 sec
+      Start 11: comments inside a body do not end it
+11/21 Test #11: comments inside a body do not end it ................................   Passed    0.02 sec
+      Start 12: identity distinguishes every identity-bearing field
+12/21 Test #12: identity distinguishes every identity-bearing field .................   Passed    0.01 sec
+      Start 13: CRLF line endings produce the same symbols
+13/21 Test #13: CRLF line endings produce the same symbols ..........................   Passed    0.01 sec
+      Start 14: fixed clock returns exactly the instant it was given
+14/21 Test #14: fixed clock returns exactly the instant it was given ................   Passed    0.01 sec
+      Start 15: slice: index, search, restart, and get the same answers
+15/21 Test #15: slice: index, search, restart, and get the same answers .............   Passed    0.03 sec
+      Start 16: slice: unknown names and unknown projects return no hits
+16/21 Test #16: slice: unknown names and unknown projects return no hits ............   Passed    0.03 sec
+      Start 17: slice: re-indexing an unchanged tree parses nothing
+17/21 Test #17: slice: re-indexing an unchanged tree parses nothing .................   Passed    0.03 sec
+      Start 18: slice: an edited file is re-parsed and its symbols replaced
+18/21 Test #18: slice: an edited file is re-parsed and its symbols replaced .........   Passed    0.03 sec
+      Start 19: slice: a deleted file's symbols disappear from search
+19/21 Test #19: slice: a deleted file's symbols disappear from search ...............   Passed    0.03 sec
+      Start 20: slice: projects sharing one database do not see each other
+20/21 Test #20: slice: projects sharing one database do not see each other ..........   Passed    0.04 sec
+      Start 21: cli_slice
+21/21 Test #21: cli_slice ...........................................................***Failed    0.08 sec
+unexpected search output: auth/tokens.py:8  function  auth.tokens.verify_token
+
+
+95% tests passed, 1 tests failed out of 21
+
+Total Test time (real) =   0.43 sec
+
+The following tests FAILED:
+	 21 - cli_slice (Failed)
+[31m   FAIL[0m  san
+
+[1m== certs[0m
+WARN  docs/certification/0.1/98ba21e776bb81d3939c5301f0db86cb82e34266/manifest.json: stale, module sources changed since commit 98ba21e776bb
+WARN  module 0.1: no PASS manifest matches HEAD sources
+WARN  module 1.1: no PASS manifest matches HEAD sources
+[32m   PASS[0m  certs
+
+[1m== summary[0m
+[31m   FAIL[0m  3 job(s) failed
+
+[1m== stopping shell/veylqora-ci[0m
+   â†’ start sandbox sbx_001m5aj55gme8393qjne02q7qhz
+Starting cloud sandbox sbx_001m5aj55gme8393qjne02q7qhz ...
+Sandbox started.
+   âœ“ start sandbox sbx_001m5aj55gme8393qjne02q7qhz (2s)
+Errors while running CTest
+Errors while running CTest
+Errors while running CTest

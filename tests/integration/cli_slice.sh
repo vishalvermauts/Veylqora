@@ -14,7 +14,7 @@ db="$tmp/veylqora.db"
 first=$("$bin" search verify_token --root "$fixtures" --db "$db")
 second=$("$bin" search verify_token --root "$fixtures" --db "$db")
 [ "$first" = "$second" ] || { echo "answers differ after restart" >&2; exit 1; }
-echo "$first" | grep -q "^auth/tokens.py:1  function  auth.tokens.verify_token$" \
+echo "$first" | grep -q "^auth/tokens.py:8  function  auth.tokens.verify_token$" \
   || { echo "unexpected search output: $first" >&2; exit 1; }
 
 set +e
