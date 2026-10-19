@@ -1,0 +1,26 @@
+4c9cc93 Use mcp 2.x is_error field in spike S4
+mcp==2.3.0
+== run
+Tool 'search_code' rejected arguments: ['query']
+Tool 'no_such_tool' failed: 'Unknown tool: no_such_tool'
+{
+  "checks": {
+    "negotiated": true,
+    "discovered": true,
+    "valid_call_returns_data": true,
+    "missing_arg_rejected": true,
+    "unknown_tool_rejected": true
+  },
+  "protocol_version": "2025-11-25",
+  "server_name": "veylqora-stub",
+  "tools": [
+    "search_code"
+  ],
+  "missing_arg": {
+    "is_error": true
+  },
+  "unknown_tool": {
+    "is_error": true
+  }
+}
+client exit=0
