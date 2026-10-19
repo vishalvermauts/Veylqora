@@ -13,7 +13,7 @@ failed=0
 
 # name | clone url | symbol to search | file it must be found in
 corpus=(
-  "requests|https://github.com/psf/requests.git|Session|requests/sessions.py"
+  "requests|https://github.com/psf/requests.git|Session|src/requests/sessions.py"
   "flask|https://github.com/pallets/flask.git|Flask|src/flask/app.py"
   "django|https://github.com/django/django.git|QuerySet|django/db/models/query.py"
 )
