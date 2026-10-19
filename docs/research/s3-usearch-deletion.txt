@@ -1,0 +1,29 @@
+   → start sandbox sbx_001m5aj55gme8393qjne02q7qhz
+Starting cloud sandbox sbx_001m5aj55gme8393qjne02q7qhz ...
+Sandbox started.
+   ✓ start sandbox sbx_001m5aj55gme8393qjne02q7qhz (1s)
+f039ac7 Add spike S3: USearch recall under deletion
+/home/agent/s3/spikes/s3_usearch/main.cpp:73:1: error: 'usearch' does not name a type
+   73 | usearch::index_dense_t build_index(const std::vector<Vec>& data, const std::vector<Key>& keys) {
+      | ^~~~~~~
+/home/agent/s3/spikes/s3_usearch/main.cpp:99:21: error: 'usearch' does not name a type
+   99 | Eval evaluate(const usearch::index_dense_t& index, const std::vector<Vec>& data,
+      |                     ^~~~~~~
+/home/agent/s3/spikes/s3_usearch/main.cpp:99:43: error: expected unqualified-id before '&' token
+   99 | Eval evaluate(const usearch::index_dense_t& index, const std::vector<Vec>& data,
+      |                                           ^
+/home/agent/s3/spikes/s3_usearch/main.cpp:99:43: error: expected ')' before '&' token
+   99 | Eval evaluate(const usearch::index_dense_t& index, const std::vector<Vec>& data,
+      |              ~                            ^
+      |                                           )
+/home/agent/s3/spikes/s3_usearch/main.cpp:99:45: error: expected initializer before 'index'
+   99 | Eval evaluate(const usearch::index_dense_t& index, const std::vector<Vec>& data,
+      |                                             ^~~~~
+/home/agent/s3/spikes/s3_usearch/main.cpp: In function 'int main()':
+/home/agent/s3/spikes/s3_usearch/main.cpp:142:16: error: 'build_index' was not declared in this scope
+  142 |   auto index = build_index(data, all);
+      |                ^~~~~~~~~~~
+/home/agent/s3/spikes/s3_usearch/main.cpp:174:29: error: 'evaluate' was not declared in this scope
+  174 |     const Eval tombstoned = evaluate(index, data, queries, live, deleted);
+      |                             ^~~~~~~~
+ninja: build stopped: subcommand failed.

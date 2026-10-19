@@ -8,6 +8,8 @@
 
 #include <usearch/index_dense.hpp>
 
+namespace usearch = unum::usearch;
+
 #include <algorithm>
 #include <chrono>
 #include <cmath>
