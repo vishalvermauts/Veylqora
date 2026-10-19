@@ -5,7 +5,6 @@
 #include "veylqora/core/runtime.hpp"
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/storage/database.hpp"
-#include "support/temp_dir.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -13,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "support/temp_dir.hpp"
 #include <catch2/catch_test_macros.hpp>
 
 namespace fs = std::filesystem;

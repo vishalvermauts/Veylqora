@@ -5,14 +5,14 @@
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/ingestion/process.hpp"
 #include "veylqora/storage/database.hpp"
-#include "support/temp_dir.hpp"
-
-#include <catch2/catch_test_macros.hpp>
 
 #include <atomic>
 #include <fstream>
 #include <string>
 #include <string_view>
+
+#include "support/temp_dir.hpp"
+#include <catch2/catch_test_macros.hpp>
 
 namespace fs = std::filesystem;
 using veylqora::test::TempDir;
@@ -25,7 +25,9 @@ void write(const fs::path& p, std::string_view content) {
   out << content;
 }
 
-bool git_available() { return veylqora::run_git(fs::temp_directory_path(), {"--version"}).has_value(); }
+bool git_available() {
+  return veylqora::run_git(fs::temp_directory_path(), {"--version"}).has_value();
+}
 
 const veylqora::SystemClock kClock;
 
@@ -96,7 +98,8 @@ TEST_CASE("invalid UTF-8 is skipped and does not stop the run") {
 
 TEST_CASE("valid multi-byte UTF-8 is indexed") {
   TempDir tmp;
-  write(tmp.path() / "unicode.py", "# caf\xC3\xA9\ndef price():\n    return '\xE2\x82\xAC'\n");
+  write(tmp.path() / "unicode.py",
+        "# caf\xC3\xA9\ndef price():\n    return '\xE2\x82\xAC'\n");
   veylqora::Database db(tmp.path() / "v.db");
   const auto stats = veylqora::index_project(db, kClock, tmp.path());
   CHECK(stats.files_indexed == 1);
@@ -146,7 +149,8 @@ TEST_CASE("deleted file: its symbols disappear and the removal is counted") {
   CHECK(veylqora::find_symbols(db, tmp.path(), "remain").size() == 1);
 }
 
-TEST_CASE("git repository: .gitignore is honoured, untracked-but-not-ignored files are kept") {
+TEST_CASE(
+    "git repository: .gitignore is honoured, untracked-but-not-ignored files are kept") {
   if (!git_available()) {
     WARN("git not available; skipping");
     return;
@@ -169,16 +173,15 @@ TEST_CASE("git repository: .gitignore is honoured, untracked-but-not-ignored fil
 TEST_CASE("interrupted run keeps committed batches and does not remove anything") {
   TempDir tmp;
   for (int i = 0; i < 10; ++i) {
-    write(tmp.path() / ("m_" + std::to_string(i) + ".py"), "def m_" + std::to_string(i) + "():\n    pass\n");
+    write(tmp.path() / ("m_" + std::to_string(i) + ".py"),
+          "def m_" + std::to_string(i) + "():\n    pass\n");
   }
   veylqora::Database db(tmp.path() / "v.db");
   veylqora::index_project(db, kClock, tmp.path());
   // Change every remaining file so the interrupted run has real work to commit,
   // and remove one so there is a removal the interrupted run must not apply.
   for (int i = 1; i < 10; ++i) {
-    write(tmp.path() / ("m_" + std::to_string(i) + ".py"), "def m_" + std::to_string(i) + "():
-    return 2
-");
+    write(tmp.path() / ("m_" + std::to_string(i) + ".py"), "def m_" + std::to_string(i) + "():\n    return 2\n");
   }
   fs::remove(tmp.path() / "m_0.py");
 
@@ -199,8 +202,8 @@ TEST_CASE("interrupted run keeps committed batches and does not remove anything"
   const auto resumed = veylqora::index_project(db, kClock, tmp.path());
   CHECK_FALSE(resumed.canceled);
   CHECK(resumed.files_removed == 1);
-  CHECK(resumed.files_indexed == 5);   // the work the interrupted run did not reach
-  CHECK(resumed.files_unchanged == 4); // the work it did commit is not repeated
+  CHECK(resumed.files_indexed == 5);    // the work the interrupted run did not reach
+  CHECK(resumed.files_unchanged == 4);  // the work it did commit is not repeated
   CHECK(veylqora::find_symbols(db, tmp.path(), "m_0").empty());
   CHECK(veylqora::find_symbols(db, tmp.path(), "m_9").size() == 1);
 }

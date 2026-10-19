@@ -6,10 +6,10 @@ using veylqora::is_valid_utf8;
 
 TEST_CASE("well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences") {
   CHECK(is_valid_utf8("plain ascii"));
-  CHECK(is_valid_utf8("caf\xC3\xA9"));          // U+00E9, 2 bytes
-  CHECK(is_valid_utf8("\xE2\x82\xAC"));         // U+20AC, 3 bytes
-  CHECK(is_valid_utf8("\xF0\x9F\x98\x80"));     // U+1F600, 4 bytes
-  CHECK(is_valid_utf8("\xEF\xBB\xBFwith bom")); // BOM is valid UTF-8
+  CHECK(is_valid_utf8("caf\xC3\xA9"));           // U+00E9, 2 bytes
+  CHECK(is_valid_utf8("\xE2\x82\xAC"));          // U+20AC, 3 bytes
+  CHECK(is_valid_utf8("\xF0\x9F\x98\x80"));      // U+1F600, 4 bytes
+  CHECK(is_valid_utf8("\xEF\xBB\xBFwith bom"));  // BOM is valid UTF-8
   CHECK(is_valid_utf8(""));
 }
 

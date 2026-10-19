@@ -27,11 +27,12 @@ struct IndexOptions {
 struct IndexStats {
   std::size_t files_indexed = 0;    // parsed, because new or changed
   std::size_t files_unchanged = 0;  // skipped, content hash matched
-  std::size_t files_removed = 0;    // deleted from disk or from the project since the last run
-  std::size_t files_skipped = 0;    // not indexable: binary, invalid UTF-8, too large
-  std::size_t files_unreadable = 0; // I/O error; previously indexed rows were kept
+  std::size_t files_removed =
+      0;  // deleted from disk or from the project since the last run
+  std::size_t files_skipped = 0;     // not indexable: binary, invalid UTF-8, too large
+  std::size_t files_unreadable = 0;  // I/O error; previously indexed rows were kept
   std::size_t symbols_written = 0;
-  bool canceled = false;            // stopped early; re-running resumes from the stored state
+  bool canceled = false;  // stopped early; re-running resumes from the stored state
 };
 
 /// Brings the database in line with the source files under `root`.
@@ -40,7 +41,8 @@ struct IndexStats {
 /// batch, and a re-run skips every file whose content is already stored. Files
 /// that disappeared are removed only when the run completes, so a partial run
 /// never deletes data it did not reach.
-IndexStats index_project(Database& db, const Clock& clock, const std::filesystem::path& root,
+IndexStats index_project(Database& db, const Clock& clock,
+                         const std::filesystem::path& root,
                          const IndexOptions& options = {});
 
 struct SymbolHit {

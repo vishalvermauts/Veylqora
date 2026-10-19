@@ -40,7 +40,8 @@ void walk(const fs::path& root, std::vector<std::string>& out) {
       if (entry.path().filename() == ".git") it.disable_recursion_pending();
       continue;
     }
-    if (entry.is_regular_file()) out.push_back(fs::relative(entry.path(), root).generic_string());
+    if (entry.is_regular_file())
+      out.push_back(fs::relative(entry.path(), root).generic_string());
   }
 }
 
@@ -49,7 +50,8 @@ void walk(const fs::path& root, std::vector<std::string>& out) {
 std::vector<std::string> list_candidates(const fs::path& root) {
   std::vector<std::string> out;
   if (in_git_work_tree(root)) {
-    const auto files = run_git(root, {"ls-files", "-z", "--cached", "--others", "--exclude-standard"});
+    const auto files =
+        run_git(root, {"ls-files", "-z", "--cached", "--others", "--exclude-standard"});
     if (files && files->exit_code == 0) {
       out = split_nul(files->output);
     }

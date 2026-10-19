@@ -41,6 +41,34 @@ std::string take_flag(std::vector<std::string>& args, const std::string& flag) {
   return {};
 }
 
+int run_index(veylqora::Database& db, const veylqora::Clock& clock, const std::string& root) {
+  veylqora::IndexOptions options;
+  options.cancel = &g_cancel;
+  options.on_progress = [](std::size_t done, std::size_t total) {
+    std::cerr << "\r  " << done << "/" << total << " files" << std::flush;
+  };
+  std::signal(SIGINT, on_interrupt);
+
+  const veylqora::IndexStats s = veylqora::index_project(db, clock, root, options);
+  std::cerr << '\n';
+  if (s.canceled) {
+    std::cout << "interrupted: re-run the same command to resume\n";
+    return kExitError;
+  }
+  std::cout << "indexed " << s.files_indexed << " file(s), unchanged " << s.files_unchanged
+            << ", removed " << s.files_removed << ", skipped " << s.files_skipped
+            << ", unreadable " << s.files_unreadable << ", symbols written " << s.symbols_written
+            << '\n';
+  return kExitOk;
+}
+
+int run_search(veylqora::Database& db, const std::string& root, const std::string& name) {
+  for (const veylqora::SymbolHit& h : veylqora::find_symbols(db, root, name)) {
+    std::cout << h.path << ':' << h.start_line << "  " << h.kind << "  " << h.fqn << '\n';
+  }
+  return kExitOk;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -67,32 +95,9 @@ int main(int argc, char** argv) {
     veylqora::Database db(db_path);
     const veylqora::SystemClock clock;
 
-    if (command == "index" && args.size() == 1) {
-      veylqora::IndexOptions options;
-      options.cancel = &g_cancel;
-      options.on_progress = [](std::size_t done, std::size_t total) {
-        std::cerr << "  " << done << "/" << total << " files" << std::flush;
-      };
-      std::signal(SIGINT, on_interrupt);
-      const auto s = veylqora::index_project(db, clock, args[0], options);
-      std::cerr << '
-';
-      if (s.canceled) {
-        std::cout << "interrupted: re-run the same command to resume
-";
-        return kExitError;
-      }
-      std::cout << "indexed " << s.files_indexed << " file(s), unchanged "
-                << s.files_unchanged << ", removed " << s.files_removed
-                << ", symbols written " << s.symbols_written << '\n';
-      return kExitOk;
-    }
+    if (command == "index" && args.size() == 1) return run_index(db, clock, args[0]);
     if (command == "search" && args.size() == 1 && !root.empty()) {
-      for (const veylqora::SymbolHit& h : veylqora::find_symbols(db, root, args[0])) {
-        std::cout << h.path << ':' << h.start_line << "  " << h.kind << "  " << h.fqn
-                  << '\n';
-      }
-      return kExitOk;
+      return run_search(db, root, args[0]);
     }
     usage();
     return kExitUsage;
