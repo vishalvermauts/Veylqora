@@ -1,0 +1,36 @@
+{
+  "checks": [
+    {
+      "cmd": "C:\\Program Files\\Git\\usr\\bin\\bash.EXE scripts/ci.sh format gcc clang san",
+      "exit": 0,
+      "failed": 0,
+      "log": "logs/ci.log",
+      "name": "ci",
+      "passed": 18,
+      "tests_run": 18
+    }
+  ],
+  "commit": "98ba21e776bb81d3939c5301f0db86cb82e34266",
+  "generated_at": "2026-10-19T17:18:00+00:00",
+  "generated_by": "scripts/certify.py",
+  "manifest_sha256": "a6443844845ca4a5e96193a58094ae958a1b1356341a385d38d97929d61fec1f",
+  "module": "0.1",
+  "module_blobs": {
+    ".clang-format": "f10e177ccf870abbc9082df247794376e27db129",
+    "CMakeLists.txt": "139fcdb8283e1a755d2bb9e51d8cc0537a257bca",
+    "cmake/Dependencies.cmake": "4815e693128c17d962c32c4f869867001e09c0f8",
+    "cmake/Sanitizers.cmake": "cf6353d4e34abbcd844ef48ecfd0a0510918ebe8",
+    "cmake/Warnings.cmake": "3b92bb5da051775499c640d9f9983ffa90493c33",
+    "include/veylqora/core/identity.hpp": "52ad99c095be815ef9947957d482cf372182a04d",
+    "scripts/certify.py": "f91c316e4bac41a0021981b06ad7c7bfa478dcd4",
+    "scripts/ci.sh": "a1c20e7e7fc90b27dd68f65a53357b17d232a012",
+    "scripts/verify_certs.py": "426464e2f7c28d5284e89d6b48a87079dae3b028",
+    "src/CMakeLists.txt": "0c0b9eefc63e9861e51cd959fea42151f6fe086e",
+    "src/core/identity.cpp": "5b3642a45352a46cd56daf47f46acde76dd026c0",
+    "tests/CMakeLists.txt": "e645ba45c32c187a8a871970df47e61ff391bd3d",
+    "tests/unit/test_identity.cpp": "a1dc079465f440daa180af2ee8c2c5715786550f"
+  },
+  "status": "PASS",
+  "title": "Bootstrap build, identity model, CI",
+  "tree_dirty": false
+}

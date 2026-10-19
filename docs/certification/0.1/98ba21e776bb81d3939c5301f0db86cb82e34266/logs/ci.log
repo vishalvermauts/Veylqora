@@ -1,0 +1,76 @@
+gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+Ubuntu clang version 21.1.8 (6ubuntu1)
+cmake version 4.2.3
+testing 98ba21e Resolve bash explicitly in certify.py on Windows
+
+[1m== format[0m
+[32m   PASS[0m  format
+
+[1m== gcc[0m
+Test project /home/agent/ci-work/build-gcc
+    Start 1: body fingerprint ignores formatting-only changes
+1/6 Test #1: body fingerprint ignores formatting-only changes ..................   Passed    0.00 sec
+    Start 2: symbol ids are stable and well formed
+2/6 Test #2: symbol ids are stable and well formed .............................   Passed    0.00 sec
+    Start 3: identity distinguishes every identity-bearing field
+3/6 Test #3: identity distinguishes every identity-bearing field ...............   Passed    0.00 sec
+    Start 4: field boundaries cannot be forged by moving text between fields
+4/6 Test #4: field boundaries cannot be forged by moving text between fields ...   Passed    0.00 sec
+    Start 5: empty and whitespace-only bodies fingerprint identically
+5/6 Test #5: empty and whitespace-only bodies fingerprint identically ..........   Passed    0.00 sec
+    Start 6: body fingerprint detects real changes
+6/6 Test #6: body fingerprint detects real changes .............................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 6
+
+Total Test time (real) =   0.01 sec
+[32m   PASS[0m  gcc
+
+[1m== clang[0m
+Test project /home/agent/ci-work/build-clang
+    Start 1: symbol ids are stable and well formed
+1/6 Test #1: symbol ids are stable and well formed .............................   Passed    0.00 sec
+    Start 2: identity distinguishes every identity-bearing field
+2/6 Test #2: identity distinguishes every identity-bearing field ...............   Passed    0.00 sec
+    Start 3: empty and whitespace-only bodies fingerprint identically
+3/6 Test #3: empty and whitespace-only bodies fingerprint identically ..........   Passed    0.00 sec
+    Start 4: field boundaries cannot be forged by moving text between fields
+4/6 Test #4: field boundaries cannot be forged by moving text between fields ...   Passed    0.00 sec
+    Start 5: body fingerprint ignores formatting-only changes
+5/6 Test #5: body fingerprint ignores formatting-only changes ..................   Passed    0.00 sec
+    Start 6: body fingerprint detects real changes
+6/6 Test #6: body fingerprint detects real changes .............................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 6
+
+Total Test time (real) =   0.01 sec
+[32m   PASS[0m  clang
+
+[1m== san[0m
+Test project /home/agent/ci-work/build-san
+    Start 1: body fingerprint ignores formatting-only changes
+1/6 Test #1: body fingerprint ignores formatting-only changes ..................   Passed    0.01 sec
+    Start 2: symbol ids are stable and well formed
+2/6 Test #2: symbol ids are stable and well formed .............................   Passed    0.01 sec
+    Start 3: field boundaries cannot be forged by moving text between fields
+3/6 Test #3: field boundaries cannot be forged by moving text between fields ...   Passed    0.01 sec
+    Start 4: empty and whitespace-only bodies fingerprint identically
+4/6 Test #4: empty and whitespace-only bodies fingerprint identically ..........   Passed    0.01 sec
+    Start 5: identity distinguishes every identity-bearing field
+5/6 Test #5: identity distinguishes every identity-bearing field ...............   Passed    0.01 sec
+    Start 6: body fingerprint detects real changes
+6/6 Test #6: body fingerprint detects real changes .............................   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 6
+
+Total Test time (real) =   0.07 sec
+[32m   PASS[0m  san
+
+[1m== summary[0m
+[32m   PASS[0m  all jobs passed
+
+[1m== stopping shell/veylqora-ci[0m
+   â†’ start sandbox sbx_001m5aj55gme8393qjne02q7qhz
+Starting cloud sandbox sbx_001m5aj55gme8393qjne02q7qhz ...
+Sandbox started.
+   âœ“ start sandbox sbx_001m5aj55gme8393qjne02q7qhz (1s)
