@@ -163,7 +163,9 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root,
     tx.commit();
   }
 
-  const std::vector<std::string> candidates = list_candidates(base);
+  // Only supported file types count toward progress and the removal pass.
+  std::vector<std::string> candidates = list_candidates(base);
+  std::erase_if(candidates, [](const std::string& rel) { return !is_python(rel); });
   const std::size_t total = candidates.size();
   const std::size_t batch = std::max<std::size_t>(1, options.batch_size);
   const auto cancelled = [&] {
