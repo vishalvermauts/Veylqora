@@ -76,7 +76,8 @@ TEST_CASE("large repository is processed in batches with progress") {
 
 TEST_CASE("binary file with a .py name is skipped, not parsed") {
   TempDir tmp;
-  write(tmp.path() / "blob.py", std::string("def hidden():\n    pass\n\0\0", 27));
+  const std::string text = "def hidden():\n    pass\n";
+  write(tmp.path() / "blob.py", text + std::string(2, '\0'));
   veylqora::Database db(tmp.path() / "v.db");
   const auto stats = veylqora::index_project(db, kClock, tmp.path());
   CHECK(stats.files_skipped == 1);
