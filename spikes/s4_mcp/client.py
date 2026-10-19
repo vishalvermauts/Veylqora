@@ -22,9 +22,9 @@ async def run() -> dict:
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
             init = await session.initialize()
-            record["protocol_version"] = init.protocolVersion
-            record["server_name"] = init.serverInfo.name
-            record["checks"]["negotiated"] = init.protocolVersion is not None
+            record["protocol_version"] = init.protocol_version
+            record["server_name"] = init.server_info.name
+            record["checks"]["negotiated"] = init.protocol_version is not None
 
             tools = await session.list_tools()
             names = [t.name for t in tools.tools]
@@ -32,7 +32,7 @@ async def run() -> dict:
             record["checks"]["discovered"] = "search_code" in names
 
             call = await session.call_tool("search_code", {"query": "symbol_id"})
-            payload = call.structuredContent or json.loads(call.content[0].text)
+            payload = call.structured_content or json.loads(call.content[0].text)
             record["checks"]["valid_call_returns_data"] = (
                 not call.isError and payload["hits"][0]["symbol"] == "symbol_id"
             )
