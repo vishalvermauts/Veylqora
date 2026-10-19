@@ -159,7 +159,8 @@ int main() {
   for (const HnswParams& hp : configs) {
   std::printf("
 HNSW M=%zu expansion_add=%zu expansion_search=%zu
-", hp.connectivity, hp.expansion_add, hp.expansion_search);
+",
+              hp.connectivity, hp.expansion_add, hp.expansion_search);
   std::printf("corpus: n=%zu dims=%zu clusters=%zu queries=%zu k=%zu metric=cos f32\n", kN,
               kDims, kClusters, kQueries, kK);
   std::printf("%-10s %-8s %-11s %-12s %-14s %-12s %-10s\n", "deleted", "live", "index_size",

@@ -1,8 +1,13 @@
-243b160 Use USearch index_limits_t constructor that exists in v2.26.5
-== run
-corpus: n=20000 dims=128 clusters=50 queries=200 k=10 metric=cos f32
-deleted    live     index_size  remove_ms    recall@10      rebuild@10   search_us 
-0.00       20000    20000       0.0          0.484          0.518        323.9       leaked=0
-0.10       18000    18000       1.2          0.524          0.520        420.5       leaked=0
-0.25       15000    15000       1.0          0.550          0.566        447.7       leaked=0
-0.50       10000    10000       1.0          0.644          0.647        601.3       leaked=0
+4209509 Sweep two HNSW configurations in spike S3
+/home/agent/s3/spikes/s3_usearch/main.cpp:160:15: error: missing terminating " character
+/home/agent/s3/spikes/s3_usearch/main.cpp:162:1: warning: missing terminating " character
+  162 | ", hp.connectivity, hp.expansion_add, hp.expansion_search);
+      | ^
+/home/agent/s3/spikes/s3_usearch/main.cpp:162:1: error: missing terminating " character
+  162 | ", hp.connectivity, hp.expansion_add, hp.expansion_search);
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/agent/s3/spikes/s3_usearch/main.cpp: In function 'int main()':
+/home/agent/s3/spikes/s3_usearch/main.cpp:161:1: error: 'HNSW' was not declared in this scope
+  161 | HNSW M=%zu expansion_add=%zu expansion_search=%zu
+      | ^~~~
+ninja: build stopped: subcommand failed.
