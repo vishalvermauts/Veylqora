@@ -22,3 +22,12 @@ target_link_libraries(veylqora_integration_tests
           veylqora_warnings veylqora_sanitizers)
 
 catch_discover_tests(veylqora_integration_tests)
+
+# The CLI smoke test runs the real binary as separate processes. It needs bash,
+# so it is registered on Unix only; the Windows build is verified by hand.
+if(UNIX)
+  find_program(BASH_PROGRAM bash REQUIRED)
+  add_test(NAME cli_slice
+    COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/integration/cli_slice.sh
+            $<TARGET_FILE:veylqora> ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/python)
+endif()

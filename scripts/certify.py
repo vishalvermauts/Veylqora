@@ -41,6 +41,19 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san"],
         },
     },
+    "1.1": {
+        "title": "Vertical slice: runtime, SQLite schema, Python indexer, CLI",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "scripts/ci.sh", "scripts/certify.py", "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            # One sandbox session: format, gcc, clang, sanitizers, and the
+            # certification verifier. Unit, integration and CLI tests all run
+            # under the gcc, clang and san jobs via ctest.
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
+        },
+    },
 }
 
 
