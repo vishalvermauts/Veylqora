@@ -1,11 +1,11 @@
-4209509 Sweep two HNSW configurations in spike S3
+94dc490 Fix broken printf string in spike S3
 /home/agent/s3/spikes/s3_usearch/main.cpp:160:15: error: missing terminating " character
 /home/agent/s3/spikes/s3_usearch/main.cpp:162:1: warning: missing terminating " character
-  162 | ", hp.connectivity, hp.expansion_add, hp.expansion_search);
+  162 | ",
       | ^
 /home/agent/s3/spikes/s3_usearch/main.cpp:162:1: error: missing terminating " character
-  162 | ", hp.connectivity, hp.expansion_add, hp.expansion_search);
-      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  162 | ",
+      | ^~
 /home/agent/s3/spikes/s3_usearch/main.cpp: In function 'int main()':
 /home/agent/s3/spikes/s3_usearch/main.cpp:161:1: error: 'HNSW' was not declared in this scope
   161 | HNSW M=%zu expansion_add=%zu expansion_search=%zu
