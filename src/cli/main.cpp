@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     }
     if (command == "search" && args.size() == 1 && !root.empty()) {
       for (const veylqora::SymbolHit& h : veylqora::find_symbols(db, root, args[0])) {
-        std::cout << h.path << ':' << h.start_line << '  ' << h.kind << '  ' << h.fqn << '\n';
+        std::cout << h.path << ':' << h.start_line << "  " << h.kind << '  ' << h.fqn << '\n';
       }
       return kExitOk;
     }
