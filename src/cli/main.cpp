@@ -41,7 +41,8 @@ std::string take_flag(std::vector<std::string>& args, const std::string& flag) {
   return {};
 }
 
-int run_index(veylqora::Database& db, const veylqora::Clock& clock, const std::string& root) {
+int run_index(veylqora::Database& db, const veylqora::Clock& clock,
+              const std::string& root) {
   veylqora::IndexOptions options;
   options.cancel = &g_cancel;
   options.on_progress = [](std::size_t done, std::size_t total) {
@@ -55,10 +56,10 @@ int run_index(veylqora::Database& db, const veylqora::Clock& clock, const std::s
     std::cout << "interrupted: re-run the same command to resume\n";
     return kExitError;
   }
-  std::cout << "indexed " << s.files_indexed << " file(s), unchanged " << s.files_unchanged
-            << ", removed " << s.files_removed << ", skipped " << s.files_skipped
-            << ", unreadable " << s.files_unreadable << ", symbols written " << s.symbols_written
-            << '\n';
+  std::cout << "indexed " << s.files_indexed << " file(s), unchanged "
+            << s.files_unchanged << ", removed " << s.files_removed << ", skipped "
+            << s.files_skipped << ", unreadable " << s.files_unreadable
+            << ", symbols written " << s.symbols_written << '\n';
   return kExitOk;
 }
 

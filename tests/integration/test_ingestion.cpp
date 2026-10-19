@@ -181,7 +181,8 @@ TEST_CASE("interrupted run keeps committed batches and does not remove anything"
   // Change every remaining file so the interrupted run has real work to commit,
   // and remove one so there is a removal the interrupted run must not apply.
   for (int i = 1; i < 10; ++i) {
-    write(tmp.path() / ("m_" + std::to_string(i) + ".py"), "def m_" + std::to_string(i) + "():\n    return 2\n");
+    write(tmp.path() / ("m_" + std::to_string(i) + ".py"),
+          "def m_" + std::to_string(i) + "():\n    return 2\n");
   }
   fs::remove(tmp.path() / "m_0.py");
 
