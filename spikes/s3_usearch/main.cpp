@@ -81,7 +81,7 @@ usearch::index_dense_t build_index(const std::vector<Vec>& data, const std::vect
     std::exit(1);
   }
   usearch::index_dense_t index = std::move(made.index);
-  index.reserve(usearch::index_limits_t{keys.size(), 1, 1});
+  index.reserve(usearch::index_limits_t(keys.size(), 1));
   for (Key k : keys) {
     auto r = index.add(k, data[k].data());
     if (!r) {
