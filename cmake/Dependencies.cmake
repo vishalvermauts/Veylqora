@@ -22,9 +22,9 @@ FetchContent_Declare(picosha2
   GIT_TAG        27fcf6979298949e8a462e16d09a0351c18fcaf2
   GIT_SHALLOW    FALSE
   SYSTEM)
+# PicoSHA2 defines its own `picosha2` interface target; SYSTEM above marks its
+# interface include directories as system, so we consume it as-is.
 FetchContent_MakeAvailable(picosha2)
-add_library(picosha2 INTERFACE)
-target_include_directories(picosha2 SYSTEM INTERFACE ${picosha2_SOURCE_DIR})
 
 # ---- Catch2 (tests only) ----------------------------------------------------
 if(VEYLQORA_BUILD_TESTS)
