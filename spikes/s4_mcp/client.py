@@ -34,21 +34,21 @@ async def run() -> dict:
             call = await session.call_tool("search_code", {"query": "symbol_id"})
             payload = call.structured_content or json.loads(call.content[0].text)
             record["checks"]["valid_call_returns_data"] = (
-                not call.isError and payload["hits"][0]["symbol"] == "symbol_id"
+                not call.is_error and payload["hits"][0]["symbol"] == "symbol_id"
             )
 
             try:
                 bad = await session.call_tool("search_code", {})
-                record["missing_arg"] = {"is_error": bool(bad.isError)}
-                record["checks"]["missing_arg_rejected"] = bool(bad.isError)
+                record["missing_arg"] = {"is_error": bool(bad.is_error)}
+                record["checks"]["missing_arg_rejected"] = bool(bad.is_error)
             except Exception as exc:  # protocol-level error is also a safe failure
                 record["missing_arg"] = {"raised": type(exc).__name__}
                 record["checks"]["missing_arg_rejected"] = True
 
             try:
                 unknown = await session.call_tool("no_such_tool", {})
-                record["unknown_tool"] = {"is_error": bool(unknown.isError)}
-                record["checks"]["unknown_tool_rejected"] = bool(unknown.isError)
+                record["unknown_tool"] = {"is_error": bool(unknown.is_error)}
+                record["checks"]["unknown_tool_rejected"] = bool(unknown.is_error)
             except Exception as exc:
                 record["unknown_tool"] = {"raised": type(exc).__name__}
                 record["checks"]["unknown_tool_rejected"] = True
