@@ -64,7 +64,8 @@ TEST_CASE("body fingerprint ignores formatting-only changes") {
   const auto unix_body = "def f():\n    return 1\n";
   CHECK(body_fingerprint(unix_body) == body_fingerprint("def f():\r\n    return 1\r\n"));
   CHECK(body_fingerprint(unix_body) == body_fingerprint("def f():   \n    return 1\t\n"));
-  CHECK(body_fingerprint(unix_body) == body_fingerprint("\n\ndef f():\n    return 1\n\n\n"));
+  CHECK(body_fingerprint(unix_body) ==
+        body_fingerprint("\n\ndef f():\n    return 1\n\n\n"));
 }
 
 TEST_CASE("body fingerprint detects real changes") {

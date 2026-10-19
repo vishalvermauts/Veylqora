@@ -1,9 +1,8 @@
 #include "veylqora/core/identity.hpp"
 
-#include <picosha2.h>
-
 #include <algorithm>
 #include <array>
+#include <picosha2.h>
 #include <string>
 
 namespace veylqora {

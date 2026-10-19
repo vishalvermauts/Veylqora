@@ -106,13 +106,13 @@ sbx_ensure() {
 # Provision once; the filesystem survives `sbx stop`, so later runs skip this.
 sbx_provision() {
   sbx --cloud exec "$SBX" -- bash -lc '
-    command -v cmake >/dev/null && command -v clang-format >/dev/null && exit 0
     set -e
     sudo -n mv /etc/apt/sources.list.d/docker.* /tmp/ 2>/dev/null || true
     sudo -n apt-get update -qq
     DEBIAN_FRONTEND=noninteractive sudo -n apt-get install -y -qq --no-install-recommends \
       build-essential cmake ninja-build pkg-config ccache \
-      clang clang-tidy clang-format lld llvm libsqlite3-dev sqlite3
+      clang clang-tidy clang-format lld llvm libsqlite3-dev sqlite3 \
+      libclang-rt-dev
     gcc --version | head -1; clang --version | head -1; cmake --version | head -1'
 }
 
