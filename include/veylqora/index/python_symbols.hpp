@@ -26,6 +26,7 @@ struct PySymbol {
 /// not resolve names, does not understand multi-line strings (a `def` inside a
 /// docstring is taken as code), and ignores decorators for the start line.
 /// Tree-sitter replaces it in M1.3a, with precision and recall measured there.
-std::vector<PySymbol> extract_python_symbols(std::string_view module, std::string_view source);
+std::vector<PySymbol> extract_python_symbols(std::string_view module,
+                                             std::string_view source);
 
 }  // namespace veylqora

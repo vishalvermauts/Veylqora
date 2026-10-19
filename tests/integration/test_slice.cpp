@@ -6,13 +6,13 @@
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/storage/database.hpp"
 
-#include <catch2/catch_test_macros.hpp>
-
 #include <filesystem>
 #include <fstream>
 #include <random>
 #include <string>
 #include <vector>
+
+#include <catch2/catch_test_macros.hpp>
 
 namespace fs = std::filesystem;
 
@@ -24,7 +24,8 @@ const fs::path kFixtures = VEYLQORA_FIXTURE_DIR "/python";
 class TempDir {
  public:
   TempDir()
-      : path_(fs::temp_directory_path() / ("veylqora-test-" + std::to_string(std::random_device{}()))) {
+      : path_(fs::temp_directory_path() /
+              ("veylqora-test-" + std::to_string(std::random_device{}()))) {
     fs::create_directories(path_);
   }
   ~TempDir() {
@@ -48,10 +49,12 @@ struct Expected {
 const std::vector<Expected> kExpected = {
     {"verify_token", "auth/tokens.py", "auth.tokens.verify_token", "function"},
     {"TokenStore", "auth/tokens.py", "auth.tokens.TokenStore", "class"},
-    {"compute_total", "billing/invoice.py", "billing.invoice.Invoice.compute_total", "method"},
+    {"compute_total", "billing/invoice.py", "billing.invoice.Invoice.compute_total",
+     "method"},
     {"Profile", "users/models.py", "users.models.User.Profile", "class"},
     {"describe", "users/models.py", "users.models.User.Profile.describe", "method"},
-    {"normalise", "users/service.py", "users.service.UserService.create_user.normalise", "function"},
+    {"normalise", "users/service.py", "users.service.UserService.create_user.normalise",
+     "function"},
     {"health", "api/routes.py", "api.routes.health", "function"},
     {"__call__", "api/middleware.py", "api.middleware.RequestLogger.__call__", "method"},
     {"measure", "util/timing.py", "util.timing.measure", "function"},

@@ -53,7 +53,8 @@ TEST_CASE("comments inside a body do not end it") {
 }
 
 TEST_CASE("repeated names in one scope get distinct overloads") {
-  const auto syms = extract_python_symbols("m", "def f():\n    pass\ndef f():\n    pass\n");
+  const auto syms =
+      extract_python_symbols("m", "def f():\n    pass\ndef f():\n    pass\n");
   REQUIRE(syms.size() == 2);
   CHECK(syms[0].fqn == syms[1].fqn);
   CHECK(syms[0].overload == 0);

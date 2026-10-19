@@ -62,14 +62,15 @@ int main(int argc, char** argv) {
 
     if (command == "index" && args.size() == 1) {
       const auto s = veylqora::index_project(db, clock, args[0]);
-      std::cout << "indexed " << s.files_indexed << " file(s), unchanged " << s.files_unchanged
-                << ", removed " << s.files_removed << ", symbols written " << s.symbols_written
-                << '\n';
+      std::cout << "indexed " << s.files_indexed << " file(s), unchanged "
+                << s.files_unchanged << ", removed " << s.files_removed
+                << ", symbols written " << s.symbols_written << '\n';
       return kExitOk;
     }
     if (command == "search" && args.size() == 1 && !root.empty()) {
       for (const veylqora::SymbolHit& h : veylqora::find_symbols(db, root, args[0])) {
-        std::cout << h.path << ':' << h.start_line << "  " << h.kind << '  ' << h.fqn << '\n';
+        std::cout << h.path << ':' << h.start_line << "  " << h.kind << '  ' << h.fqn
+                  << '\n';
       }
       return kExitOk;
     }

@@ -22,7 +22,8 @@ struct IndexStats {
 /// Brings the database in line with the Python files under `root`, in one
 /// transaction. Unchanged files are not re-parsed. Files that disappeared are
 /// removed along with their symbols.
-IndexStats index_project(Database& db, const Clock& clock, const std::filesystem::path& root);
+IndexStats index_project(Database& db, const Clock& clock,
+                         const std::filesystem::path& root);
 
 struct SymbolHit {
   std::string path;  // project-relative, '/' separated

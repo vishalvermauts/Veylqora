@@ -2,9 +2,8 @@
 
 #include "veylqora/core/error.hpp"
 
-#include <sqlite3.h>
-
 #include <array>
+#include <sqlite3.h>
 
 namespace veylqora {
 namespace {
@@ -56,7 +55,8 @@ Database::Database(const std::filesystem::path& file) {
     db_ = nullptr;
     throw Error("cannot open " + file.string() + ": " + msg);
   }
-  exec("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;");
+  exec(
+      "PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;");
   migrate();
 }
 
@@ -113,8 +113,8 @@ void Transaction::commit() {
 }
 
 Statement::Statement(Database& db, std::string_view sql) : db_(db.handle()) {
-  if (sqlite3_prepare_v2(db_, sql.data(), static_cast<int>(sql.size()), &stmt_, nullptr) !=
-      SQLITE_OK) {
+  if (sqlite3_prepare_v2(db_, sql.data(), static_cast<int>(sql.size()), &stmt_,
+                         nullptr) != SQLITE_OK) {
     throw Error(std::string("prepare failed: ") + sqlite3_errmsg(db_));
   }
 }

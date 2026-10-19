@@ -55,9 +55,10 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root)
 
   Transaction tx(db);
   {
-    Statement project(db,
-                      "INSERT INTO project (id, name, root_path, created_at) VALUES (?, ?, ?, ?) "
-                      "ON CONFLICT (id) DO NOTHING");
+    Statement project(
+        db,
+        "INSERT INTO project (id, name, root_path, created_at) VALUES (?, ?, ?, ?) "
+        "ON CONFLICT (id) DO NOTHING");
     project.bind(1, pid);
     project.bind(2, base.filename().string());
     project.bind(3, base.generic_string());
@@ -74,7 +75,8 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root)
       continue;
     }
     // Symlinks are never followed: a link can point outside the project.
-    if (entry.is_symlink() || !entry.is_regular_file() || entry.path().extension() != ".py") {
+    if (entry.is_symlink() || !entry.is_regular_file() ||
+        entry.path().extension() != ".py") {
       continue;
     }
     const std::string rel = fs::relative(entry.path(), base).generic_string();
@@ -87,7 +89,8 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root)
     const std::string sha = content_fingerprint(contents);
     present.insert(rel);
 
-    Statement existing(db, "SELECT content_sha256 FROM file WHERE project_id = ? AND rel_path = ?");
+    Statement existing(
+        db, "SELECT content_sha256 FROM file WHERE project_id = ? AND rel_path = ?");
     existing.bind(1, pid);
     existing.bind(2, rel);
     if (existing.step() && existing.text(0) == sha) {
@@ -96,11 +99,13 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root)
     }
 
     const std::string fid = content_fingerprint(pid + '\x1f' + rel);
-    Statement upsert(db,
-                     "INSERT INTO file (id, project_id, rel_path, language, content_sha256, size_bytes) "
-                     "VALUES (?, ?, ?, ?, ?, ?) "
-                     "ON CONFLICT (project_id, rel_path) DO UPDATE SET "
-                     "content_sha256 = excluded.content_sha256, size_bytes = excluded.size_bytes");
+    Statement upsert(
+        db,
+        "INSERT INTO file (id, project_id, rel_path, language, content_sha256, "
+        "size_bytes) "
+        "VALUES (?, ?, ?, ?, ?, ?) "
+        "ON CONFLICT (project_id, rel_path) DO UPDATE SET "
+        "content_sha256 = excluded.content_sha256, size_bytes = excluded.size_bytes");
     upsert.bind(1, fid);
     upsert.bind(2, pid);
     upsert.bind(3, rel);
@@ -116,9 +121,11 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root)
     for (const PySymbol& s : extract_python_symbols(module_name(rel), contents)) {
       const std::string sid = symbol_id(
           SymbolKey{pid, std::string(kLanguage), rel, s.fqn, s.kind, s.overload});
-      Statement ins(db,
-                    "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "
-                    "body_fingerprint, start_line, end_line) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      Statement ins(
+          db,
+          "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "
+          "body_fingerprint, start_line, end_line) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, "
+          "?)");
       ins.bind(1, sid);
       ins.bind(2, pid);
       ins.bind(3, fid);
@@ -154,7 +161,8 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root)
   return stats;
 }
 
-std::vector<SymbolHit> find_symbols(Database& db, const fs::path& root, std::string_view name) {
+std::vector<SymbolHit> find_symbols(Database& db, const fs::path& root,
+                                    std::string_view name) {
   const std::string pid = project_id(canonical_root(root));
   Statement q(db,
               "SELECT f.rel_path, s.fqn, s.kind, s.start_line FROM symbol s "

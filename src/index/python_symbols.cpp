@@ -18,7 +18,8 @@ struct Header {
 };
 
 bool is_ident(char c) {
-  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+         c == '_';
 }
 
 std::vector<std::string_view> split_lines(std::string_view source) {
@@ -56,7 +57,8 @@ std::optional<Header> parse_header(std::string_view text) {
 
 }  // namespace
 
-std::vector<PySymbol> extract_python_symbols(std::string_view module, std::string_view source) {
+std::vector<PySymbol> extract_python_symbols(std::string_view module,
+                                             std::string_view source) {
   const auto lines = split_lines(source);
   std::vector<PySymbol> out;
   std::vector<Scope> stack;
@@ -98,7 +100,8 @@ std::vector<PySymbol> extract_python_symbols(std::string_view module, std::strin
                                                : SymbolKind::function;
       const std::uint32_t overload = seen[fqn + '\x1f' + std::string(to_string(kind))]++;
 
-      out.push_back(PySymbol{std::string(header->name), fqn, kind, i + 1, i + 1, {}, overload});
+      out.push_back(
+          PySymbol{std::string(header->name), fqn, kind, i + 1, i + 1, {}, overload});
       stack.push_back(Scope{indent, out.size() - 1, header->is_class});
     }
     last_code = i + 1;
