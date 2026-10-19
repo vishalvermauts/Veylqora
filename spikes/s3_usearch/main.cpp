@@ -72,10 +72,19 @@ std::unordered_set<Key> exact_topk(const std::vector<Vec>& data, const std::vect
   return top;
 }
 
-usearch::index_dense_t build_index(const std::vector<Vec>& data, const std::vector<Key>& keys) {
+struct HnswParams {
+  std::size_t connectivity;  // M
+  std::size_t expansion_add;
+  std::size_t expansion_search;
+};
+
+usearch::index_dense_t build_index(const std::vector<Vec>& data, const std::vector<Key>& keys,
+                                   HnswParams hp) {
   const auto metric = usearch::metric_punned_t(kDims, usearch::metric_kind_t::cos_k,
                                                usearch::scalar_kind_t::f32_k);
-  auto made = usearch::index_dense_t::make(metric);
+  const usearch::index_dense_config_t config(hp.connectivity, hp.expansion_add,
+                                             hp.expansion_search);
+  auto made = usearch::index_dense_t::make(metric, config);
   if (!made) {
     std::fprintf(stderr, "make failed: %s\n", made.error.what());
     std::exit(1);
@@ -122,6 +131,10 @@ Eval evaluate(const usearch::index_dense_t& index, const std::vector<Vec>& data,
 }  // namespace
 
 int main() {
+  // Default-like settings first, then a stronger setting. The point is to see
+  // whether the deletion effect is masked by a weak baseline.
+  const HnswParams configs[] = {{16, 128, 64}, {32, 256, 256}};
+
   std::mt19937 rng(42);
   std::uniform_real_distribution<float> unit(-1.0f, 1.0f);
 
@@ -141,13 +154,18 @@ int main() {
   std::shuffle(order.begin(), order.end(), rng);
 
   std::vector<Key> all(order.begin(), order.end());
-  auto index = build_index(data, all);
+  
 
+  for (const HnswParams& hp : configs) {
+  std::printf("
+HNSW M=%zu expansion_add=%zu expansion_search=%zu
+", hp.connectivity, hp.expansion_add, hp.expansion_search);
   std::printf("corpus: n=%zu dims=%zu clusters=%zu queries=%zu k=%zu metric=cos f32\n", kN,
               kDims, kClusters, kQueries, kK);
   std::printf("%-10s %-8s %-11s %-12s %-14s %-12s %-10s\n", "deleted", "live", "index_size",
               "remove_ms", "recall@10", "rebuild@10", "search_us");
 
+  auto index = build_index(data, all, hp);
   std::unordered_set<Key> deleted;
   for (double frac : {0.0, 0.10, 0.25, 0.50}) {
     const std::size_t target = static_cast<std::size_t>(frac * kN);
@@ -176,13 +194,14 @@ int main() {
     const Eval tombstoned = evaluate(index, data, queries, live, deleted);
     // Compaction in this design is a rebuild from SQLite, so the rebuild figure
     // is what a compacted index would score.
-    const auto rebuilt = build_index(data, live);
+    const auto rebuilt = build_index(data, live, hp);
     const Eval compacted = evaluate(rebuilt, data, queries, live, deleted);
 
     std::printf("%-10.2f %-8zu %-11zu %-12.1f %-14.3f %-12.3f %-10.1f", frac, live.size(),
                 index.size(), remove_ms, tombstoned.recall, compacted.recall,
                 tombstoned.search_us);
     std::printf("  leaked=%zu\n", tombstoned.leaked);
+  }
   }
   return 0;
 }
