@@ -29,7 +29,7 @@ CHECKOUT=/home/agent/ci
 CPUS="${CPUS:-4}"
 MEMORY="${MEMORY:-8g}"
 TTL="${TTL:-30m}"
-ALL_JOBS=(format gcc clang san)
+ALL_JOBS=(format gcc clang san certs)
 
 ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com'
 
@@ -72,6 +72,10 @@ job_san() {
   _build_and_test build-san -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_CXX_COMPILER=clang++ -DVEYLQORA_SANITIZER=address+undefined
 }
+
+# Verifies committed certification evidence. Non-strict: a module that has not
+# been re-certified at HEAD is a warning here; release gating uses --strict.
+job_certs() { python3 "$SRC/scripts/verify_certs.py"; }
 
 job_tidy() {
   [ -f "$WORK/build-clang/compile_commands.json" ] || job_clang >/dev/null || return 1

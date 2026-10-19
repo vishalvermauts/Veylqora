@@ -15,7 +15,6 @@ cmake-build-*/
 __pycache__/
 node_modules/
 web/dist/
-docs/certification/**/*.log
 .sbx/
 *.local.toml
 .env
