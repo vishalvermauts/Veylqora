@@ -1,0 +1,7 @@
+# Normalise to LF in the repository. Shell scripts and CMake files run inside
+# the Linux build sandbox, where CRLF breaks shebang resolution.
+* text=auto eol=lf
+*.sh text eol=lf
+*.png binary
+*.jpg binary
+*.onnx binary
