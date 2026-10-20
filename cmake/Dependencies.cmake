@@ -47,6 +47,10 @@ file(DOWNLOAD "${TS_PY_BASE}/src/scanner.c" "${TS_PY_DIR}/src/scanner.c"
      EXPECTED_HASH SHA256=6db82134ac2d4c90a1a1475487a625cface02662ebda9b7478cad9c7147e9afe)
 file(DOWNLOAD "${TS_PY_BASE}/src/tree_sitter/parser.h" "${TS_PY_DIR}/src/tree_sitter/parser.h"
      EXPECTED_HASH SHA256=180b893c8734778fd32f372dfbc27bd6ad1cd2221f26150b31256ff6716320d2)
+file(DOWNLOAD "${TS_PY_BASE}/src/tree_sitter/alloc.h" "${TS_PY_DIR}/src/tree_sitter/alloc.h"
+     EXPECTED_HASH SHA256=b29c1c9fb7cc82f58c84b376df1297d6e2737a1d655fd356db0859e3c29c2fea)
+file(DOWNLOAD "${TS_PY_BASE}/src/tree_sitter/array.h" "${TS_PY_DIR}/src/tree_sitter/array.h"
+     EXPECTED_HASH SHA256=5bdf6ed1a78e3409fd443e085ca967a64c188a5d082aaf7f819bccd53a471c94)
 add_library(tree_sitter_python STATIC
   "${TS_PY_DIR}/src/parser.c"
   "${TS_PY_DIR}/src/scanner.c")
