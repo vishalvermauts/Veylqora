@@ -57,7 +57,6 @@ expect_exit 1 "$bin" memory add --root "$fixtures" --db "$db" --type decision --
 
 # --- export, import into a fresh database, export again ---------------------
 "$bin" memory export "$tmp/m1.jsonl" --root "$fixtures" --db "$db" >/dev/null
-"$bin" memory import "$tmp/m1.jsonl" --db "$tmp/fresh.db" >/dev/null || true
 "$bin" init --db "$tmp/fresh.db" >/dev/null
 "$bin" memory import "$tmp/m1.jsonl" --db "$tmp/fresh.db" | grep -q "imported 1 memories" || fail "import"
 "$bin" memory export "$tmp/m2.jsonl" --root "$fixtures" --db "$tmp/fresh.db" >/dev/null
