@@ -43,17 +43,18 @@ and of the agent's knowledge, linked together.
 
 ## How it works
 
-```
-   source tree ──► ingestion ──► tree-sitter parse ──► facts (calls, imports, bases)
-   (git-aware:                    per file                    │
-    honours .gitignore,                                       ▼
-    skips symlinks, binary,                       SQLite (WAL, one writer)
-    invalid UTF-8)                                 ├─ project, file, symbol
-                                                   ├─ fact, binding
-                                                   ├─ edge  ◄── resolver (whole project)
-                                                   └─ memory, revision, evidence, event
-                                                            ▲
-   agent / user ──► CLI or HTTP API (loopback) ─────────────┘
+```mermaid
+flowchart LR
+    src[("Source tree")] --> ing["Ingestion: git ls-files honours .gitignore; skips symlinks, binary, invalid UTF-8"]
+    ing --> parse["tree-sitter parse, one file at a time"]
+    parse --> facts["Facts: calls, imports, bases, name bindings"]
+    facts --> db[("SQLite in WAL mode, one writer")]
+    db --> res["Resolver: whole-project pass"]
+    res --> edges["Edges: resolved, heuristic or unresolved"]
+    edges --> db
+    user(["Agent or user"]) --> api["CLI or HTTP API, loopback only"]
+    api --> db
+    db --> mem["Memories: revisions, evidence, events"]
 ```
 
 1. **Ingestion.** Inside a git work tree, the file list comes from `git ls-files`, so
@@ -78,6 +79,25 @@ and of the agent's knowledge, linked together.
    table are allowed, and each needs a reason. A code change can raise a question
    (`active → suspected_stale`); answering it is a separate, recorded decision.
 
+```mermaid
+stateDiagram-v2
+    [*] --> active
+    active --> suspected_stale : code changed
+    active --> evidence_missing : cited symbol deleted
+    active --> superseded : replaced by a newer memory
+    suspected_stale --> active : revalidated
+    suspected_stale --> invalidated : proven wrong
+    suspected_stale --> superseded : replaced
+    evidence_missing --> active : re-anchored
+    evidence_missing --> invalidated : proven wrong
+    active --> archived
+    suspected_stale --> archived
+    evidence_missing --> archived
+    superseded --> archived
+    invalidated --> archived
+    archived --> [*]
+```
+
 ## Tech stack
 
 | Area | Choice | Why |
@@ -98,8 +118,7 @@ search, and an MCP server (ADR-0007) for AI coding clients.
 
 ## Current implementation
 
-Each module is
-certified by `scripts/certify.py`, which runs the checks at a pushed commit and
+Each module is certified by `scripts/certify.py`, which runs the checks at a pushed commit and
 records the result under `docs/certification/`.
 
 | Module | What it delivers | Status |
@@ -111,7 +130,7 @@ records the result under `docs/certification/`.
 | M1.2 | Git-aware ingestion, classification, batched and cancellable indexing | PASS (`71f7318`) |
 | M1.3a | Python code graph: tree-sitter symbols, edges with confidence, queries | PASS (`71b59f1`) |
 | M1.4 | Memory engine: revisions, CAS, state machine, evidence, retention, JSONL export/import | PASS (`be804fc`) |
-| M1.5 | Local HTTP API, `veylqora` CLI with `--json`, single-writer file lock | Implemented; certification being redone at the new head |
+| M1.5 | Local HTTP API, `veylqora` CLI with `--json`, single-writer file lock | PASS (`7e75860`) |
 | M1.6 | Read-only React dashboard served by the daemon | Certified PASS at `53fecc6`; a later attempt is recorded as PARTIAL |
 | M1.3b | JavaScript and TypeScript graph | Not started (v0.2) |
 | Phase 2 | Hybrid retrieval, incremental index maintenance, evidence invalidation, MCP server, context packaging, multi-agent coordination, observability | Not started |
@@ -233,7 +252,7 @@ Full gated run, in the cloud sandbox used for CI: `scripts/ci.sh`.
 
 ## Roadmap
 
-- **v0.1 (Phase 1):** finish M1.6 certification, then tag the release.
+- **v0.1 (Phase 1):** complete M1.6 certification, then tag the release.
 - **v0.2 (Phase 2):** TypeScript and JavaScript graph; hybrid retrieval with a local
   embedding model; detection of stale memories after code changes, with
   revalidation; an MCP server so coding agents can call Veylqora directly; context
