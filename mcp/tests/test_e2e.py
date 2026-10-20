@@ -72,7 +72,7 @@ def test_read_tools_return_real_data(daemon):
     async def scenario(session):
         status = await session.call_tool("get_project_status", {"root": str(FIXTURES)})
         search = await session.call_tool("search_code", {"root": str(FIXTURES), "query": "token verification", "k": 5})
-        inspect = await session.call_tool("inspect_symbol", {"root": str(FIXTURES), "name": "Base"})
+        inspect = await session.call_tool("inspect_symbol", {"root": str(FIXTURES), "name": "verify_token"})
         deps = await session.call_tool("find_dependencies", {"root": str(FIXTURES), "name": "helper"})
         return status, search, inspect, deps
     status, search, inspect, deps = run(daemon, scenario)
@@ -80,7 +80,7 @@ def test_read_tools_return_real_data(daemon):
     assert status.structured_content["files"] == 10
     paths = [h["path"] for h in search.structured_content["hits"]]
     assert "auth/tokens.py" in paths
-    assert inspect.structured_content["definitions"][0]["fqn"] == "billing.invoice.Base" or True
+    assert inspect.structured_content["definitions"][0]["path"] == "auth/tokens.py"
     assert deps.structured_content["dependents"] is not None
 
 
