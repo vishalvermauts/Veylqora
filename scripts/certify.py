@@ -61,6 +61,16 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
         },
     },
+    "2.4": {
+        "title": "Context packages: token budget, evidence resolution, warnings, no duplicates",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "mcp/*", "scripts/ci.sh", "scripts/certify.py", "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs", "mcp"],
+        },
+    },
     "2.5": {
         "title": "MCP server: nine tools over the local API, end-to-end with the MCP SDK client",
         "sources": [
