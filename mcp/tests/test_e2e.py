@@ -76,12 +76,12 @@ def test_memory_workflow_and_validity(daemon):
     async def scenario(session):
         created = await session.call_tool("record_memory", {
             "root": str(FIXTURES), "type": "decision", "content": "tokens are prefixed",
-            "author": "mcp-test", "evidence": [{"rel_path": "auth/tokens.py", "symbol_fqn": "auth.tokens.verify_token"}],
+            "agent": "mcp-test", "evidence": [{"rel_path": "auth/tokens.py", "symbol_fqn": "auth.tokens.verify_token"}],
         })
         memory_id = data(created)["id"]
-        found = await session.call_tool("search_memories", {"root": str(FIXTURES), "text": "prefixed"})
-        evidence = await session.call_tool("inspect_evidence", {"root": str(FIXTURES), "memory_id": memory_id})
-        validity = await session.call_tool("check_memory_validity", {"root": str(FIXTURES), "memory_id": memory_id})
+        found = await session.call_tool("search_memories", {"root": str(FIXTURES), "agent": "mcp-test", "text": "prefixed"})
+        evidence = await session.call_tool("inspect_evidence", {"root": str(FIXTURES), "memory_id": memory_id, "agent": "mcp-test"})
+        validity = await session.call_tool("check_memory_validity", {"root": str(FIXTURES), "memory_id": memory_id, "agent": "mcp-test"})
         return memory_id, found, evidence, validity
     memory_id, found, evidence, validity = run(daemon, scenario)
     assert any(m["id"] == memory_id for m in data(found)["memories"])
@@ -123,3 +123,22 @@ def test_refuses_a_non_loopback_daemon(daemon):
     result = asyncio.run(main())
     assert result.is_error
     assert "loopback" in result.content[0].text
+
+
+def test_one_agent_cannot_read_another_agents_private_memory(daemon):
+    async def scenario(session):
+        created = await session.call_tool("record_memory", {
+            "root": str(FIXTURES), "type": "observation", "content": "alice's private note",
+            "agent": "alice"})
+        memory_id = data(created)["id"]
+        own = await session.call_tool("inspect_evidence", {
+            "root": str(FIXTURES), "memory_id": memory_id, "agent": "alice"})
+        other = await session.call_tool("inspect_evidence", {
+            "root": str(FIXTURES), "memory_id": memory_id, "agent": "bob"})
+        found = await session.call_tool("search_memories", {
+            "root": str(FIXTURES), "agent": "bob", "text": "alice's private note"})
+        return own, other, found
+    own, other, found = run(daemon, scenario)
+    assert not own.is_error
+    assert other.is_error
+    assert not any("private note" in m["content"] for m in data(found)["memories"])

@@ -38,7 +38,7 @@ def call_context(url, task, budget):
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 result = await session.call_tool("get_task_context",
-                                                 {"root": str(FIXTURES_ROOT), "task": task,
+                                                 {"root": str(FIXTURES_ROOT), "task": task, "agent": "ctx-test",
                                                   "budget_tokens": budget})
                 return result.structured_content or __import__("json").loads(result.content[0].text)
     return asyncio.run(scenario())
@@ -93,7 +93,7 @@ def test_a_memory_whose_cited_code_changed_carries_a_warning(daemon):
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 result = await session.call_tool("get_task_context",
-                                                 {"root": str(src), "task": "verify token check"})
+                                                 {"root": str(src), "task": "verify token check", "agent": "ctx-test"})
                 return result.structured_content or __import__("json").loads(result.content[0].text)
     package = asyncio.run(scenario())
     warned = [w for w in package["sections"]["warnings"] if w["id"] == memory["id"]]

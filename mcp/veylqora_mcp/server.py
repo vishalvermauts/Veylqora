@@ -108,9 +108,10 @@ def find_dependencies(root: str, name: str) -> dict:
 
 
 @mcp.tool()
-def search_memories(root: str, text: str = "", state: str = "") -> dict:
-    """Stored memories whose content contains the text, optionally in one state."""
-    memories = call("GET", "/api/v1/memories", {"root": require_text("root", root), "state": state})
+def search_memories(root: str, agent: str, text: str = "", state: str = "") -> dict:
+    """Memories this agent may see whose content contains the text, optionally in one state."""
+    memories = call("GET", "/api/v1/memories",
+                    {"root": require_text("root", root), "state": state, "viewer": require_text("agent", agent)})
     needle = text.lower()
     matches = [m for m in memories if not needle or needle in m["content"].lower()]
     return {"memories": matches}
@@ -121,27 +122,29 @@ def record_memory(
     root: str,
     type: str,
     content: str,
-    author: str,
+    agent: str,
     evidence: list[dict] | None = None,
     scope: str = "",
 ) -> dict:
     """Store a memory. Evidence entries are {"rel_path": ..., "symbol_fqn": ...} and must name indexed symbols."""
     body = {"root": require_text("root", root), "type": require_text("type", type),
-            "content": require_text("content", content), "author": require_text("author", author),
+            "content": require_text("content", content), "author": require_text("agent", agent),
             "evidence": evidence or [], "scope": scope}
     return call("POST", "/api/v1/memories", body=body)
 
 
 @mcp.tool()
-def inspect_evidence(root: str, memory_id: str) -> dict:
-    """A memory with its evidence, revision history and state transitions."""
-    return call("GET", "/api/v1/memories/" + require_text("memory_id", memory_id), {"root": root})
+def inspect_evidence(root: str, memory_id: str, agent: str) -> dict:
+    """A memory this agent may see, with its evidence, history and transitions."""
+    return call("GET", "/api/v1/memories/" + require_text("memory_id", memory_id),
+                {"root": root, "viewer": require_text("agent", agent)})
 
 
 @mcp.tool()
-def check_memory_validity(root: str, memory_id: str) -> dict:
-    """Whether a memory still matches the code it cites. Flagged memories carry a warning."""
-    memory = call("GET", "/api/v1/memories/" + require_text("memory_id", memory_id), {"root": root})
+def check_memory_validity(root: str, memory_id: str, agent: str) -> dict:
+    """Whether a memory this agent may see still matches the code it cites."""
+    memory = call("GET", "/api/v1/memories/" + require_text("memory_id", memory_id),
+                  {"root": root, "viewer": require_text("agent", agent)})
     flagged = memory["state"] in ("suspected_stale", "evidence_missing")
     warning = None
     if flagged:
@@ -151,7 +154,7 @@ def check_memory_validity(root: str, memory_id: str) -> dict:
 
 
 @mcp.tool()
-def get_task_context(root: str, task: str, budget_tokens: int = 2000) -> dict:
+def get_task_context(root: str, task: str, agent: str, budget_tokens: int = 2000) -> dict:
     """A bounded, evidence-linked context package for a task (ADR-0016).
 
     Sections fill in order: warnings, then memories, then code. Each item is added
@@ -179,7 +182,7 @@ def get_task_context(root: str, task: str, budget_tokens: int = 2000) -> dict:
         return True
 
     needle = task.lower().split()
-    memories = call("GET", "/api/v1/memories", {"root": root})
+    memories = call("GET", "/api/v1/memories", {"root": root, "viewer": require_text("agent", agent)})
     matching = [m for m in memories if any(w in m["content"].lower() for w in needle)]
 
     flagged = [m for m in matching if m["state"] in ("suspected_stale", "evidence_missing")]
@@ -189,7 +192,7 @@ def get_task_context(root: str, task: str, budget_tokens: int = 2000) -> dict:
         if m["id"] in seen_memories:
             continue
         seen_memories.add(m["id"])
-        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": root})
+        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": root, "viewer": agent})
         take("warnings", {"id": m["id"], "state": m["state"], "content": m["content"],
                           "warning": "the code this memory cites changed or disappeared; review it",
                           "evidence": detail["evidence"]})
@@ -198,7 +201,7 @@ def get_task_context(root: str, task: str, budget_tokens: int = 2000) -> dict:
         if m["id"] in seen_memories:
             continue
         seen_memories.add(m["id"])
-        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": root})
+        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": root, "viewer": agent})
         take("memories", {"id": m["id"], "content": m["content"], "evidence": detail["evidence"]})
 
     for h in call("GET", "/api/v1/retrieve", {"root": root, "query": task, "k": 50})["hits"]:
