@@ -1,5 +1,6 @@
 #include "veylqora/core/error.hpp"
 #include "veylqora/core/runtime.hpp"
+#include "veylqora/graph/query.hpp"
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/storage/database.hpp"
 
@@ -63,6 +64,25 @@ int run_index(veylqora::Database& db, const veylqora::Clock& clock,
   return kExitOk;
 }
 
+int run_graph(veylqora::Database& db, const std::string& root, const std::string& name) {
+  std::cout << "depends on " << name << " (dependents):
+";
+  for (const veylqora::GraphEdge& e : veylqora::dependents_of(db, root, name)) {
+    std::cout << "  " << e.kind << "  " << e.src_fqn << "  [" << e.resolution << "]  " << e.src_path
+              << ':' << e.line << '
+';
+  }
+  std::cout << name << " depends on (dependencies):
+";
+  for (const veylqora::GraphEdge& e : veylqora::dependencies_of(db, root, name)) {
+    std::cout << "  " << e.kind << "  "
+              << (e.dst_fqn.empty() ? std::string("?") + e.dst_hint : e.dst_fqn) << "  ["
+              << e.resolution << "]
+";
+  }
+  return kExitOk;
+}
+
 int run_search(veylqora::Database& db, const std::string& root, const std::string& name) {
   for (const veylqora::SymbolHit& h : veylqora::find_symbols(db, root, name)) {
     std::cout << h.path << ':' << h.start_line << "  " << h.kind << "  " << h.fqn << '\n';
@@ -99,6 +119,9 @@ int main(int argc, char** argv) {
     if (command == "index" && args.size() == 1) return run_index(db, clock, args[0]);
     if (command == "search" && args.size() == 1 && !root.empty()) {
       return run_search(db, root, args[0]);
+    }
+    if (command == "graph" && args.size() == 1 && !root.empty()) {
+      return run_graph(db, root, args[0]);
     }
     usage();
     return kExitUsage;

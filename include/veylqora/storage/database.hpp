@@ -53,6 +53,10 @@ class Statement {
 
   void bind(int index, std::string_view value);
   void bind(int index, std::int64_t value);
+  void bind_null(int index);
+
+  /// Rewinds for another execution with fresh bindings.
+  void reset();
 
   /// Advances to the next row. Returns false when no rows remain.
   bool step();

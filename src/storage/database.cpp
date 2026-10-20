@@ -42,7 +42,41 @@ CREATE TABLE symbol (
 );
 
 CREATE INDEX symbol_by_name ON symbol (project_id, name);
-)sql"}};
+)sql"},
+    // v2: the code graph (ADR-0010). Facts are what the parser saw; edges are
+    // derived from facts by the resolver and rebuilt on every completed run.
+    std::string_view{R"sql(
+CREATE TABLE fact (
+  file_id TEXT NOT NULL REFERENCES file(id) ON DELETE CASCADE,
+  src_symbol_id TEXT NOT NULL REFERENCES symbol(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK (kind IN ('call', 'inherits', 'import')),
+  name TEXT NOT NULL,
+  qualifier TEXT NOT NULL,
+  scope TEXT NOT NULL,
+  line INTEGER NOT NULL
+);
+CREATE INDEX fact_by_file ON fact (file_id);
+
+CREATE TABLE binding (
+  file_id TEXT NOT NULL REFERENCES file(id) ON DELETE CASCADE,
+  local_name TEXT NOT NULL,
+  target_fqn TEXT NOT NULL,
+  PRIMARY KEY (file_id, local_name)
+);
+
+CREATE TABLE edge (
+  project_id TEXT NOT NULL REFERENCES project(id) ON DELETE CASCADE,
+  src_symbol_id TEXT NOT NULL REFERENCES symbol(id) ON DELETE CASCADE,
+  dst_symbol_id TEXT REFERENCES symbol(id) ON DELETE CASCADE,
+  dst_hint TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('contains', 'imports', 'calls', 'inherits')),
+  resolution TEXT NOT NULL CHECK (resolution IN ('resolved', 'heuristic', 'unresolved')),
+  line INTEGER NOT NULL
+);
+CREATE INDEX edge_by_src ON edge (src_symbol_id, kind);
+CREATE INDEX edge_by_dst ON edge (dst_symbol_id, kind);
+)sql"},
+};
 
 }  // namespace
 
@@ -126,6 +160,17 @@ void Statement::bind(int index, std::string_view value) {
                         SQLITE_TRANSIENT) != SQLITE_OK) {
     throw Error(std::string("bind failed: ") + sqlite3_errmsg(db_));
   }
+}
+
+void Statement::bind_null(int index) {
+  if (sqlite3_bind_null(stmt_, index) != SQLITE_OK) {
+    throw Error(std::string("bind failed: ") + sqlite3_errmsg(db_));
+  }
+}
+
+void Statement::reset() {
+  sqlite3_reset(stmt_);
+  sqlite3_clear_bindings(stmt_);
 }
 
 void Statement::bind(int index, std::int64_t value) {

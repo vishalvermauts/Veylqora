@@ -5,7 +5,9 @@ add_library(veylqora_core
   index/indexer.cpp
   ingestion/process.cpp
   ingestion/source.cpp
-  index/python_symbols.cpp
+  index/python_parser.cpp
+  graph/resolver.cpp
+  graph/query.cpp
   storage/database.cpp)
 
 target_include_directories(veylqora_core
@@ -13,7 +15,7 @@ target_include_directories(veylqora_core
 
 target_link_libraries(veylqora_core
   PUBLIC SQLite::SQLite3
-  PRIVATE picosha2 veylqora_warnings veylqora_sanitizers)
+  PRIVATE picosha2 tree-sitter tree-sitter-python veylqora_warnings veylqora_sanitizers)
 
 add_library(veylqora::core ALIAS veylqora_core)
 

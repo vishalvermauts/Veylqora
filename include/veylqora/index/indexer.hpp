@@ -30,6 +30,7 @@ struct IndexStats {
   std::size_t files_removed =
       0;  // deleted from disk or from the project since the last run
   std::size_t files_skipped = 0;     // not indexable: binary, invalid UTF-8, too large
+  std::size_t files_with_syntax_errors = 0;  // indexed partially, see the warning
   std::size_t files_unreadable = 0;  // I/O error; previously indexed rows were kept
   std::size_t symbols_written = 0;
   bool canceled = false;  // stopped early; re-running resumes from the stored state

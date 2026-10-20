@@ -48,7 +48,7 @@ TEST_CASE("empty python file is indexed with no symbols") {
   veylqora::Database db(tmp.path() / "v.db");
   const auto stats = veylqora::index_project(db, kClock, tmp.path());
   CHECK(stats.files_indexed == 1);
-  CHECK(stats.symbols_written == 0);
+  CHECK(stats.symbols_written == 1);  // the module itself, and nothing inside it
 }
 
 TEST_CASE("large repository is processed in batches with progress") {

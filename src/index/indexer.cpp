@@ -3,7 +3,8 @@
 #include "veylqora/core/error.hpp"
 #include "veylqora/core/identity.hpp"
 #include "veylqora/core/log.hpp"
-#include "veylqora/index/python_symbols.hpp"
+#include "veylqora/graph/resolver.hpp"
+#include "veylqora/index/python_parser.hpp"
 #include "veylqora/ingestion/source.hpp"
 
 #include <algorithm>
@@ -66,17 +67,28 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
   upsert.bind(6, static_cast<std::int64_t>(contents.size()));
   upsert.step();
 
+  // Deleting a file's symbols cascades to its facts and edges; bindings are
+  // keyed by file, so they are cleared explicitly.
   Statement clear(db, "DELETE FROM symbol WHERE file_id = ?");
   clear.bind(1, fid);
   clear.step();
+  Statement clear_bindings(db, "DELETE FROM binding WHERE file_id = ?");
+  clear_bindings.bind(1, fid);
+  clear_bindings.step();
 
-  for (const PySymbol& s : extract_python_symbols(module_name(rel), contents)) {
-    const std::string sid =
-        symbol_id(SymbolKey{pid, "python", rel, s.fqn, s.kind, s.overload});
-    Statement ins(
-        db,
-        "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "
-        "body_fingerprint, start_line, end_line) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  const PyFile parsed = parse_python(module_name(rel), contents);
+  if (parsed.has_syntax_errors) {
+    log::warn(rel + ": syntax errors; indexing the parts that parsed");
+    ++stats.files_with_syntax_errors;
+  }
+
+  std::vector<std::string> sids;
+  sids.reserve(parsed.symbols.size());
+  for (const PySymbol& s : parsed.symbols) {
+    const std::string sid = symbol_id(SymbolKey{pid, "python", rel, s.fqn, s.kind, s.overload});
+    Statement ins(db,
+                  "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "
+                  "body_fingerprint, start_line, end_line) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     ins.bind(1, sid);
     ins.bind(2, pid);
     ins.bind(3, fid);
@@ -88,7 +100,35 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
     ins.bind(9, static_cast<std::int64_t>(s.start_line));
     ins.bind(10, static_cast<std::int64_t>(s.end_line));
     ins.step();
+    sids.push_back(sid);
     ++stats.symbols_written;
+  }
+
+  for (const PyFact& f : parsed.facts) {
+    std::string_view kind = "import";
+    if (f.kind == FactKind::call) kind = "call";
+    if (f.kind == FactKind::inherits) kind = "inherits";
+    Statement ins(db,
+                  "INSERT INTO fact (file_id, src_symbol_id, kind, name, qualifier, scope, line) "
+                  "VALUES (?, ?, ?, ?, ?, ?, ?)");
+    ins.bind(1, fid);
+    ins.bind(2, sids[f.src]);
+    ins.bind(3, kind);
+    ins.bind(4, f.name);
+    ins.bind(5, f.qualifier);
+    ins.bind(6, f.scope);
+    ins.bind(7, static_cast<std::int64_t>(f.line));
+    ins.step();
+  }
+
+  for (const PyBinding& b : parsed.bindings) {
+    Statement ins(db,
+                  "INSERT OR REPLACE INTO binding (file_id, local_name, target_fqn) "
+                  "VALUES (?, ?, ?)");
+    ins.bind(1, fid);
+    ins.bind(2, b.local);
+    ins.bind(3, b.target);
+    ins.step();
   }
   ++stats.files_indexed;
 }
@@ -199,6 +239,11 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root,
     if (present.count(rel) != 0) continue;
     drop_file(db, pid, rel);
     ++stats.files_removed;
+  }
+
+  // Edges depend on every file, so they are rebuilt only when something changed.
+  if (stats.files_indexed + stats.files_removed + stats.files_skipped > 0) {
+    rebuild_graph(db, pid);
   }
   tx.commit();
   return stats;
