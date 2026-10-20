@@ -26,6 +26,29 @@ FetchContent_Declare(picosha2
 # interface include directories as system, so we consume it as-is.
 FetchContent_MakeAvailable(picosha2)
 
+# ---- tree-sitter and the Python grammar (M1.3a, ADR-0010) --------------------
+# The grammar is compiled directly from its generated parser.c and scanner.c.
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(tree_sitter
+  GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter.git
+  GIT_TAG        v0.27.1
+  GIT_SHALLOW    TRUE
+  SYSTEM)
+FetchContent_MakeAvailable(tree_sitter)
+
+FetchContent_Declare(tree_sitter_python
+  GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-python.git
+  GIT_TAG        v0.25.0
+  GIT_SHALLOW    TRUE
+  SYSTEM)
+FetchContent_Populate(tree_sitter_python)
+add_library(tree_sitter_python STATIC
+  ${tree_sitter_python_SOURCE_DIR}/src/parser.c
+  ${tree_sitter_python_SOURCE_DIR}/src/scanner.c)
+target_include_directories(tree_sitter_python SYSTEM PUBLIC
+  ${tree_sitter_python_SOURCE_DIR}/src)
+target_link_libraries(tree_sitter_python PUBLIC tree-sitter)
+
 # ---- Catch2 (tests only) ----------------------------------------------------
 if(VEYLQORA_BUILD_TESTS)
   FetchContent_Declare(Catch2
