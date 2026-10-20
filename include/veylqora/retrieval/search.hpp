@@ -32,13 +32,13 @@ struct Hit {
   std::string path;  // project-relative; this is the evidence reference
   std::string kind;
   std::int64_t line;
-  double score;      // fused score; higher is better
+  double score;  // fused score; higher is better
 };
 
 /// Ranks the project's definitions against a free-text query. Deterministic:
 /// the same index, query and options give the same list in the same order.
 /// Throws Error for an empty or over-long query, or an out-of-range top_k.
-std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root, std::string_view query,
-                          const RetrievalOptions& options = {});
+std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root,
+                          std::string_view query, const RetrievalOptions& options = {});
 
 }  // namespace veylqora

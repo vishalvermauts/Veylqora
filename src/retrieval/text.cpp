@@ -43,9 +43,9 @@ std::vector<std::string> tokenize(std::string_view text) {
       continue;
     }
     // Start a new token at camelCase boundaries: "parseHTTP" -> parse, http.
-    const bool boundary = is_upper(c) && !current.empty() &&
-                          (is_lower(text[i - 1]) ||
-                           (i + 1 < text.size() && is_lower(text[i + 1])));
+    const bool boundary =
+        is_upper(c) && !current.empty() &&
+        (is_lower(text[i - 1]) || (i + 1 < text.size() && is_lower(text[i + 1])));
     if (boundary) flush();
     current += static_cast<char>(c >= 'A' && c <= 'Z' ? c - 'A' + 'a' : c);
   }
@@ -53,7 +53,8 @@ std::vector<std::string> tokenize(std::string_view text) {
   return out;
 }
 
-std::array<float, kVectorDims> embed(const std::vector<std::string>& tokens, float weight) {
+std::array<float, kVectorDims> embed(const std::vector<std::string>& tokens,
+                                     float weight) {
   std::array<float, kVectorDims> v{};
   for (const std::string& t : tokens) {
     const std::uint64_t h = fnv1a(t);
@@ -65,7 +66,8 @@ std::array<float, kVectorDims> embed(const std::vector<std::string>& tokens, flo
   return v;
 }
 
-void accumulate(std::array<float, kVectorDims>& into, const std::array<float, kVectorDims>& other) {
+void accumulate(std::array<float, kVectorDims>& into,
+                const std::array<float, kVectorDims>& other) {
   for (std::size_t i = 0; i < kVectorDims; ++i) into[i] += other[i];
 }
 
@@ -77,7 +79,8 @@ void normalise(std::array<float, kVectorDims>& v) {
   for (float& x : v) x *= inv;
 }
 
-float dot(const std::array<float, kVectorDims>& a, const std::array<float, kVectorDims>& b) {
+float dot(const std::array<float, kVectorDims>& a,
+          const std::array<float, kVectorDims>& b) {
   float sum = 0.0F;
   for (std::size_t i = 0; i < kVectorDims; ++i) sum += a[i] * b[i];
   return sum;

@@ -88,7 +88,9 @@ void store_retrieval_rows(Database& db, const std::string& pid, const std::strin
   all.insert(fqn_tokens.begin(), fqn_tokens.end());
   all.insert(body_tokens.begin(), body_tokens.end());
   for (const std::string& token : all) {
-    Statement ins(db, "INSERT OR IGNORE INTO token (project_id, token, symbol_id) VALUES (?, ?, ?)");
+    Statement ins(
+        db,
+        "INSERT OR IGNORE INTO token (project_id, token, symbol_id) VALUES (?, ?, ?)");
     ins.bind(1, pid);
     ins.bind(2, token);
     ins.bind(3, sid);
@@ -101,7 +103,8 @@ void store_retrieval_rows(Database& db, const std::string& pid, const std::strin
   normalise(v);
   std::string blob(sizeof(v), '\0');
   std::memcpy(blob.data(), v.data(), sizeof(v));
-  Statement vec(db, "INSERT INTO symbol_vec (symbol_id, project_id, vec) VALUES (?, ?, ?)");
+  Statement vec(db,
+                "INSERT INTO symbol_vec (symbol_id, project_id, vec) VALUES (?, ?, ?)");
   vec.bind(1, sid);
   vec.bind(2, pid);
   vec.bind_blob(3, blob);

@@ -54,7 +54,8 @@ void usage() {
          "  veylqora memory update <id> --root <root> --expected <n> --content <c>\n"
          "                      --actor <a> --reason <r>                   (+ "
          "db/server)\n"
-         "  veylqora memory accept <id> --root <root> --expected <n> --actor <a> --reason <r>\n"
+         "  veylqora memory accept <id> --root <root> --expected <n> --actor <a> "
+         "--reason <r>\n"
          "  veylqora memory transition <id> --root <root> --expected <n> --to <s>\n"
          "                      --actor <a> --reason <r>                   (+ "
          "db/server)\n"
@@ -141,7 +142,8 @@ class DirectBackend final : public Backend {
                               id, body);
   }
   Json memory_accept(const std::string& id, const Json& body) override {
-    return api::memory_accept(db_, clock_, fs::path(body.at("root").get<std::string>()), id, body);
+    return api::memory_accept(db_, clock_, fs::path(body.at("root").get<std::string>()),
+                              id, body);
   }
   Json memory_transition(const std::string& id, const Json& body) override {
     return api::memory_transition(db_, clock_,
@@ -425,7 +427,8 @@ int run(const Args& args) {
                        {"actor", args.flag("actor")},
                        {"reason", args.flag("reason")}};
     result = backend->memory_update(args.positional[2], body);
-  } else if (command == "memory" && sub == "accept" && args.positional.size() == 3 && !root.empty()) {
+  } else if (command == "memory" && sub == "accept" && args.positional.size() == 3 &&
+             !root.empty()) {
     const Json body = {{"root", root.string()},
                        {"expected_revision", std::stoll(args.flag("expected"))},
                        {"actor", args.flag("actor")},

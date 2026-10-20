@@ -12,9 +12,9 @@
 namespace veylqora {
 namespace {
 
-constexpr double kRrfK = 60.0;         // reciprocal rank fusion constant (ADR-0015)
-constexpr double kGraphWeight = 0.5;   // graph neighbours count half as much
-constexpr std::size_t kSeeds = 10;     // top results whose neighbours are explored
+constexpr double kRrfK = 60.0;        // reciprocal rank fusion constant (ADR-0015)
+constexpr double kGraphWeight = 0.5;  // graph neighbours count half as much
+constexpr std::size_t kSeeds = 10;    // top results whose neighbours are explored
 
 struct Cand {
   std::string id;
@@ -38,14 +38,16 @@ void sort_by_score(std::vector<std::pair<std::string, double>>& scored) {
 std::unordered_map<std::string, Cand> candidates(Database& db, const std::string& pid,
                                                  const RetrievalOptions& options) {
   std::unordered_map<std::string, Cand> out;
-  Statement q(db,
-              "SELECT s.id, s.fqn, f.rel_path, s.kind, s.start_line FROM symbol s "
-              "JOIN file f ON f.id = s.file_id WHERE s.project_id = ? AND s.kind != 'module'");
+  Statement q(
+      db,
+      "SELECT s.id, s.fqn, f.rel_path, s.kind, s.start_line FROM symbol s "
+      "JOIN file f ON f.id = s.file_id WHERE s.project_id = ? AND s.kind != 'module'");
   q.bind(1, pid);
   while (q.step()) {
     Cand c{q.text(0), q.text(1), q.text(2), q.text(3), q.integer(4)};
     if (!options.kind.empty() && c.kind != options.kind) continue;
-    if (!options.path_prefix.empty() && c.path.compare(0, options.path_prefix.size(), options.path_prefix) != 0) {
+    if (!options.path_prefix.empty() &&
+        c.path.compare(0, options.path_prefix.size(), options.path_prefix) != 0) {
       continue;
     }
     out.emplace(c.id, std::move(c));
@@ -53,7 +55,8 @@ std::unordered_map<std::string, Cand> candidates(Database& db, const std::string
   return out;
 }
 
-Ranking lexical_ranking(Database& db, const std::string& pid, const std::vector<std::string>& tokens,
+Ranking lexical_ranking(Database& db, const std::string& pid,
+                        const std::vector<std::string>& tokens,
                         const std::unordered_map<std::string, Cand>& cands) {
   std::unordered_map<std::string, double> hits;
   for (const std::string& t : tokens) {
@@ -71,7 +74,8 @@ Ranking lexical_ranking(Database& db, const std::string& pid, const std::vector<
   return out;
 }
 
-Ranking vector_ranking(Database& db, const std::string& pid, const std::vector<std::string>& tokens,
+Ranking vector_ranking(Database& db, const std::string& pid,
+                       const std::vector<std::string>& tokens,
                        const std::unordered_map<std::string, Cand>& cands) {
   const auto query = embed(tokens, 1.0F);
   std::vector<std::pair<std::string, double>> scored;
@@ -98,7 +102,8 @@ Ranking graph_ranking(Database& db, const Ranking& seeds,
                       const std::unordered_map<std::string, Cand>& cands) {
   std::unordered_map<std::string, double> reached;
   Statement out_q(db,
-                  "SELECT dst_symbol_id FROM edge WHERE src_symbol_id = ? AND dst_symbol_id IS NOT NULL "
+                  "SELECT dst_symbol_id FROM edge WHERE src_symbol_id = ? AND "
+                  "dst_symbol_id IS NOT NULL "
                   "AND resolution != 'unresolved' AND kind != 'contains'");
   Statement in_q(db,
                  "SELECT src_symbol_id FROM edge WHERE dst_symbol_id = ? AND "
@@ -120,7 +125,8 @@ Ranking graph_ranking(Database& db, const Ranking& seeds,
   return out;
 }
 
-void fuse(std::unordered_map<std::string, double>& score, const Ranking& ranking, double weight) {
+void fuse(std::unordered_map<std::string, double>& score, const Ranking& ranking,
+          double weight) {
   for (std::size_t i = 0; i < ranking.size(); ++i) {
     score[ranking[i]] += weight / (kRrfK + static_cast<double>(i + 1));
   }
@@ -128,8 +134,8 @@ void fuse(std::unordered_map<std::string, double>& score, const Ranking& ranking
 
 }  // namespace
 
-std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root, std::string_view query,
-                          const RetrievalOptions& options) {
+std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root,
+                          std::string_view query, const RetrievalOptions& options) {
   if (query.size() > kMaxQueryChars) throw Error("query is longer than 512 characters");
   if (options.top_k == 0) throw Error("top_k must be at least 1");
   const std::vector<std::string> tokens = tokenize(query);

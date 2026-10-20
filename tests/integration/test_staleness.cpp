@@ -217,7 +217,9 @@ TEST_CASE("accepting a flagged memory returns it to active and keeps it there") 
   m.evidence = {{"auth.py", "auth.verify"}};
   const std::string id = veylqora::create_memory(db, clock, ids, src, m);
 
-  write(src / "auth.py", "def verify(token):\n    return bool(token)\n\n\ndef unrelated():\n    return 1\n");
+  write(
+      src / "auth.py",
+      "def verify(token):\n    return bool(token)\n\n\ndef unrelated():\n    return 1\n");
   api::index(db, clock, src);
   REQUIRE(veylqora::get_memory(db, src, id)->state == "suspected_stale");
 

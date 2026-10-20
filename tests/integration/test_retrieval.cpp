@@ -6,15 +6,15 @@
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/retrieval/search.hpp"
 #include "veylqora/storage/database.hpp"
-#include "support/temp_dir.hpp"
-
-#include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
 #include <filesystem>
 #include <set>
 #include <string>
 #include <vector>
+
+#include "support/temp_dir.hpp"
+#include <catch2/catch_test_macros.hpp>
 
 namespace fs = std::filesystem;
 using veylqora::test::TempDir;
@@ -32,12 +32,16 @@ struct Labelled {
 
 // Written from reading tests/fixtures/python before any ranking was run.
 const std::vector<Labelled> kLabelled = {
-    {"token verification", {"auth.tokens.verify_token", "auth.tokens.issue_token", "auth.tokens.TokenStore"}},
-    {"password hashing", {"auth.passwords.hash_password", "auth.passwords.check_password", "auth.passwords.check_password_async"}},
+    {"token verification",
+     {"auth.tokens.verify_token", "auth.tokens.issue_token", "auth.tokens.TokenStore"}},
+    {"password hashing",
+     {"auth.passwords.hash_password", "auth.passwords.check_password",
+      "auth.passwords.check_password_async"}},
     {"format money cents", {"billing.invoice.format_money"}},
     {"tax rate lookup", {"billing.tax.tax_for", "billing.tax.TaxTable.lookup"}},
     {"health status route", {"api.routes.health"}},
-    {"log request middleware", {"api.middleware.log_request", "api.middleware.RequestLogger.__call__"}},
+    {"log request middleware",
+     {"api.middleware.log_request", "api.middleware.RequestLogger.__call__"}},
     {"slugify text", {"util.text.slugify"}},
     {"measure timing wrapper", {"util.timing.measure"}},
 };
@@ -73,7 +77,8 @@ TEST_CASE("labelled queries: hybrid recall@10 meets the gate (ADR-0015)") {
   const double lexical = mean_recall_at_10(db, veylqora::Mode::lexical);
   const double vector = mean_recall_at_10(db, veylqora::Mode::vector);
   const double hybrid = mean_recall_at_10(db, veylqora::Mode::hybrid);
-  WARN("mean recall@10 lexical=" << lexical << " vector=" << vector << " hybrid=" << hybrid);
+  WARN("mean recall@10 lexical=" << lexical << " vector=" << vector
+                                 << " hybrid=" << hybrid);
   CHECK(hybrid >= kMinHybridRecallAt10);
 }
 
@@ -100,7 +105,8 @@ TEST_CASE("empty, punctuation-only and over-long queries are refused") {
   veylqora::index_project(db, clock, kFixtures);
   CHECK_THROWS_AS(veylqora::retrieve(db, kFixtures, ""), veylqora::Error);
   CHECK_THROWS_AS(veylqora::retrieve(db, kFixtures, "?!  ,,"), veylqora::Error);
-  CHECK_THROWS_AS(veylqora::retrieve(db, kFixtures, std::string(513, 'a')), veylqora::Error);
+  CHECK_THROWS_AS(veylqora::retrieve(db, kFixtures, std::string(513, 'a')),
+                  veylqora::Error);
   veylqora::RetrievalOptions none;
   none.top_k = 0;
   CHECK_THROWS_AS(veylqora::retrieve(db, kFixtures, "token", none), veylqora::Error);
@@ -125,7 +131,8 @@ TEST_CASE("metadata filters restrict kind and path") {
 
   veylqora::RetrievalOptions methods;
   methods.kind = "method";
-  for (const auto& h : veylqora::retrieve(db, kFixtures, "lookup register total", methods)) {
+  for (const auto& h :
+       veylqora::retrieve(db, kFixtures, "lookup register total", methods)) {
     CHECK(h.kind == "method");
   }
   veylqora::RetrievalOptions billing;
