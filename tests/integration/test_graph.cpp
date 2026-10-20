@@ -288,9 +288,9 @@ TEST_CASE("re-exported names resolve to their defining module") {
   const auto deps = veylqora::dependents_of(db, src, "Thing");
   bool resolved_inherit = false;
   for (const auto& e : deps) {
-    resolved_inherit = resolved_inherit || (e.kind == "inherits" && e.src_fqn == "app.Use" &&
-                                            e.resolution == "resolved" &&
-                                            e.dst_fqn == "pkg.core.Thing");
+    resolved_inherit =
+        resolved_inherit || (e.kind == "inherits" && e.src_fqn == "app.Use" &&
+                             e.resolution == "resolved" && e.dst_fqn == "pkg.core.Thing");
   }
   CHECK(resolved_inherit);
 }
