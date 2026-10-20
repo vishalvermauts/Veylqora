@@ -123,15 +123,15 @@ records the result under `docs/certification/`.
 
 | Module | What it delivers | Status |
 |---|---|---|
-| M0.1 | Build skeleton, warnings-as-errors, sanitizer wiring, dependency pins | PASS (`98ba21e`) |
+| M0.1 | Build skeleton, warnings-as-errors, sanitizer wiring, dependency pins | PASS (`ea0c9f8`) |
 | M0.2 | Certification system: `certify.py`, `verify_certs.py`, tamper detection | PASS (module 0.1) |
 | S1–S4 | Spikes: symbol identity, evidence anchoring, vector delete/recall, MCP handshake | Decided in ADR-0003, 0002, 0007 |
-| M1.1 | Core runtime, SQLite schema and migrations, Python indexing, CLI slice | PASS (`d827704`) |
-| M1.2 | Git-aware ingestion, classification, batched and cancellable indexing | PASS (`71f7318`) |
-| M1.3a | Python code graph: tree-sitter symbols, edges with confidence, queries | PASS (`71b59f1`) |
-| M1.4 | Memory engine: revisions, CAS, state machine, evidence, retention, JSONL export/import | PASS (`be804fc`) |
-| M1.5 | Local HTTP API, `veylqora` CLI with `--json`, single-writer file lock | PASS (`7e75860`) |
-| M1.6 | Read-only React dashboard served by the daemon | Certified PASS at `53fecc6`; a later attempt is recorded as PARTIAL |
+| M1.1 | Core runtime, SQLite schema and migrations, Python indexing, CLI slice | PASS (`33d38a0`) |
+| M1.2 | Git-aware ingestion, classification, batched and cancellable indexing | PASS (`f96228c`) |
+| M1.3a | Python code graph: tree-sitter symbols, edges with confidence, queries | PASS (`5d89627`) |
+| M1.4 | Memory engine: revisions, CAS, state machine, evidence, retention, JSONL export/import | PASS (`2c84c51`) |
+| M1.5 | Local HTTP API, `veylqora` CLI with `--json`, single-writer file lock | PASS (`6027d9a`) |
+| M1.6 | Read-only React dashboard served by the daemon | PASS (`19f50cf`) |
 | M1.3b | JavaScript and TypeScript graph | Not started (v0.2) |
 | Phase 2 | Hybrid retrieval, incremental index maintenance, evidence invalidation, MCP server, context packaging, multi-agent coordination, observability | Not started |
 | Phase 3 | Hardening, benchmarks, packaging and Docker, offline evaluation | Not started |
