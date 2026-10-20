@@ -24,6 +24,9 @@ Json index(Database& db, const Clock& clock, const std::filesystem::path& root,
            const IndexOptions& options = {});
 Json search(Database& db, const std::filesystem::path& root, std::string_view name);
 Json graph(Database& db, const std::filesystem::path& root, std::string_view name);
+Json retrieve(Database& db, const std::filesystem::path& root, std::string_view query,
+              std::string_view mode, std::size_t top_k, std::string_view kind,
+              std::string_view path_prefix);
 
 Json memory_create(Database& db, const Clock& clock, IdGenerator& ids,
                    const std::filesystem::path& root, const Json& body);
