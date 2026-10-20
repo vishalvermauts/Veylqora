@@ -18,6 +18,7 @@ add_executable(veylqora_integration_tests
   integration/test_memory.cpp
   integration/test_ingestion.cpp
   integration/test_slice.cpp
+  integration/test_maintenance.cpp
   integration/test_retrieval.cpp
   integration/test_staleness.cpp)
 
