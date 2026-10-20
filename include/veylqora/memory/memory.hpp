@@ -128,8 +128,8 @@ RevalidationStats revalidate_project(Database& db, const Clock& clock,
 /// fingerprints of its evidence and returns it to active, with the actor and
 /// reason recorded. Fails if a cited symbol is still missing.
 void accept_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
-                   std::string_view id, std::int64_t expected_revision, std::string_view actor,
-                   std::string_view reason);
+                   std::string_view id, std::int64_t expected_revision,
+                   std::string_view actor, std::string_view reason);
 
 /// Deletes archived memories last changed before `cutoff`, with their history.
 /// Retention is explicit: nothing is deleted automatically.

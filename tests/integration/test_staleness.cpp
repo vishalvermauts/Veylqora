@@ -7,15 +7,15 @@
 #include "veylqora/core/runtime.hpp"
 #include "veylqora/memory/memory.hpp"
 #include "veylqora/storage/database.hpp"
-#include "support/temp_dir.hpp"
-
-#include <catch2/catch_test_macros.hpp>
 
 #include <filesystem>
 #include <fstream>
 #include <functional>
 #include <string>
 #include <string_view>
+
+#include "support/temp_dir.hpp"
+#include <catch2/catch_test_macros.hpp>
 
 namespace fs = std::filesystem;
 using veylqora::test::TempDir;
@@ -44,7 +44,7 @@ void write(const fs::path& p, const std::string& text) {
 
 struct Scenario {
   std::string name;
-  bool needs_attention;                       // the label, decided before running
+  bool needs_attention;  // the label, decided before running
   std::function<void(const fs::path&)> change;
   std::function<void(const fs::path&)> revert;  // applied after the change, if set
   bool supersede_first = false;
@@ -92,7 +92,8 @@ Result run(const Scenario& s) {
   const auto memory = veylqora::get_memory(db, src, id);
   // "Flagged" means the memory needs attention. A superseded or invalidated
   // memory was decided on, not flagged by this check (ADR-0014).
-  const bool flagged = memory->state == "suspected_stale" || memory->state == "evidence_missing";
+  const bool flagged =
+      memory->state == "suspected_stale" || memory->state == "evidence_missing";
   return Result{s.name, s.needs_attention, flagged};
 }
 
@@ -102,55 +103,77 @@ TEST_CASE("labelled dataset: precision and recall meet the gate (ADR-0014)") {
   const std::vector<Scenario> dataset = {
       {"cited body edited", true,
        [](const fs::path& src) {
-         write(src / "auth.py", "def verify(token):\n    return bool(token)\n\n\ndef unrelated():\n    return 1\n");
+         write(src / "auth.py",
+               "def verify(token):\n    return bool(token)\n\n\ndef unrelated():\n    "
+               "return 1\n");
        },
        nullptr},
       {"unrelated function edited", false,
        [](const fs::path& src) {
-         write(src / "auth.py", "def verify(token):\n    return token.startswith(\"tok-\")\n\n\ndef unrelated():\n    return 2\n");
+         write(src / "auth.py",
+               "def verify(token):\n    return token.startswith(\"tok-\")\n\n\ndef "
+               "unrelated():\n    return 2\n");
        },
        nullptr},
       {"comment added inside cited body", false,
        [](const fs::path& src) {
-         write(src / "auth.py", "def verify(token):\n    # prefix is fixed\n    return token.startswith(\"tok-\")\n\n\ndef unrelated():\n    return 1\n");
+         write(src / "auth.py",
+               "def verify(token):\n    # prefix is fixed\n    return "
+               "token.startswith(\"tok-\")\n\n\ndef unrelated():\n    return 1\n");
        },
        nullptr},
       {"trailing whitespace only", false,
        [](const fs::path& src) {
-         write(src / "auth.py", "def verify(token):\n    return token.startswith(\"tok-\")   \n\n\ndef unrelated():\n    return 1\n");
+         write(src / "auth.py",
+               "def verify(token):\n    return token.startswith(\"tok-\")   \n\n\ndef "
+               "unrelated():\n    return 1\n");
        },
        nullptr},
       {"renamed, body unchanged", false,
        [](const fs::path& src) {
-         write(src / "auth.py", "def check(token):\n    return token.startswith(\"tok-\")\n\n\ndef unrelated():\n    return 1\n");
+         write(src / "auth.py",
+               "def check(token):\n    return token.startswith(\"tok-\")\n\n\ndef "
+               "unrelated():\n    return 1\n");
        },
        nullptr},
       {"moved to another file, body unchanged", false,
        [](const fs::path& src) {
          write(src / "auth.py", "def unrelated():\n    return 1\n");
-         write(src / "util.py", kUtilBase + "\n\ndef verify(token):\n    return token.startswith(\"tok-\")\n");
+         write(src / "util.py",
+               kUtilBase +
+                   "\n\ndef verify(token):\n    return token.startswith(\"tok-\")\n");
        },
        nullptr},
       {"signature changed", true,
        [](const fs::path& src) {
-         write(src / "auth.py", "def verify(token, strict=False):\n    return token.startswith(\"tok-\")\n\n\ndef unrelated():\n    return 1\n");
+         write(src / "auth.py",
+               "def verify(token, strict=False):\n    return "
+               "token.startswith(\"tok-\")\n\n\ndef unrelated():\n    return 1\n");
        },
        nullptr},
       {"edited then reverted", false,
        [](const fs::path& src) {
-         write(src / "auth.py", "def verify(token):\n    return bool(token)\n\n\ndef unrelated():\n    return 1\n");
+         write(src / "auth.py",
+               "def verify(token):\n    return bool(token)\n\n\ndef unrelated():\n    "
+               "return 1\n");
        },
        [](const fs::path& src) { write(src / "auth.py", kAuthBase); }},
       {"cited symbol deleted", true,
-       [](const fs::path& src) { write(src / "auth.py", "def unrelated():\n    return 1\n"); },
+       [](const fs::path& src) {
+         write(src / "auth.py", "def unrelated():\n    return 1\n");
+       },
        nullptr},
       {"superseded, then cited body edited", false,
        [](const fs::path& src) {
-         write(src / "auth.py", "def verify(token):\n    return bool(token)\n\n\ndef unrelated():\n    return 1\n");
+         write(src / "auth.py",
+               "def verify(token):\n    return bool(token)\n\n\ndef unrelated():\n    "
+               "return 1\n");
        },
        nullptr, true},
       {"unrelated file changed", false,
-       [](const fs::path& src) { write(src / "util.py", "def fmt(x):\n    return repr(x)\n"); },
+       [](const fs::path& src) {
+         write(src / "util.py", "def fmt(x):\n    return repr(x)\n");
+       },
        nullptr},
   };
 
@@ -168,8 +191,10 @@ TEST_CASE("labelled dataset: precision and recall meet the gate (ADR-0014)") {
     CHECK(r.flagged == r.label);
   }
 
-  const double precision = (tp + fp) == 0 ? 0.0 : static_cast<double>(tp) / static_cast<double>(tp + fp);
-  const double recall = (tp + fn) == 0 ? 0.0 : static_cast<double>(tp) / static_cast<double>(tp + fn);
+  const double precision =
+      (tp + fp) == 0 ? 0.0 : static_cast<double>(tp) / static_cast<double>(tp + fp);
+  const double recall =
+      (tp + fn) == 0 ? 0.0 : static_cast<double>(tp) / static_cast<double>(tp + fn);
   INFO("tp=" << tp << " fp=" << fp << " fn=" << fn << " tn=" << tn);
   INFO("precision=" << precision << " recall=" << recall);
   CHECK(precision >= kMinPrecision);

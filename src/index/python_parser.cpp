@@ -42,7 +42,8 @@ std::string_view text_of(std::string_view source, TSNode node) {
 // The text of a definition without its comments, so that editing a comment is
 // not a change to the code (ADR-0014). A comment that fills its own line takes
 // the line with it, so no blank line is left behind.
-void collect_comments(TSNode node, std::vector<std::pair<std::uint32_t, std::uint32_t>>& out) {
+void collect_comments(TSNode node,
+                      std::vector<std::pair<std::uint32_t, std::uint32_t>>& out) {
   if (std::string_view(ts_node_type(node)) == "comment") {
     out.emplace_back(ts_node_start_byte(node), ts_node_end_byte(node));
     return;
@@ -62,8 +63,8 @@ std::string code_text(std::string_view source, TSNode node) {
     std::uint32_t from = start;
     std::uint32_t to = stop;
     while (from > pos && (source[from - 1] == ' ' || source[from - 1] == '\t')) --from;
-    const bool own_line = (from == begin || source[from - 1] == '\n') && to < source.size() &&
-                          source[to] == '\n';
+    const bool own_line = (from == begin || source[from - 1] == '\n') &&
+                          to < source.size() && source[to] == '\n';
     if (own_line) {
       to += 1;  // take the newline too
     } else {
@@ -137,8 +138,8 @@ class Walker {
     const std::uint32_t overload =
         overloads_[fqn + '\x1f' + std::string(to_string(kind))]++;
     out_.symbols.push_back(PySymbol{std::string(name), fqn, kind, line_of(node),
-                                    end_line_of(node), without_cr(code_text(source_, node)),
-                                    overload});
+                                    end_line_of(node),
+                                    without_cr(code_text(source_, node)), overload});
     return out_.symbols.size() - 1;
   }
 
