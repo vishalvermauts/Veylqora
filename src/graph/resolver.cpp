@@ -77,13 +77,40 @@ Target bounded(std::vector<std::size_t> ids, Level level) {
   return {std::move(ids), level};
 }
 
+// A package's __init__.py often re-exports names it imports from submodules, so
+// `from pkg import X` can name a symbol defined as pkg.core.X. Follow such
+// bindings until a definition is found. The depth limit guards against cycles.
+constexpr int kMaxReexportHops = 4;
+
+std::vector<std::size_t> follow_reexports(const Graph& g, std::string target, Want want) {
+  for (int hop = 0; hop < kMaxReexportHops; ++hop) {
+    auto ids = filter(g, lookup(g.by_fqn, target), want);
+    if (!ids.empty()) return ids;
+
+    const std::size_t dot = target.rfind('.');
+    if (dot == std::string::npos) break;
+    const std::string package = target.substr(0, dot);
+    const std::string exported = target.substr(dot + 1);
+
+    std::string next;
+    for (const std::size_t i : lookup(g.by_fqn, package)) {
+      if (g.syms[i].kind != "module") continue;
+      const auto b = g.bindings.find(g.syms[i].file_id + '\x1f' + exported);
+      if (b != g.bindings.end()) next = b->second;
+    }
+    if (next.empty()) break;
+    target = next;
+  }
+  return {};
+}
+
 // Looks a bare name up the way Python would: an import in this file first,
 // then a definition in this file, then anywhere in the project as a guess.
 Target resolve_name(const Graph& g, const std::string& file_id, const std::string& name,
                     Want want) {
   const auto bound = g.bindings.find(file_id + '\x1f' + name);
   if (bound != g.bindings.end()) {
-    auto ids = filter(g, lookup(g.by_fqn, bound->second), want);
+    auto ids = follow_reexports(g, bound->second, want);
     if (!ids.empty()) return bounded(std::move(ids), Level::resolved);
   }
   auto local = filter(g, lookup(g.by_name, name), want, &file_id);
@@ -100,7 +127,7 @@ Target resolve_qualified(const Graph& g, const std::string& file_id,
   if (bound != g.bindings.end()) {
     const std::string target =
         bound->second + qualifier.substr(first.size()) + "." + name;
-    auto ids = filter(g, lookup(g.by_fqn, target), Want::callable);
+    auto ids = follow_reexports(g, target, Want::callable);
     if (!ids.empty()) return bounded(std::move(ids), Level::resolved);
   }
   return bounded(filter(g, lookup(g.by_name, name), Want::callable), Level::heuristic);

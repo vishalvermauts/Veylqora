@@ -275,3 +275,22 @@ TEST_CASE("a malformed file does not stop the rest of the graph from being built
   CHECK(has_dependent(veylqora::dependents_of(db, src, "helper"), "core.Base.step",
                       "resolved"));
 }
+
+TEST_CASE("re-exported names resolve to their defining module") {
+  TempDir tmp;
+  const fs::path src = tmp.path() / "src";
+  // pkg/__init__.py re-exports Thing from pkg.core, as django does with QuerySet.
+  write(src / "pkg" / "__init__.py", "from .core import Thing\n");
+  write(src / "pkg" / "core.py", "class Thing:\n    pass\n");
+  write(src / "app.py", "from pkg import Thing\n\n\nclass Use(Thing):\n    pass\n");
+  veylqora::Database db(tmp.path() / "v.db");
+  veylqora::index_project(db, kClock, src);
+  const auto deps = veylqora::dependents_of(db, src, "Thing");
+  bool resolved_inherit = false;
+  for (const auto& e : deps) {
+    resolved_inherit = resolved_inherit || (e.kind == "inherits" && e.src_fqn == "app.Use" &&
+                                            e.resolution == "resolved" &&
+                                            e.dst_fqn == "pkg.core.Thing");
+  }
+  CHECK(resolved_inherit);
+}

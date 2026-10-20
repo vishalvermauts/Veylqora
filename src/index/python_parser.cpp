@@ -86,8 +86,8 @@ std::string join(const std::string& a, std::string_view b) {
 
 class Walker {
  public:
-  Walker(std::string_view module, std::string_view source, PyFile& out)
-      : module_(module), source_(source), out_(out) {}
+  Walker(std::string_view module, std::string_view source, bool is_package, PyFile& out)
+      : module_(module), source_(source), is_package_(is_package), out_(out) {}
 
   void run(TSNode root) {
     stack_.push_back(Scope{0, false, std::string(module_)});
@@ -241,7 +241,7 @@ class Walker {
     }
     const TSNode prefix = ts_node_named_child(mod, 0);
     const std::size_t dots = text_of(source_, prefix).size();
-    std::string base = package_of(module_);
+    std::string base = is_package_ ? std::string(module_) : package_of(module_);
     for (std::size_t d = 1; d < dots && !base.empty(); ++d) base = package_of(base);
     const TSNode rest =
         ts_node_named_child_count(mod) > 1 ? ts_node_named_child(mod, 1) : TSNode{};
@@ -256,6 +256,7 @@ class Walker {
 
   std::string_view module_;
   std::string_view source_;
+  bool is_package_;
   PyFile& out_;
   std::vector<Scope> stack_;
   std::unordered_map<std::string, std::uint32_t> overloads_;
@@ -263,7 +264,7 @@ class Walker {
 
 }  // namespace
 
-PyFile parse_python(std::string_view module, std::string_view source) {
+PyFile parse_python(std::string_view module, std::string_view source, bool is_package) {
   if (source.size() > std::numeric_limits<std::uint32_t>::max()) {
     throw Error("source too large to parse: " + std::string(module));
   }
@@ -284,7 +285,7 @@ PyFile parse_python(std::string_view module, std::string_view source) {
       static_cast<std::size_t>(std::count(source.begin(), source.end(), '\n')) + 1;
   out.symbols.push_back(PySymbol{
       last_segment(module), std::string(module), SymbolKind::module, 1, lines, {}, 0});
-  Walker(module, source, out).run(root);
+  Walker(module, source, is_package, out).run(root);
   return out;
 }
 

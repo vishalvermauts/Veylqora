@@ -46,7 +46,9 @@ struct PyFile {
 };
 
 /// Parses one Python module with tree-sitter. `module` is the dotted module
-/// name derived from the file path, e.g. "pkg.util". Never executes code.
-PyFile parse_python(std::string_view module, std::string_view source);
+/// name derived from the file path, e.g. "pkg.util". For a package's
+/// __init__.py, `is_package` is true and `module` names the package itself, so
+/// relative imports inside it resolve against that package. Never executes code.
+PyFile parse_python(std::string_view module, std::string_view source, bool is_package = false);
 
 }  // namespace veylqora

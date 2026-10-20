@@ -33,9 +33,15 @@ std::string project_id(const fs::path& canonical) {
   return content_fingerprint(canonical.generic_string());
 }
 
-// "auth/tokens.py" -> "auth.tokens"
+// "auth/tokens.py" -> "auth.tokens"; a package's __init__.py names the package,
+// so "auth/__init__.py" -> "auth".
 std::string module_name(std::string rel_path) {
-  rel_path.resize(rel_path.size() - 3);  // strip ".py"
+  constexpr std::string_view kPackageInit = "/__init__.py";
+  if (rel_path.ends_with(kPackageInit)) {
+    rel_path.resize(rel_path.size() - kPackageInit.size());
+  } else {
+    rel_path.resize(rel_path.size() - 3);  // strip ".py"
+  }
   for (char& c : rel_path) {
     if (c == '/') c = '.';
   }
@@ -76,7 +82,8 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
   clear_bindings.bind(1, fid);
   clear_bindings.step();
 
-  const PyFile parsed = parse_python(module_name(rel), contents);
+  const bool is_package = rel.ends_with("/__init__.py");
+  const PyFile parsed = parse_python(module_name(rel), contents, is_package);
   if (parsed.has_syntax_errors) {
     log::warn(rel + ": syntax errors; indexing the parts that parsed");
     ++stats.files_with_syntax_errors;
