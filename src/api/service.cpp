@@ -2,6 +2,7 @@
 
 #include "veylqora/core/project.hpp"
 #include "veylqora/graph/query.hpp"
+#include "veylqora/retrieval/search.hpp"
 
 namespace veylqora::api {
 namespace fs = std::filesystem;
@@ -187,6 +188,28 @@ Json memory_update(Database& db, const Clock& clock, const fs::path& root,
                 text_field(body, "content"), text_field(body, "actor"),
                 text_field(body, "reason"));
   return memory_json(*get_memory(db, root, id));
+}
+
+Json retrieve(Database& db, const fs::path& root, std::string_view query, std::string_view mode,
+               std::size_t top_k, std::string_view kind, std::string_view path_prefix) {
+  RetrievalOptions options;
+  if (mode == "hybrid") {
+    options.mode = Mode::hybrid;
+  } else if (mode == "lexical") {
+    options.mode = Mode::lexical;
+  } else if (mode == "vector") {
+    options.mode = Mode::vector;
+  } else {
+    throw Error("mode must be hybrid, lexical or vector");
+  }
+  options.top_k = top_k;
+  options.kind = std::string(kind);
+  options.path_prefix = std::string(path_prefix);
+  Json hits = Json::array();
+  for (const Hit& h : veylqora::retrieve(db, root, query, options)) {
+    hits.push_back({{"fqn", h.fqn}, {"path", h.path}, {"kind", h.kind}, {"line", h.line}, {"score", h.score}});
+  }
+  return Json{{"query", std::string(query)}, {"hits", hits}};
 }
 
 Json memory_accept(Database& db, const Clock& clock, const fs::path& root,
