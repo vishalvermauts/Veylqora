@@ -1,6 +1,7 @@
 // M2.1 hybrid retrieval: labelled queries against the Python fixture, with the
 // thresholds fixed in ADR-0015; determinism; bounds; filters; isolation.
 
+#include "veylqora/core/error.hpp"
 #include "veylqora/core/runtime.hpp"
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/retrieval/search.hpp"
