@@ -57,6 +57,25 @@ add_library(tree_sitter_python STATIC
 target_include_directories(tree_sitter_python SYSTEM PUBLIC "${TS_PY_DIR}/src")
 target_link_libraries(tree_sitter_python PUBLIC tree-sitter)
 
+# ---- cpp-httplib (HTTP transport) and nlohmann/json (wire format), both MIT ----
+FetchContent_Declare(httplib
+  GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
+  GIT_TAG        v0.62.0
+  GIT_SHALLOW    TRUE
+  SYSTEM)
+set(HTTPLIB_COMPILE OFF CACHE BOOL "" FORCE)
+set(HTTPLIB_TEST OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(httplib)
+
+FetchContent_Declare(json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.12.0
+  GIT_SHALLOW    TRUE
+  SYSTEM)
+set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
+set(JSON_Install OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(json)
+
 # ---- Catch2 (tests only) ----------------------------------------------------
 if(VEYLQORA_BUILD_TESTS)
   FetchContent_Declare(Catch2

@@ -78,7 +78,7 @@ Row load(Database& db, const std::string& pid, std::string_view id) {
               "AND id = ?");
   q.bind(1, pid);
   q.bind(2, id);
-  if (!q.step()) throw Error("no memory with id " + std::string(id));
+  if (!q.step()) throw NotFoundError("no memory with id " + std::string(id));
   return Row{q.text(0), q.text(1), q.text(2), q.integer(3)};
 }
 
@@ -157,7 +157,7 @@ Memory read_memory(Database& db, const std::string& pid, std::string_view id) {
               "WHERE project_id = ? AND id = ?");
   q.bind(1, pid);
   q.bind(2, id);
-  if (!q.step()) throw Error("no memory with id " + std::string(id));
+  if (!q.step()) throw NotFoundError("no memory with id " + std::string(id));
   return Memory{q.text(0), q.text(1),    q.text(2), q.text(3), q.text(4),
                 q.text(5), q.integer(6), q.text(7), q.text(8), q.text(9)};
 }

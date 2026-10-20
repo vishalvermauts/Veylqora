@@ -12,4 +12,11 @@ class Error : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
+/// The named thing does not exist in this project. Reported separately from a
+/// bad request so callers can tell "missing" from "invalid" (HTTP 404 vs 400).
+class NotFoundError : public Error {
+ public:
+  using Error::Error;
+};
+
 }  // namespace veylqora
