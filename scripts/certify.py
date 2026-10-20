@@ -41,6 +41,16 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san"],
         },
     },
+    "2.1": {
+        "title": "Hybrid retrieval: lexical, hashed vector, graph, reciprocal rank fusion",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "scripts/ci.sh", "scripts/certify.py", "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
+        },
+    },
     "2.3": {
         "title": "Evidence-aware invalidation: revalidation, accept, rename and move tracking",
         "sources": [

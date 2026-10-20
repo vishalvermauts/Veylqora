@@ -54,3 +54,19 @@ reported alongside for comparison and are not gated.
 
 Exact vector search is the reference: an ANN index added later must reproduce
 its top-10 at recall ≥ 0.90 (plan §2.1) before it replaces exact search.
+
+## Results
+
+Eight labelled queries on the 10-file Python fixture (`tests/fixtures/python`):
+mean recall@10 is 1.00 for lexical, vector and hybrid. The gate of 0.80 passes.
+
+**This does not show that hybrid retrieval is better.** Every query has a
+distinctive identifier, so lexical matching alone already finds the answer.
+The labelled set cannot separate the three modes. A set that can is needed
+before any claim about the vector or graph signals; it belongs with the offline
+evaluation in M3.6a, drawn from a larger corpus with queries written without
+looking at the results.
+
+The vector signal is deterministic token hashing (see Decisions 2). It is not
+a semantic model, so it will not find code that shares no identifiers with the
+query. That gap is the reason a learned model is still needed.
