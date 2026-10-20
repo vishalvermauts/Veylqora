@@ -3,6 +3,7 @@
 #include "veylqora/core/error.hpp"
 #include "veylqora/core/identity.hpp"
 #include "veylqora/core/log.hpp"
+#include "veylqora/core/project.hpp"
 #include "veylqora/graph/resolver.hpp"
 #include "veylqora/index/python_parser.hpp"
 #include "veylqora/ingestion/source.hpp"
