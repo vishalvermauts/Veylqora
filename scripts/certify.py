@@ -41,6 +41,21 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san"],
         },
     },
+    "1.6": {
+        "title": "Read-only web UI served by the daemon",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "scripts/ci.sh", "scripts/certify.py", "scripts/verify_certs.py",
+            "web/src/*", "web/package.json", "web/package-lock.json", "web/index.html",
+            "web/vite.config.ts", "web/tsconfig.json",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
+            # The UI is built and tested with the pinned lockfile. Run locally:
+            # the CI sandbox has no Node toolchain or npm registry access.
+            "web": ["bash", "-c", "cd web && npm ci --no-audit --no-fund && npm run build && npx vitest run"],
+        },
+    },
     "1.5": {
         "title": "Daemon, CLI with JSON output and exit codes, single-writer lock",
         "sources": [
