@@ -82,8 +82,12 @@ job_certs() { python3 "$SRC/scripts/verify_certs.py"; }
 job_mcp() {
   local venv="$WORK/mcp-venv"
   mkdir -p "$WORK"
-  [ -x "$venv/bin/python" ] || python3 -m venv "$venv" || return 1
-  "$venv/bin/pip" install -q -r "$SRC/mcp/requirements.txt" || return 1
+  # A venv left half-built by an earlier failed run is rebuilt, not reused.
+  if [ ! -x "$venv/bin/pip" ]; then
+    rm -rf "$venv"
+    python3 -m venv "$venv" || return 1
+  fi
+  "$venv/bin/python" -m pip install -q -r "$SRC/mcp/requirements.txt" || return 1
   job_gcc >/dev/null || return 1
   VEYLQORA_BIN="$WORK/build-gcc/src/veylqora" VEYLQORA_FIXTURES="$SRC/tests/fixtures/python" \
     "$venv/bin/python" -m pytest -q "$SRC/mcp/tests"
