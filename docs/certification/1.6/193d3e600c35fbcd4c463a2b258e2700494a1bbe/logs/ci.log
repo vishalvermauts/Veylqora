@@ -1,0 +1,2 @@
+error: sandbox 'sbx_001m5aj55gme8393qjne02q7qhz' is stopping; retry once it stops
+  try: sbx --cloud ls
