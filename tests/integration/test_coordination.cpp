@@ -7,6 +7,7 @@
 #include "veylqora/storage/database.hpp"
 
 #include <filesystem>
+#include <memory>
 #include <map>
 #include <string>
 #include <thread>
@@ -47,11 +48,16 @@ TEST_CASE("40 agents on one shared memory: no lost updates, every write in the h
   }
 
   std::vector<std::size_t> successes(kAgents, 0);
+  // Each agent has its own connection, as separate processes would. The
+  // connections are opened before any thread starts, so opening them does not race.
+  std::vector<std::unique_ptr<veylqora::Database>> connections;
+  for (std::size_t a = 0; a < kAgents; ++a) {
+    connections.push_back(std::make_unique<veylqora::Database>(file));
+  }
   std::vector<std::thread> agents;
   for (std::size_t a = 0; a < kAgents; ++a) {
     agents.emplace_back([&, a] {
-      // Each agent has its own connection, as separate processes would.
-      veylqora::Database db(file);
+      veylqora::Database& db = *connections[a];
       const std::string who = "agent-" + std::to_string(a);
       while (successes[a] < kUpdatesEach) {
         const auto current = veylqora::get_memory(db, kRoot, id, who);
@@ -62,6 +68,10 @@ TEST_CASE("40 agents on one shared memory: no lost updates, every write in the h
           ++successes[a];
         } catch (const veylqora::ConflictError&) {
           // Another agent wrote first; read again and retry.
+        } catch (const veylqora::Error& e) {
+          // SQLite reports a busy database when it cannot get the write lock in time.
+          // That is transient: retry, as any client of a shared database must.
+          if (std::string(e.what()).find("locked") == std::string::npos) throw;
         }
       }
     });
