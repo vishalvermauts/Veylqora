@@ -26,6 +26,13 @@ EXPECTED_TOOLS = {
 }
 
 
+def data(result):
+    """The tool result as a dict, whichever form the SDK returned it in."""
+    if result.structured_content is not None:
+        return result.structured_content
+    return json.loads(result.content[0].text)
+
+
 async def session_for(url):
     params = StdioServerParameters(
         command=sys.executable, args=[str(SERVER)], env={**os.environ, "VEYLQORA_URL": url})
