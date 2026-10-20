@@ -112,7 +112,7 @@ def test_context_package_respects_its_budget(daemon):
     async def scenario(session):
         return await session.call_tool("get_task_context", {
             "root": str(FIXTURES), "task": "token verification", "budget_tokens": 100})
-    result = run(daemon, scenario).structured_content
+    result = data(run(daemon, scenario))
     assert result["approx_tokens_used"] <= 100
     assert result["truncated"]["code"] >= 0
 
