@@ -18,6 +18,7 @@
 
 namespace fs = std::filesystem;
 using veylqora::test::TempDir;
+namespace api = veylqora::api;
 using api::Json;
 
 namespace {
