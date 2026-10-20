@@ -55,7 +55,8 @@ TEST_CASE("the sample decision is deterministic and follows the rate") {
 
   int sampled = 0;
   for (int i = 0; i < 1000; ++i) {
-    if (veylqora::query_sampled(veylqora::content_fingerprint("q" + std::to_string(i)), 4))
+    if (veylqora::query_sampled(veylqora::content_fingerprint("q" + std::to_string(i)),
+                                4))
       ++sampled;
   }
   CHECK(sampled >= 200);
@@ -87,7 +88,8 @@ TEST_CASE("opting out of the query log writes nothing") {
   api::index(db, clock, kRoot);
   veylqora::ObservabilityOptions off;
   off.query_log_every = 0;
-  veylqora::log_query(db, clock, off, veylqora::project_id_for(kRoot), "search", "x", 0, 0.1);
+  veylqora::log_query(db, clock, off, veylqora::project_id_for(kRoot), "search", "x", 0,
+                      0.1);
   CHECK(rows(db, "query_log") == 0);
 }
 
@@ -105,10 +107,12 @@ TEST_CASE("audit rows record who did what, never the payload") {
   const Json created = api::memory_create(db, clock, ids, kRoot, body);
   const std::string id = created.at("id").get<std::string>();
 
-  CHECK(dump(db, "SELECT action||actor||target_id FROM audit_log WHERE action = "
-                 "'memory.create'") == "memory.createalice" + id + "\n");
-  const std::string all = dump(db, "SELECT actor||action||target_kind||target_id||at "
-                                   "FROM audit_log");
+  CHECK(dump(db,
+             "SELECT action||actor||target_id FROM audit_log WHERE action = "
+             "'memory.create'") == "memory.createalice" + id + "\n");
+  const std::string all = dump(db,
+                               "SELECT actor||action||target_kind||target_id||at "
+                               "FROM audit_log");
   CHECK(all.find("PAYLOAD") == std::string::npos);
   CHECK(all.find("index.run") != std::string::npos);
 }
@@ -155,11 +159,14 @@ TEST_CASE("metrics values are counts of rows that exist") {
   const std::string pid = veylqora::project_id_for(kRoot);
 
   for (const char* author : {"alice", "bob"}) {
-    const Json body = {
-        {"type", "decision"}, {"content", "a claim"}, {"author", author}, {"scope", "shared"}};
+    const Json body = {{"type", "decision"},
+                       {"content", "a claim"},
+                       {"author", author},
+                       {"scope", "shared"}};
     api::memory_create(db, clock, ids, kRoot, body);
   }
-  veylqora::log_query(db, clock, veylqora::ObservabilityOptions{}, pid, "search", "q", 1, 0.5);
+  veylqora::log_query(db, clock, veylqora::ObservabilityOptions{}, pid, "search", "q", 1,
+                      0.5);
 
   const Json m = api::metrics(db, kRoot);
   CHECK(m.at("memories_by_state").at("active").get<std::int64_t>() == 2);
@@ -167,5 +174,6 @@ TEST_CASE("metrics values are counts of rows that exist") {
         api::status(db, kRoot).at("memories").get<std::int64_t>());
   CHECK(m.at("queries_logged").get<std::int64_t>() == 1);
   CHECK(m.at("audit_events_by_action").at("memory.create").get<std::int64_t>() == 2);
-  CHECK(m.at("symbols").get<std::int64_t>() == api::status(db, kRoot).at("symbols").get<std::int64_t>());
+  CHECK(m.at("symbols").get<std::int64_t>() ==
+        api::status(db, kRoot).at("symbols").get<std::int64_t>());
 }

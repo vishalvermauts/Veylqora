@@ -62,7 +62,8 @@ void usage() {
          "db/server)\n"
          "  veylqora memory export <file> --root <root> --db <file>\n"
          "  veylqora memory import <file> --db <file>\n"
-         "  veylqora serve --db <file> [--host 127.0.0.1] [--port 8765] [--query-log-every N]\n"
+         "  veylqora serve --db <file> [--host 127.0.0.1] [--port 8765] "
+         "[--query-log-every N]\n"
          "global: --json prints machine-readable output\n"
          "exit codes: 0 ok, 1 error, 2 usage, 3 not found, 4 conflict\n";
 }

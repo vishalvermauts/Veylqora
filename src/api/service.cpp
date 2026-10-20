@@ -256,7 +256,8 @@ Json metrics(Database& db, const fs::path& root) {
   const std::string pid = project_id_for(root);
   Json memories = Json::object();
   {
-    Statement q(db, "SELECT state, COUNT(*) FROM memory WHERE project_id = ? GROUP BY state");
+    Statement q(db,
+                "SELECT state, COUNT(*) FROM memory WHERE project_id = ? GROUP BY state");
     q.bind(1, pid);
     while (q.step()) memories[q.text(0)] = q.integer(1);
   }
@@ -270,7 +271,8 @@ Json metrics(Database& db, const fs::path& root) {
       {"files", count(db, "SELECT COUNT(*) FROM file WHERE project_id = ?", pid)},
       {"symbols", count(db, "SELECT COUNT(*) FROM symbol WHERE project_id = ?", pid)},
       {"memories_by_state", memories},
-      {"queries_logged", count(db, "SELECT COUNT(*) FROM query_log WHERE project_id = ?", pid)},
+      {"queries_logged",
+       count(db, "SELECT COUNT(*) FROM query_log WHERE project_id = ?", pid)},
       // The audit log has no project column, so its counts are instance-wide.
       {"audit_events_by_action", actions}};
 }
