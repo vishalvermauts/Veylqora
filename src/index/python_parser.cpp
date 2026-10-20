@@ -50,7 +50,7 @@ std::string without_cr(std::string_view text) {
   std::string out;
   out.reserve(text.size());
   for (const char c : text) {
-    if (c != '') out += c;
+    if (c != '\r') out += c;
   }
   return out;
 }
