@@ -1,0 +1,26 @@
+Measured in the cloud sandbox (gcc build, RelWithDebInfo) against commit 9003aff.
+Corpus: psf/requests (37 files), pallets/flask (83), django/django (2,933).
+
+Indexing (first run / re-index):
+  requests  0.3 s / 0.0 s   db 3.1 MB   symbols 844
+  flask     0.3 s / 0.0 s   db 5.1 MB   symbols 1,705
+  django   24.0 s / 0.3 s   db 217 MB   symbols 46,906   (was 8.1 s / 27 MB before the graph)
+
+Facts stored (django): call 189,668; import 11,956; inherits 9,805
+
+Edges stored (django):
+  calls     resolved 27,048   heuristic 125,625   unresolved 93,715
+  contains  resolved 43,973
+  imports   resolved 4,727    unresolved 7,229
+  inherits  resolved 3,998    heuristic 3,461    unresolved 3,076
+
+Graph query latency (django, `veylqora graph <name>`, includes opening the database):
+  QuerySet  530 ms  (14 lines)
+  Model     526 ms  (917 lines)
+
+Known gaps measured here:
+  - Re-exports are not followed: CustomQuerySet(QuerySet) with QuerySet imported
+    from the django.db.models package is a heuristic inherits edge, not resolved.
+  - Edge queries scan the whole edge table: no index on edge(project_id). The
+    2-hop gate (plan 4: p95 <= 50 ms) is NOT met on django and is not claimed.
+  - The first run on django costs 3x the pre-graph time and 8x the storage.
