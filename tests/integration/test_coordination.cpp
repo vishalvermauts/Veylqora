@@ -5,9 +5,6 @@
 #include "veylqora/core/runtime.hpp"
 #include "veylqora/memory/memory.hpp"
 #include "veylqora/storage/database.hpp"
-#include "support/temp_dir.hpp"
-
-#include <catch2/catch_test_macros.hpp>
 
 #include <filesystem>
 #include <map>
@@ -15,14 +12,17 @@
 #include <thread>
 #include <vector>
 
+#include "support/temp_dir.hpp"
+#include <catch2/catch_test_macros.hpp>
+
 namespace fs = std::filesystem;
 using veylqora::test::TempDir;
 
 namespace {
 
 const fs::path kRoot = VEYLQORA_FIXTURE_DIR "/python";
-constexpr std::size_t kAgents = 40;        // ADR-0017 threshold
-constexpr std::size_t kUpdatesEach = 5;    // ADR-0017 threshold
+constexpr std::size_t kAgents = 40;      // ADR-0017 threshold
+constexpr std::size_t kUpdatesEach = 5;  // ADR-0017 threshold
 
 veylqora::NewMemory memory_of(const std::string& author, const std::string& scope) {
   veylqora::NewMemory m;
@@ -57,7 +57,8 @@ TEST_CASE("40 agents on one shared memory: no lost updates, every write in the h
         const auto current = veylqora::get_memory(db, kRoot, id, who);
         try {
           veylqora::update_memory(db, clock, kRoot, id, current->revision_no,
-                                  who + " update " + std::to_string(successes[a]), who, "coordinate");
+                                  who + " update " + std::to_string(successes[a]), who,
+                                  "coordinate");
           ++successes[a];
         } catch (const veylqora::ConflictError&) {
           // Another agent wrote first; read again and retry.
@@ -70,7 +71,8 @@ TEST_CASE("40 agents on one shared memory: no lost updates, every write in the h
   veylqora::Database db(file);
   const auto final_state = veylqora::get_memory(db, kRoot, id, "");
   const auto total = static_cast<std::int64_t>(kAgents * kUpdatesEach);
-  CHECK(final_state->revision_no == 1 + total);  // every success advanced the revision exactly once
+  CHECK(final_state->revision_no ==
+        1 + total);  // every success advanced the revision exactly once
 
   const auto history = veylqora::revisions_of(db, kRoot, id);
   CHECK(history.size() == static_cast<std::size_t>(1 + total));
@@ -90,7 +92,8 @@ TEST_CASE("a private memory is invisible to other agents, and they cannot change
   veylqora::Database db(tmp.path() / "v.db");
   const veylqora::SystemClock clock;
   veylqora::RandomIds ids;
-  const std::string id = veylqora::create_memory(db, clock, ids, kRoot, memory_of("alice", "private"));
+  const std::string id =
+      veylqora::create_memory(db, clock, ids, kRoot, memory_of("alice", "private"));
 
   CHECK(veylqora::get_memory(db, kRoot, id, "alice").has_value());
   CHECK_FALSE(veylqora::get_memory(db, kRoot, id, "bob").has_value());
@@ -101,15 +104,18 @@ TEST_CASE("a private memory is invisible to other agents, and they cannot change
   CHECK(veylqora::get_memory(db, kRoot, id, "alice")->content == "initial by alice");
 }
 
-TEST_CASE("an approved memory is hidden until approved, and approval is cleared by a change") {
+TEST_CASE(
+    "an approved memory is hidden until approved, and approval is cleared by a change") {
   TempDir tmp;
   veylqora::Database db(tmp.path() / "v.db");
   const veylqora::SystemClock clock;
   veylqora::RandomIds ids;
-  const std::string id = veylqora::create_memory(db, clock, ids, kRoot, memory_of("alice", "approved"));
+  const std::string id =
+      veylqora::create_memory(db, clock, ids, kRoot, memory_of("alice", "approved"));
 
   CHECK_FALSE(veylqora::get_memory(db, kRoot, id, "bob").has_value());
-  CHECK_THROWS_AS(veylqora::approve_memory(db, clock, kRoot, id, 1, "alice", "self"), veylqora::Error);
+  CHECK_THROWS_AS(veylqora::approve_memory(db, clock, kRoot, id, 1, "alice", "self"),
+                  veylqora::Error);
   veylqora::approve_memory(db, clock, kRoot, id, 1, "carol", "reviewed the claim");
 
   const auto seen = veylqora::get_memory(db, kRoot, id, "bob");
@@ -117,7 +123,8 @@ TEST_CASE("an approved memory is hidden until approved, and approval is cleared 
   CHECK(seen->approved_by == "carol");
 
   veylqora::update_memory(db, clock, kRoot, id, 2, "a changed claim", "alice", "revised");
-  CHECK_FALSE(veylqora::get_memory(db, kRoot, id, "bob").has_value());  // the approval was cleared
+  CHECK_FALSE(veylqora::get_memory(db, kRoot, id, "bob")
+                  .has_value());  // the approval was cleared
 }
 
 TEST_CASE("an interrupted write leaves no partial memory behind") {
@@ -126,7 +133,8 @@ TEST_CASE("an interrupted write leaves no partial memory behind") {
   const veylqora::SystemClock clock;
   veylqora::RandomIds ids;
   veylqora::NewMemory m = memory_of("alice", "shared");
-  m.evidence = {{"auth.py", "auth.no_such_symbol"}};  // fails after the memory row is written
+  m.evidence = {
+      {"auth.py", "auth.no_such_symbol"}};  // fails after the memory row is written
   CHECK_THROWS_AS(veylqora::create_memory(db, clock, ids, kRoot, m), veylqora::Error);
   CHECK(veylqora::list_memories(db, kRoot, "", "").empty());
 }

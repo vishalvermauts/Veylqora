@@ -138,7 +138,8 @@ void Server::add_routes() {
   route("GET", "/api/v1/doctor",
         [this](const httplib::Request&) { return api::doctor(db_); });
   route("GET", "/api/v1/memories", [this](const httplib::Request& req) {
-    return api::memory_list(db_, root_param(req), param(req, "state"), param(req, "viewer"));
+    return api::memory_list(db_, root_param(req), param(req, "state"),
+                            param(req, "viewer"));
   });
   route("POST", "/api/v1/memories", [this](const httplib::Request& req) {
     const Json body = parse_body(req);
@@ -168,17 +169,17 @@ void Server::add_routes() {
       reply_error(res, e);
     }
   });
-  http_.Post(R"(/api/v1/memories/([^/]+)/approve)",
-             [this](const httplib::Request& req, httplib::Response& res) {
-               try {
-                 std::lock_guard<std::mutex> lock(mu_);
-                 const Json body = parse_body(req);
-                 const auto root = std::filesystem::path(body.at("root").get<std::string>());
-                 reply_json(res, api::memory_approve(db_, clock_, root, req.matches[1].str(), body));
-               } catch (const std::exception& e) {
-                 reply_error(res, e);
-               }
-             });
+  http_.Post(R"(/api/v1/memories/([^/]+)/approve)", [this](const httplib::Request& req,
+                                                           httplib::Response& res) {
+    try {
+      std::lock_guard<std::mutex> lock(mu_);
+      const Json body = parse_body(req);
+      const auto root = std::filesystem::path(body.at("root").get<std::string>());
+      reply_json(res, api::memory_approve(db_, clock_, root, req.matches[1].str(), body));
+    } catch (const std::exception& e) {
+      reply_error(res, e);
+    }
+  });
   http_.Post(R"(/api/v1/memories/([^/]+)/accept)", [this](const httplib::Request& req,
                                                           httplib::Response& res) {
     try {

@@ -57,8 +57,8 @@ struct Row {
 };
 
 // Who may see a memory (ADR-0017). An empty viewer is the local operator.
-bool visible_to(std::string_view scope, std::string_view author, std::string_view approved_by,
-                std::string_view viewer) {
+bool visible_to(std::string_view scope, std::string_view author,
+                std::string_view approved_by, std::string_view viewer) {
   if (viewer.empty() || author == viewer || scope == "shared") return true;
   return scope == "approved" && !approved_by.empty();
 }
@@ -93,13 +93,15 @@ void ensure_project(Database& db, const std::filesystem::path& root,
 // Loads a memory of this project. A memory in another project is "not found",
 // so existence is not revealed across projects.
 Row load(Database& db, const std::string& pid, std::string_view id) {
-  Statement q(db,
-              "SELECT id, state, content, revision_no, scope, author, approved_by FROM memory "
-              "WHERE project_id = ? AND id = ?");
+  Statement q(
+      db,
+      "SELECT id, state, content, revision_no, scope, author, approved_by FROM memory "
+      "WHERE project_id = ? AND id = ?");
   q.bind(1, pid);
   q.bind(2, id);
   if (!q.step()) throw NotFoundError("no memory with id " + std::string(id));
-  return Row{q.text(0), q.text(1), q.text(2), q.integer(3), q.text(4), q.text(5), q.text(6)};
+  return Row{q.text(0), q.text(1), q.text(2), q.integer(3),
+             q.text(4), q.text(5), q.text(6)};
 }
 
 void check_revision(const Row& row, std::int64_t expected) {
@@ -171,15 +173,16 @@ void transition_in(Database& db, const Clock& clock, const std::string& pid,
 }
 
 Memory read_memory(Database& db, const std::string& pid, std::string_view id) {
-  Statement q(db,
-              "SELECT id, type, content, state, scope, author, revision_no, "
-              "COALESCE(superseded_by, ''), created_at, updated_at, approved_by FROM memory "
-              "WHERE project_id = ? AND id = ?");
+  Statement q(
+      db,
+      "SELECT id, type, content, state, scope, author, revision_no, "
+      "COALESCE(superseded_by, ''), created_at, updated_at, approved_by FROM memory "
+      "WHERE project_id = ? AND id = ?");
   q.bind(1, pid);
   q.bind(2, id);
   if (!q.step()) throw NotFoundError("no memory with id " + std::string(id));
-  return Memory{q.text(0), q.text(1),    q.text(2), q.text(3), q.text(4),
-                q.text(5), q.integer(6), q.text(7), q.text(8), q.text(9), q.text(10)};
+  return Memory{q.text(0),    q.text(1), q.text(2), q.text(3), q.text(4), q.text(5),
+                q.integer(6), q.text(7), q.text(8), q.text(9), q.text(10)};
 }
 
 }  // namespace
@@ -323,7 +326,8 @@ void update_memory(Database& db, const Clock& clock, const std::filesystem::path
   apply_change(db, pid, row, content, row.state, actor, reason, to_iso8601(clock.now()));
   if (!row.approved_by.empty()) {
     // The approved content is no longer the content that was approved (ADR-0017).
-    Statement clear(db, "UPDATE memory SET approved_by = '' WHERE project_id = ? AND id = ?");
+    Statement clear(db,
+                    "UPDATE memory SET approved_by = '' WHERE project_id = ? AND id = ?");
     clear.bind(1, pid);
     clear.bind(2, row.id);
     clear.step();
@@ -541,8 +545,8 @@ void accept_memory(Database& db, const Clock& clock, const std::filesystem::path
 }
 
 void approve_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
-                    std::string_view id, std::int64_t expected_revision, std::string_view approver,
-                    std::string_view reason) {
+                    std::string_view id, std::int64_t expected_revision,
+                    std::string_view approver, std::string_view reason) {
   require(!approver.empty(), "an approver is required for attribution");
   require(!reason.empty(), "a reason is required for every approval");
   const std::string pid = project_of(root);
@@ -554,8 +558,8 @@ void approve_memory(Database& db, const Clock& clock, const std::filesystem::pat
   require(row.scope == "approved", "only an approved-scope memory takes an approval");
   require(row.state != "archived", "archived memories cannot be approved");
   require(approver != row.author, "the author cannot approve their own memory");
-  apply_change(db, pid, row, row.content, row.state, approver, "approved: " + std::string(reason),
-               to_iso8601(clock.now()));
+  apply_change(db, pid, row, row.content, row.state, approver,
+               "approved: " + std::string(reason), to_iso8601(clock.now()));
   Statement mark(db, "UPDATE memory SET approved_by = ? WHERE project_id = ? AND id = ?");
   mark.bind(1, approver);
   mark.bind(2, pid);

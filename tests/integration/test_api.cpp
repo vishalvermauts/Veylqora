@@ -78,9 +78,11 @@ TEST_CASE("service: memory operations and their error kinds") {
   const veylqora::SystemClock clock;
   veylqora::RandomIds ids;
 
-  const Json created = api::memory_create(
-      db, clock, ids, kFixtures,
-      Json{{"type", "decision"}, {"content", "use bcrypt"}, {"author", "agent-a"}, {"scope", "shared"}});
+  const Json created = api::memory_create(db, clock, ids, kFixtures,
+                                          Json{{"type", "decision"},
+                                               {"content", "use bcrypt"},
+                                               {"author", "agent-a"},
+                                               {"scope", "shared"}});
   const std::string id = created["id"];
   CHECK(created["revision"] == 1);
 

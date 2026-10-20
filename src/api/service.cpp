@@ -151,8 +151,8 @@ Json memory_list(Database& db, const fs::path& root, std::string_view state,
   return out;
 }
 
-Json memory_approve(Database& db, const Clock& clock, const fs::path& root, std::string_view id,
-                    const Json& body) {
+Json memory_approve(Database& db, const Clock& clock, const fs::path& root,
+                    std::string_view id, const Json& body) {
   approve_memory(db, clock, root, id, int_field(body, "expected_revision"),
                  text_field(body, "approver"), text_field(body, "reason"));
   return memory_json(*get_memory(db, root, id));
