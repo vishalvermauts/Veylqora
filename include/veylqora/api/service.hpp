@@ -46,4 +46,7 @@ Json memory_transition(Database& db, const Clock& clock,
 
 Json doctor(Database& db);
 
+/// Counts read straight from table rows, so every value can be traced to a row.
+Json metrics(Database& db, const std::filesystem::path& root);
+
 }  // namespace veylqora::api

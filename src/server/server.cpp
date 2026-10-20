@@ -2,7 +2,10 @@
 
 #include "veylqora/api/service.hpp"
 #include "veylqora/core/error.hpp"
+#include "veylqora/core/project.hpp"
+#include "veylqora/observability/observability.hpp"
 
+#include <chrono>
 #include <cstddef>
 #include <exception>
 #include <stdexcept>
@@ -86,7 +89,18 @@ void Server::mount_web(const std::string& dir) {
     throw Error("web directory does not exist: " + dir);
 }
 
-void Server::serve() { http_.listen_after_bind(); }
+void Server::set_observability(const ObservabilityOptions& options) {
+  std::lock_guard<std::mutex> lock(mu_);
+  obs_ = options;
+}
+
+void Server::serve() {
+  {
+    std::lock_guard<std::mutex> lock(mu_);
+    purge_expired(db_, clock_, obs_);
+  }
+  http_.listen_after_bind();
+}
 
 void Server::stop() { http_.stop(); }
 
@@ -122,18 +136,39 @@ void Server::add_routes() {
                       std::filesystem::path(body.at("root").get<std::string>()));
   });
   route("GET", "/api/v1/search", [this](const httplib::Request& req) {
-    return api::search(db_, root_param(req), param(req, "name"));
+    const auto root = root_param(req);
+    const std::string name = param(req, "name");
+    const auto started = std::chrono::steady_clock::now();
+    const Json out = api::search(db_, root, name);
+    const double ms = std::chrono::duration<double, std::milli>(
+                          std::chrono::steady_clock::now() - started)
+                          .count();
+    log_query(db_, clock_, obs_, project_id_for(root), "search", name,
+              static_cast<std::int64_t>(out.at("hits").size()), ms);
+    return out;
   });
   route("GET", "/api/v1/graph", [this](const httplib::Request& req) {
     return api::graph(db_, root_param(req), param(req, "name"));
   });
   route("GET", "/api/v1/retrieve", [this](const httplib::Request& req) {
     const std::string k = param(req, "k");
-    return api::retrieve(
-        db_, root_param(req), param(req, "query"),
+    const auto root = root_param(req);
+    const std::string query = param(req, "query");
+    const auto started = std::chrono::steady_clock::now();
+    const Json out = api::retrieve(
+        db_, root, query,
         param(req, "mode").empty() ? std::string("hybrid") : param(req, "mode"),
         k.empty() ? 10 : static_cast<std::size_t>(std::stoul(k)), param(req, "kind"),
         param(req, "path_prefix"));
+    const double ms = std::chrono::duration<double, std::milli>(
+                          std::chrono::steady_clock::now() - started)
+                          .count();
+    log_query(db_, clock_, obs_, project_id_for(root), "retrieve", query,
+              static_cast<std::int64_t>(out.at("hits").size()), ms);
+    return out;
+  });
+  route("GET", "/api/v1/metrics", [this](const httplib::Request& req) {
+    return api::metrics(db_, root_param(req));
   });
   route("GET", "/api/v1/doctor",
         [this](const httplib::Request&) { return api::doctor(db_); });

@@ -16,6 +16,7 @@ add_library(veylqora_core
   retrieval/text.cpp
   retrieval/search.cpp
   memory/transfer.cpp
+  observability/observability.cpp
   storage/database.cpp)
 
 target_include_directories(veylqora_core

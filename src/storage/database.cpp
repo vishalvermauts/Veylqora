@@ -150,6 +150,32 @@ CREATE INDEX vec_by_project ON symbol_vec (project_id);
     std::string_view{R"sql(
 ALTER TABLE memory ADD COLUMN approved_by TEXT NOT NULL DEFAULT '';
 )sql"},
+    // v6: observability (M2.7, ADR-0018). Rows hold hashes and identifiers, never
+    // raw query text, payloads or memory content. Timestamps are fixed-width UTC,
+    // so retention can compare them as strings.
+    std::string_view{R"sql(
+CREATE TABLE query_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id TEXT NOT NULL REFERENCES project(id) ON DELETE CASCADE,
+  method TEXT NOT NULL,
+  query_sha256 TEXT NOT NULL,
+  result_count INTEGER NOT NULL,
+  latency_ms REAL NOT NULL,
+  at TEXT NOT NULL
+);
+CREATE INDEX query_log_by_project ON query_log (project_id, at);
+CREATE INDEX query_log_by_at ON query_log (at);
+
+CREATE TABLE audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  actor TEXT NOT NULL,
+  action TEXT NOT NULL,
+  target_kind TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  at TEXT NOT NULL
+);
+CREATE INDEX audit_log_by_at ON audit_log (at);
+)sql"},
 };
 
 }  // namespace

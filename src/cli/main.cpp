@@ -4,6 +4,7 @@
 #include "veylqora/core/runtime.hpp"
 #include "veylqora/graph/query.hpp"
 #include "veylqora/memory/transfer.hpp"
+#include "veylqora/observability/observability.hpp"
 #include "veylqora/server/server.hpp"
 
 #include <atomic>
@@ -61,7 +62,7 @@ void usage() {
          "db/server)\n"
          "  veylqora memory export <file> --root <root> --db <file>\n"
          "  veylqora memory import <file> --db <file>\n"
-         "  veylqora serve --db <file> [--host 127.0.0.1] [--port 8765]\n"
+         "  veylqora serve --db <file> [--host 127.0.0.1] [--port 8765] [--query-log-every N]\n"
          "global: --json prints machine-readable output\n"
          "exit codes: 0 ok, 1 error, 2 usage, 3 not found, 4 conflict\n";
 }
@@ -311,6 +312,10 @@ int run_server(const Args& args, veylqora::Database& db) {
   veylqora::SystemClock clock;
   veylqora::RandomIds ids;
   veylqora::Server server(db, clock, ids);
+  veylqora::ObservabilityOptions obs;
+  if (!args.flag("query-log-every").empty())
+    obs.query_log_every = std::stoll(args.flag("query-log-every"));
+  server.set_observability(obs);
   const int bound = server.bind(host, port);
   if (!args.flag("web").empty()) server.mount_web(args.flag("web"));
   std::cout << "listening on http://" << host << ':' << bound << " (ctrl-c to stop)"

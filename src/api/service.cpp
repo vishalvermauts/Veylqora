@@ -2,6 +2,7 @@
 
 #include "veylqora/core/project.hpp"
 #include "veylqora/graph/query.hpp"
+#include "veylqora/observability/observability.hpp"
 #include "veylqora/retrieval/search.hpp"
 
 namespace veylqora::api {
@@ -77,6 +78,8 @@ Json status(Database& db, const fs::path& root) {
 Json index(Database& db, const Clock& clock, const fs::path& root,
            const IndexOptions& options) {
   const IndexStats s = index_project(db, clock, root, options);
+  audit(db, clock, "indexer", "index.run", "project", project_id_for(root));
+  purge_expired(db, clock, ObservabilityOptions{});
   Json out = {
       {"indexed", s.files_indexed},           {"unchanged", s.files_unchanged},
       {"removed", s.files_removed},           {"skipped", s.files_skipped},
@@ -140,6 +143,7 @@ Json memory_create(Database& db, const Clock& clock, IdGenerator& ids,
     }
   }
   const std::string id = create_memory(db, clock, ids, root, m);
+  audit(db, clock, m.author, "memory.create", "memory", id);
   return memory_json(*get_memory(db, root, id));
 }
 
@@ -153,8 +157,10 @@ Json memory_list(Database& db, const fs::path& root, std::string_view state,
 
 Json memory_approve(Database& db, const Clock& clock, const fs::path& root,
                     std::string_view id, const Json& body) {
-  approve_memory(db, clock, root, id, int_field(body, "expected_revision"),
-                 text_field(body, "approver"), text_field(body, "reason"));
+  const std::string approver = text_field(body, "approver");
+  approve_memory(db, clock, root, id, int_field(body, "expected_revision"), approver,
+                 text_field(body, "reason"));
+  audit(db, clock, approver, "memory.approve", "memory", id);
   return memory_json(*get_memory(db, root, id));
 }
 
@@ -194,9 +200,10 @@ Json memory_inspect(Database& db, const fs::path& root, std::string_view id,
 
 Json memory_update(Database& db, const Clock& clock, const fs::path& root,
                    std::string_view id, const Json& body) {
+  const std::string actor = text_field(body, "actor");
   update_memory(db, clock, root, id, int_field(body, "expected_revision"),
-                text_field(body, "content"), text_field(body, "actor"),
-                text_field(body, "reason"));
+                text_field(body, "content"), actor, text_field(body, "reason"));
+  audit(db, clock, actor, "memory.update", "memory", id);
   return memory_json(*get_memory(db, root, id));
 }
 
@@ -229,17 +236,43 @@ Json retrieve(Database& db, const fs::path& root, std::string_view query,
 
 Json memory_accept(Database& db, const Clock& clock, const fs::path& root,
                    std::string_view id, const Json& body) {
-  accept_memory(db, clock, root, id, int_field(body, "expected_revision"),
-                text_field(body, "actor"), text_field(body, "reason"));
+  const std::string actor = text_field(body, "actor");
+  accept_memory(db, clock, root, id, int_field(body, "expected_revision"), actor,
+                text_field(body, "reason"));
+  audit(db, clock, actor, "memory.accept", "memory", id);
   return memory_json(*get_memory(db, root, id));
 }
 
 Json memory_transition(Database& db, const Clock& clock, const fs::path& root,
                        std::string_view id, const Json& body) {
+  const std::string actor = text_field(body, "actor");
   transition_memory(db, clock, root, id, int_field(body, "expected_revision"),
-                    text_field(body, "to_state"), text_field(body, "actor"),
-                    text_field(body, "reason"));
+                    text_field(body, "to_state"), actor, text_field(body, "reason"));
+  audit(db, clock, actor, "memory.transition", "memory", id);
   return memory_json(*get_memory(db, root, id));
+}
+
+Json metrics(Database& db, const fs::path& root) {
+  const std::string pid = project_id_for(root);
+  Json memories = Json::object();
+  {
+    Statement q(db, "SELECT state, COUNT(*) FROM memory WHERE project_id = ? GROUP BY state");
+    q.bind(1, pid);
+    while (q.step()) memories[q.text(0)] = q.integer(1);
+  }
+  Json actions = Json::object();
+  {
+    Statement q(db, "SELECT action, COUNT(*) FROM audit_log GROUP BY action");
+    while (q.step()) actions[q.text(0)] = q.integer(1);
+  }
+  return Json{
+      {"project_root", root.generic_string()},
+      {"files", count(db, "SELECT COUNT(*) FROM file WHERE project_id = ?", pid)},
+      {"symbols", count(db, "SELECT COUNT(*) FROM symbol WHERE project_id = ?", pid)},
+      {"memories_by_state", memories},
+      {"queries_logged", count(db, "SELECT COUNT(*) FROM query_log WHERE project_id = ?", pid)},
+      // The audit log has no project column, so its counts are instance-wide.
+      {"audit_events_by_action", actions}};
 }
 
 Json doctor(Database& db) {

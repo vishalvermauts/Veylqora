@@ -1,6 +1,7 @@
 #pragma once
 
 #include "veylqora/core/runtime.hpp"
+#include "veylqora/observability/observability.hpp"
 #include "veylqora/storage/database.hpp"
 
 #include <httplib.h>
@@ -24,7 +25,10 @@ class Server {
   /// Serves the built web UI from `dir` at "/". API routes take precedence.
   void mount_web(const std::string& dir);
 
-  /// Serves requests until stop() is called.
+  /// Query-log and retention settings. Applies to requests after the call.
+  void set_observability(const ObservabilityOptions& options);
+
+  /// Serves requests until stop() is called. Expired log rows are purged first.
   void serve();
   void stop();
 
@@ -35,6 +39,7 @@ class Server {
   Database& db_;
   const Clock& clock_;
   IdGenerator& ids_;
+  ObservabilityOptions obs_;
   std::mutex mu_;
 };
 
