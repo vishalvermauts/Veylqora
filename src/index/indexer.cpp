@@ -201,7 +201,7 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
 }
 
 // Decides what one candidate becomes in the database. Caller holds the transaction.
-void process_candidate(Database& db, const std::string& pid, const fs::path& base,
+void process_candidate(Database& db, const std::string& pid, const fs::path& base, bool force,
                        const std::string& rel, IndexStats& stats) {
   if (!is_python(rel)) return;
 
@@ -241,7 +241,7 @@ void process_candidate(Database& db, const std::string& pid, const fs::path& bas
       db, "SELECT content_sha256 FROM file WHERE project_id = ? AND rel_path = ?");
   existing.bind(1, pid);
   existing.bind(2, rel);
-  if (existing.step() && existing.text(0) == sha) {
+  if (!force && existing.step() && existing.text(0) == sha) {
     ++stats.files_unchanged;
     return;
   }
@@ -283,7 +283,7 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root,
   while (done < total && !cancelled()) {
     Transaction tx(db);
     for (std::size_t n = 0; n < batch && done < total && !cancelled(); ++n, ++done) {
-      process_candidate(db, pid, base, candidates[done], stats);
+      process_candidate(db, pid, base, options.force, candidates[done], stats);
     }
     tx.commit();
     if (options.on_progress) options.on_progress(done, total);
@@ -331,6 +331,31 @@ std::vector<SymbolHit> find_symbols(Database& db, const fs::path& root,
     hits.push_back(SymbolHit{q.text(0), q.text(1), q.text(2), q.integer(3)});
   }
   return hits;
+}
+
+Consistency check_consistency(Database& db, const fs::path& root) {
+  const std::string pid = project_id_for(root);
+  Consistency out;
+  const auto count = [&](const char* sql) {
+    Statement q(db, sql);
+    q.bind(1, pid);
+    q.step();
+    return static_cast<std::size_t>(q.integer(0));
+  };
+  out.symbols = count("SELECT COUNT(*) FROM symbol WHERE project_id = ? AND kind != 'module'");
+  out.symbols_without_tokens = count(
+      "SELECT COUNT(*) FROM symbol s WHERE s.project_id = ? AND s.kind != 'module' AND NOT EXISTS "
+      "(SELECT 1 FROM token t WHERE t.symbol_id = s.id)");
+  out.symbols_without_vectors = count(
+      "SELECT COUNT(*) FROM symbol s WHERE s.project_id = ? AND s.kind != 'module' AND NOT EXISTS "
+      "(SELECT 1 FROM symbol_vec v WHERE v.symbol_id = s.id)");
+  out.orphan_vectors = count(
+      "SELECT COUNT(*) FROM symbol_vec v WHERE v.project_id = ? AND NOT EXISTS "
+      "(SELECT 1 FROM symbol s WHERE s.id = v.symbol_id)");
+  out.orphan_tokens = count(
+      "SELECT COUNT(*) FROM token t WHERE t.project_id = ? AND NOT EXISTS "
+      "(SELECT 1 FROM symbol s WHERE s.id = t.symbol_id)");
+  return out;
 }
 
 }  // namespace veylqora

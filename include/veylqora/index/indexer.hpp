@@ -15,6 +15,9 @@
 namespace veylqora {
 
 struct IndexOptions {
+  /// Re-parse every file even when its content hash is unchanged. This is the
+  /// rebuild fallback (M2.2): it regenerates all rows from the source.
+  bool force = false;
   /// Files per transaction. Bounds memory and how long a write lock is held,
   /// and is the granularity at which an interrupted run resumes.
   std::size_t batch_size = 200;
@@ -45,6 +48,23 @@ struct IndexStats {
 IndexStats index_project(Database& db, const Clock& clock,
                          const std::filesystem::path& root,
                          const IndexOptions& options = {});
+
+/// Counts that must agree in a consistent index (M2.2). A non-zero orphan or
+/// missing count means a bug or a corrupted database, not a normal state.
+struct Consistency {
+  std::size_t symbols = 0;
+  std::size_t symbols_without_tokens = 0;
+  std::size_t symbols_without_vectors = 0;
+  std::size_t orphan_vectors = 0;  // vectors whose symbol is gone
+  std::size_t orphan_tokens = 0;   // token rows whose symbol is gone
+  bool ok() const {
+    return symbols_without_tokens == 0 && symbols_without_vectors == 0 && orphan_vectors == 0 &&
+           orphan_tokens == 0;
+  }
+};
+
+/// Checks the retrieval rows against the symbols they describe, for one project.
+Consistency check_consistency(Database& db, const std::filesystem::path& root);
 
 struct SymbolHit {
   std::string path;  // project-relative, '/' separated
