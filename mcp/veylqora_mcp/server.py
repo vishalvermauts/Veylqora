@@ -15,6 +15,7 @@ import urllib.request
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError as SdkToolError
 
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
@@ -22,7 +23,7 @@ LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 CHARS_PER_TOKEN = 4
 
 
-class ToolError(Exception):
+class ToolError(SdkToolError):
     """A request the daemon refused, or an argument this server rejects."""
 
 

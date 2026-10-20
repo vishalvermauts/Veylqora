@@ -45,6 +45,13 @@ def daemon():
     proc.wait(timeout=10)
 
 
+def data(result):
+    """The tool result as a dict, whichever form the SDK returned it in."""
+    if result.structured_content is not None:
+        return result.structured_content
+    return json.loads(result.content[0].text)
+
+
 async def session_for(url):
     params = StdioServerParameters(
         command=sys.executable, args=[str(SERVER)], env={**os.environ, "VEYLQORA_URL": url})
@@ -76,12 +83,12 @@ def test_read_tools_return_real_data(daemon):
         deps = await session.call_tool("find_dependencies", {"root": str(FIXTURES), "name": "helper"})
         return status, search, inspect, deps
     status, search, inspect, deps = run(daemon, scenario)
-    assert status.structured_content["indexed"] is True
-    assert status.structured_content["files"] == 10
-    paths = [h["path"] for h in search.structured_content["hits"]]
+    assert data(status)["indexed"] is True
+    assert data(status)["files"] == 10
+    paths = [h["path"] for h in data(search)["hits"]]
     assert "auth/tokens.py" in paths
-    assert inspect.structured_content["definitions"][0]["path"] == "auth/tokens.py"
-    assert deps.structured_content["dependents"] is not None
+    assert data(inspect)["definitions"][0]["path"] == "auth/tokens.py"
+    assert data(deps)["dependents"] is not None
 
 
 def test_memory_workflow_and_validity(daemon):
@@ -90,15 +97,15 @@ def test_memory_workflow_and_validity(daemon):
             "root": str(FIXTURES), "type": "decision", "content": "tokens are prefixed",
             "author": "mcp-test", "evidence": [{"rel_path": "auth/tokens.py", "symbol_fqn": "auth.tokens.verify_token"}],
         })
-        memory_id = created.structured_content["id"]
+        memory_id = data(created)["id"]
         found = await session.call_tool("search_memories", {"root": str(FIXTURES), "text": "prefixed"})
         evidence = await session.call_tool("inspect_evidence", {"root": str(FIXTURES), "memory_id": memory_id})
         validity = await session.call_tool("check_memory_validity", {"root": str(FIXTURES), "memory_id": memory_id})
         return memory_id, found, evidence, validity
     memory_id, found, evidence, validity = run(daemon, scenario)
-    assert any(m["id"] == memory_id for m in found.structured_content["memories"])
-    assert evidence.structured_content["evidence"][0]["symbol"] == "auth.tokens.verify_token"
-    assert validity.structured_content["valid"] is True
+    assert any(m["id"] == memory_id for m in data(found)["memories"])
+    assert data(evidence)["evidence"][0]["symbol"] == "auth.tokens.verify_token"
+    assert data(validity)["valid"] is True
 
 
 def test_context_package_respects_its_budget(daemon):
