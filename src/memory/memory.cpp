@@ -63,14 +63,13 @@ bool visible_to(std::string_view scope, std::string_view author, std::string_vie
   return scope == "approved" && !approved_by.empty();
 }
 
-// Writes need visibility; a private memory is changed only by its author.
+// A writer must be able to see the memory. Anyone who can see a memory can change
+// it, so a private memory (visible only to its author) is changed only by its
+// author, and a memory another agent cannot see is reported as not found.
 void authorise_write(const Row& row, std::string_view actor) {
   require(!actor.empty(), "an actor is required for attribution");
   if (!visible_to(row.scope, row.author, row.approved_by, actor)) {
     throw NotFoundError("no memory with id " + row.id);
-  }
-  if (row.scope == "private" && actor != row.author) {
-    throw ForbiddenError("only the author may change a private memory");
   }
 }
 

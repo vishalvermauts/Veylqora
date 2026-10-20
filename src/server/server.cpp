@@ -22,9 +22,6 @@ void reply_error(httplib::Response& res, const std::exception& e) {
   if (dynamic_cast<const ConflictError*>(&e) != nullptr) {
     status = 409;
     code = "conflict";
-  } else if (dynamic_cast<const ForbiddenError*>(&e) != nullptr) {
-    status = 403;
-    code = "forbidden";
   } else if (dynamic_cast<const NotFoundError*>(&e) != nullptr) {
     status = 404;
     code = "not_found";

@@ -20,12 +20,6 @@ class ConflictError : public Error {
   using Error::Error;
 };
 
-/// The caller may see the memory but may not change it (HTTP 403). ADR-0017.
-class ForbiddenError : public Error {
- public:
-  using Error::Error;
-};
-
 /// Points at a symbol the project has indexed. Evidence that names nothing
 /// indexed is rejected, so a memory can never cite code that does not exist.
 struct EvidenceRef {

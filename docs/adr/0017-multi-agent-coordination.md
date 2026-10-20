@@ -30,9 +30,10 @@ not treat an unapproved decision as shared knowledge.
    the writer did not read. The database's busy timeout turns brief lock
    contention into a wait, not an error.
 
-5. **Refusal.** Reading a memory another agent may not see is reported as not
-   found (no existence leak). Writing one that another agent may not change is
-   refused as forbidden (HTTP 403).
+5. **Refusal.** A memory another agent may not see is reported as not found, for
+   reads and writes alike (no existence leak). Because anyone who can see a
+   memory can change it, there is no separate forbidden case: a private memory
+   is simply invisible to everyone but its author.
 
 6. **Auditable.** Every write and approval appends to the revision history and
    records the actor, so a shared memory's full history shows who changed it.
