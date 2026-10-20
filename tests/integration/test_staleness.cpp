@@ -71,13 +71,13 @@ Result run(const Scenario& s) {
   m.type = "decision";
   m.content = "verify is the token check";
   m.author = "dataset";
-  m.evidence = {{"auth.py", "verify"}};
+  m.evidence = {{"auth.py", "auth.verify"}};
   const std::string id = veylqora::create_memory(db, clock, ids, src, m);
 
   if (s.supersede_first) {
     veylqora::NewMemory n = m;
     n.content = "a newer decision";
-    n.evidence = {{"util.py", "fmt"}};
+    n.evidence = {{"util.py", "util.fmt"}};
     const std::string newer = veylqora::create_memory(db, clock, ids, src, n);
     veylqora::supersede_memory(db, clock, src, id, 1, newer, "dataset", "replaced");
   }
