@@ -22,6 +22,7 @@
 
 namespace {
 
+namespace api = veylqora::api;
 using api::Json;
 namespace fs = std::filesystem;
 
