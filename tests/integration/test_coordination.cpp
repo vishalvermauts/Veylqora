@@ -21,8 +21,8 @@ using veylqora::test::TempDir;
 namespace {
 
 const fs::path kRoot = VEYLQORA_FIXTURE_DIR "/python";
-constexpr int kAgents = 40;        // ADR-0017 threshold
-constexpr int kUpdatesEach = 5;    // ADR-0017 threshold
+constexpr std::size_t kAgents = 40;        // ADR-0017 threshold
+constexpr std::size_t kUpdatesEach = 5;    // ADR-0017 threshold
 
 veylqora::NewMemory memory_of(const std::string& author, const std::string& scope) {
   veylqora::NewMemory m;
@@ -46,9 +46,9 @@ TEST_CASE("40 agents on one shared memory: no lost updates, every write in the h
     id = veylqora::create_memory(db, clock, ids, kRoot, memory_of("seed", "shared"));
   }
 
-  std::vector<int> successes(kAgents, 0);
+  std::vector<std::size_t> successes(kAgents, 0);
   std::vector<std::thread> agents;
-  for (int a = 0; a < kAgents; ++a) {
+  for (std::size_t a = 0; a < kAgents; ++a) {
     agents.emplace_back([&, a] {
       // Each agent has its own connection, as separate processes would.
       veylqora::Database db(file);
@@ -69,14 +69,14 @@ TEST_CASE("40 agents on one shared memory: no lost updates, every write in the h
 
   veylqora::Database db(file);
   const auto final_state = veylqora::get_memory(db, kRoot, id, "");
-  const std::int64_t total = kAgents * kUpdatesEach;
+  const auto total = static_cast<std::int64_t>(kAgents * kUpdatesEach);
   CHECK(final_state->revision_no == 1 + total);  // every success advanced the revision exactly once
 
   const auto history = veylqora::revisions_of(db, kRoot, id);
   CHECK(history.size() == static_cast<std::size_t>(1 + total));
-  std::map<std::string, int> by_actor;
+  std::map<std::string, std::size_t> by_actor;
   for (const auto& r : history) ++by_actor[r.actor];
-  for (int a = 0; a < kAgents; ++a) {
+  for (std::size_t a = 0; a < kAgents; ++a) {
     CHECK(by_actor["agent-" + std::to_string(a)] == kUpdatesEach);
   }
   // Revisions are contiguous: nothing was skipped or written twice.
