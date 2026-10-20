@@ -58,3 +58,23 @@ These are the plan's targets (§2.3). They are not adjusted after seeing results
   change costs a wrong memory.
 - **Cost.** Revalidation looks up symbols by fingerprint with a scan. That is
   acceptable at this scale and is measured, not assumed, in M3.2.
+
+## Results (dataset in `tests/integration/test_staleness.cpp`)
+
+Ten scenarios, three labelled as needing attention. The thresholds above were
+written before the first run and were not changed.
+
+First run, before two defects were fixed:
+
+- precision 0.60, recall 1.00 (tp 3, fp 2, tn 5). The two false positives were
+  a comment added inside a cited body (the fingerprint counted it) and a
+  superseded memory whose cited code later changed. The second was a defect in
+  the test's own definition of "flagged", which counted any non-active state.
+- Fixes: comments are removed from the fingerprinted text, and a comment that
+  fills its own line takes the line with it. "Flagged" now means suspected stale
+  or evidence missing. A superseded memory is a decision, not a finding.
+
+Final run: all ten scenarios match their labels (precision 1.00, recall 1.00).
+This is a small, hand-labelled dataset. It shows that the rules work on the cases
+it covers. It does not establish accuracy on real repositories; that is a
+measurement for M3.6a.
