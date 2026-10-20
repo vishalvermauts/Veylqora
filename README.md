@@ -1,26 +1,221 @@
 # Veylqora
 
-Code intelligence and persistent agent memory: a single-node C++20 service that
-indexes a repository's structure, stores an agent's durable knowledge about it,
-and — the part that is actually novel — tracks which stored memories a code
-change puts in doubt, rather than guessing or ignoring the question.
+**Veylqora is a local code-intelligence service with persistent memory for AI coding agents.**
 
-**Status: pre-v0.1.** The toolchain, dependency strategy, identity model and
-certification regime are decided and building. Nothing else is implemented yet.
-Do not read the plan as a description of working software.
+It indexes a repository's code (symbols, calls, imports, inheritance), stores what
+an agent has learned about that code as structured memories, and keeps each
+memory tied to the code it was based on. When that code later changes, the
+memories that depend on it are the ones in question. The design goal is to tell
+an agent *which* stored knowledge may be stale, instead of having it trust the
+notes blindly or ignore them.
 
-## Documents
+Status: **Phase 1 (v0.1) is largely built and certified module by module; Phases 2 and 3 are not started.** See [Current implementation](#current-implementation).
 
-| File | What it is |
+---
+
+## The problem
+
+AI coding agents lose context between sessions. In practice this shows up as:
+
+- **Re-investigation.** The agent re-reads the same files and re-discovers the same
+  facts every session, spending tokens and time on work it already did.
+- **Stale notes.** A note saying "the token check is in `auth.py`" stays in the
+  notes after the function is renamed, moved, or rewritten. The agent acts on it.
+- **Irrelevant retrieval.** Searching by text returns the word "token" in twenty
+  places; the agent cannot tell which one matters for the task.
+- **No provenance.** Nothing records *why* a decision was made, *who* made it, or
+  *what code it assumed*.
+
+Veylqora addresses each of these with a persistent, queryable model of the code
+and of the agent's knowledge, linked together.
+
+## How it helps
+
+| Need | What Veylqora provides |
 |---|---|
-| [`PLAN_REVIEW.md`](PLAN_REVIEW.md) | Critique of the original directive: flaws, ranked by cost of not fixing |
-| [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) | The plan being executed: phases, data model, logic, gates |
-| [`docs/adr/`](docs/adr/) | Decisions, with the evidence and the reversal criteria |
+| Find the code that matters | Exact symbol lookup; graph queries for who calls or depends on a name |
+| Understand relationships | Calls, imports, inheritance and containment, each with a confidence level |
+| Keep knowledge across sessions | Memories with revisions, state, author and reason, stored in SQLite |
+| Know when knowledge is stale | Memories cite the symbols they rely on, with a fingerprint of their body at the time. A change to a cited symbol is detectable (Phase 2 acts on it) |
+| Don't trust guesses | Every graph edge is marked `resolved`, `heuristic` (a guess) or `unresolved`. The tool never presents a guess as fact |
+| Audit and recover | Every memory change is recorded. Export and import are deterministic and byte-identical on round trip |
+| Stay local and private | No network calls for indexing, graph or memory. Nothing leaves the machine |
 
-## Building
+## How it works
 
-Linux is the reference platform (ADR-0001). Requires CMake ≥ 3.28, a C++20
-compiler and SQLite development headers.
+```
+   source tree ──► ingestion ──► tree-sitter parse ──► facts (calls, imports, bases)
+   (git-aware:                    per file                    │
+    honours .gitignore,                                       ▼
+    skips symlinks, binary,                       SQLite (WAL, one writer)
+    invalid UTF-8)                                 ├─ project, file, symbol
+                                                   ├─ fact, binding
+                                                   ├─ edge  ◄── resolver (whole project)
+                                                   └─ memory, revision, evidence, event
+                                                            ▲
+   agent / user ──► CLI or HTTP API (loopback) ─────────────┘
+```
+
+1. **Ingestion.** Inside a git work tree, the file list comes from `git ls-files`, so
+   `.gitignore` rules apply exactly as git applies them. Symlinks are never followed.
+   Binary files, non-UTF-8 files and files over 1 MiB are skipped with a warning.
+2. **Parsing.** Each Python file is parsed with tree-sitter. The parser records
+   symbols (modules, classes, functions, methods, with dotted names), call sites,
+   inheritance, and what each import binds to. A file with syntax errors is still
+   indexed for its valid parts.
+3. **Resolution.** After a run that changed something, a whole-project pass turns
+   the recorded facts into edges. A name bound by an import in the same file is
+   `resolved`. A name defined in the same file is `resolved`. A method called on an
+   unknown receiver is `heuristic`, linked to at most five candidates. Anything else
+   is `unresolved`. Package re-exports are followed for a bounded number of hops.
+4. **Memory.** A memory has a type, content, author, scope and state. It can cite
+   indexed symbols as evidence; a citation that names nothing indexed is rejected
+   and the whole memory is not created. Updates use optimistic concurrency: a writer
+   names the revision it read, and a stale write is refused with a conflict rather
+   than silently overwriting.
+5. **State machine.** States are `active`, `suspected_stale`, `superseded`,
+   `invalidated`, `evidence_missing` and `archived`. Only the transitions in the
+   table are allowed, and each needs a reason. A code change can raise a question
+   (`active → suspected_stale`); answering it is a separate, recorded decision.
+
+## Tech stack
+
+| Area | Choice | Why |
+|---|---|---|
+| Core language | C++20 | Performance and predictable memory use for an indexing service |
+| Build | CMake ≥ 3.28, Ninja | Standard for C++; FetchContent pins dependencies by tag or SHA-256 |
+| Storage | SQLite 3 (WAL, foreign keys, forward-only migrations) | One file, transactional, no server to run |
+| Parsing | tree-sitter v0.27.1 + tree-sitter-python v0.25.0 (MIT) | Incremental, error-tolerant, fast |
+| HTTP | cpp-httplib v0.62.0 (MIT) | Header-only; loopback API |
+| JSON | nlohmann/json v3.12.0 (MIT) | Wire format for the CLI and API |
+| Tests | Catch2 v3.11.0 | C++ unit and integration tests |
+| Quality gates | `-Wall -Wextra -Wconversion … -Werror`, clang-format, ASan + UBSan | Warnings are errors for first-party code |
+| Web UI | React 19, TypeScript 5.9, Vite 7, Vitest | Read-only dashboard served by the daemon |
+| CI | Cloud sandbox running `scripts/ci.sh` (no hosted runner) | Reproducible; see ADR-0005 |
+
+Planned, not yet in the code: USearch (vector index, ADR-0002) for semantic
+search, and an MCP server (ADR-0007) for AI coding clients.
+
+## Current implementation
+
+Modules follow the plan in [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md). Each is
+certified by `scripts/certify.py`, which runs the checks at a pushed commit and
+records the result under `docs/certification/`.
+
+| Module | What it delivers | Status |
+|---|---|---|
+| M0.1 | Build skeleton, warnings-as-errors, sanitizer wiring, dependency pins | PASS (`98ba21e`) |
+| M0.2 | Certification system: `certify.py`, `verify_certs.py`, tamper detection | PASS (module 0.1) |
+| S1–S4 | Spikes: symbol identity, evidence anchoring, vector delete/recall, MCP handshake | Decided in ADR-0003, 0002, 0007 |
+| M1.1 | Core runtime, SQLite schema and migrations, Python indexing, CLI slice | PASS (`d827704`) |
+| M1.2 | Git-aware ingestion, classification, batched and cancellable indexing | PASS (`71f7318`) |
+| M1.3a | Python code graph: tree-sitter symbols, edges with confidence, queries | PASS (`71b59f1`) |
+| M1.4 | Memory engine: revisions, CAS, state machine, evidence, retention, JSONL export/import | PASS (`be804fc`) |
+| M1.5 | Local HTTP API, `veylqora` CLI with `--json`, single-writer file lock | Implemented; certification being redone at the new head |
+| M1.6 | Read-only React dashboard served by the daemon | Certified PASS at `53fecc6`; a later attempt is recorded as PARTIAL |
+| M1.3b | JavaScript and TypeScript graph | Not started (v0.2) |
+| Phase 2 | Hybrid retrieval, incremental index maintenance, evidence invalidation, MCP server, context packaging, multi-agent coordination, observability | Not started |
+| Phase 3 | Hardening, benchmarks, packaging and Docker, offline evaluation | Not started |
+| M3.5 | PolyFabric and StructZero adapters | Blocked: needs their contract documents |
+| M3.6b | Paid agent comparison study | Blocked: needs an approved spending budget |
+
+### Command line
+
+```bash
+veylqora init --db veylqora.db
+veylqora index ./my-repo --db veylqora.db
+veylqora search verify_token --root ./my-repo --db veylqora.db
+veylqora graph verify_token --root ./my-repo --db veylqora.db
+veylqora status --root ./my-repo --db veylqora.db
+
+veylqora memory add --root ./my-repo --db veylqora.db --type decision \
+  --content "tokens are prefixed" --author agent-a --evidence "auth/tokens.py:auth.tokens.verify_token"
+veylqora memory list --root ./my-repo --db veylqora.db
+veylqora memory inspect <id> --root ./my-repo --db veylqora.db
+veylqora memory export memories.jsonl --root ./my-repo --db veylqora.db
+
+veylqora serve --db veylqora.db --port 8765     # daemon; the only writer while running
+veylqora status --root ./my-repo --server http://127.0.0.1:8765
+```
+
+Add `--json` to any command for machine-readable output. Exit codes: `0` ok,
+`1` error, `2` usage, `3` not found, `4` conflict.
+
+### HTTP API (loopback only)
+
+`GET /api/v1/health`, `GET /api/v1/status`, `POST /api/v1/index`,
+`GET /api/v1/search`, `GET /api/v1/graph`, `GET /api/v1/doctor`,
+`GET|POST /api/v1/memories`, `GET /api/v1/memories/{id}`,
+`POST /api/v1/memories/{id}/update`, `POST /api/v1/memories/{id}/transition`.
+
+Errors are returned as `{"error":{"code":"…","message":"…"}}` with a status of
+400 (invalid), 404 (not found) or 409 (revision conflict).
+
+## Test results
+
+Last full CI run on the code in this repository (cloud sandbox, Ubuntu 26.04,
+gcc 15.2 and clang 21.1):
+
+| Job | Result |
+|---|---|
+| clang-format check | PASS |
+| gcc 15 build, `-Werror`, all tests | PASS — 71 / 71 |
+| clang 21 build, `-Werror`, all tests | PASS — 71 / 71 |
+| AddressSanitizer + UndefinedBehaviorSanitizer, all tests | PASS — 71 / 71 |
+| Certification records verify | PASS (records for older commits are reported as stale warnings) |
+
+The 71 tests cover: identity and fingerprints; the Python parser; repository
+ingestion (empty, large, binary, invalid UTF-8, symlinks, renames, deletions,
+`.gitignore`, interrupted runs, unreadable files); the code graph against a
+hand-labelled fixture (precision and recall both 1.0 on that fixture, a gate of 0.95); memory
+rules (revision conflicts, transitions, evidence rollback, restart, isolation,
+retention, byte-identical export and import); the HTTP API on a live port with
+its error codes; the single-writer lock; and a CLI integration script.
+
+**Measured on public repositories** (shallow clones, cloud sandbox):
+
+| Project | Python files | Symbols | First index | Re-index |
+|---|---|---|---|---|
+| psf/requests | 37 | 844 | 0.3 s | 0.0 s |
+| pallets/flask | 83 | 1,705 | 0.3 s | 0.0 s |
+| django/django | 2,933 | 46,906 | 24 s | 0.3 s |
+
+Graph lookups on django take 5–40 ms, including opening the database. The
+results are in `docs/research/`.
+
+## Known limitations
+
+- **Python only.** JavaScript and TypeScript are not indexed yet.
+- **Name-based, not type-based.** Calls on objects of unknown type are heuristic.
+  Dynamic dispatch, `getattr`, and runtime imports are not modelled.
+- **No semantic search yet.** Retrieval is exact-name and graph-based until Phase 2.
+- **Nothing acts on staleness yet.** Memories can be marked suspected-stale by
+  hand; automatic detection after code changes is Phase 2 (M2.3).
+- **No secret redaction yet.** Indexed source and memory content are stored as
+  given. Redaction at ingest is planned.
+- **No authentication.** The HTTP API accepts loopback connections only. Remote
+  exposure is refused until authentication exists (ADR-0012 is planned).
+- **Storage cost.** The graph roughly triples indexing time and multiplies storage
+  by about eight on django. Recorded in `docs/research/graph-m1.3a.txt`.
+- **Windows.** The CLI builds with MSVC in principle, but CI and the sanitizer
+  gates run on Linux only (ADR-0001).
+
+## Decisions and documentation
+
+| File | Contents |
+|---|---|
+| [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) | Phases, modules, data model, gates |
+| [`PLAN_REVIEW.md`](PLAN_REVIEW.md) | Critique of the original directive and how each flaw is handled |
+| [`docs/adr/`](docs/adr/) | Architecture decisions, each with evidence and reversal criteria |
+| [`docs/certification/`](docs/certification/) | Certification manifests and logs per module and commit |
+| [`docs/research/`](docs/research/) | Measurements on public repositories and spike results |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model, controls in place, known gaps |
+
+## Build and test
+
+Requirements: CMake ≥ 3.28, Ninja, a C++20 compiler (gcc 13+ or clang 17+),
+SQLite development headers, and network access on the first build (dependencies
+are fetched and pinned).
 
 ```bash
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -28,7 +223,7 @@ cmake --build build -j
 ctest --test-dir build --output-on-failure
 ```
 
-Sanitizer build (Clang on Linux only — MSVC has no UBSan):
+Sanitizer build:
 
 ```bash
 cmake -S . -B build-san -G Ninja -DCMAKE_BUILD_TYPE=Debug \
@@ -36,14 +231,19 @@ cmake -S . -B build-san -G Ninja -DCMAKE_BUILD_TYPE=Debug \
 cmake --build build-san -j && ctest --test-dir build-san --output-on-failure
 ```
 
-Builds run in a Docker Cloud Sandbox, which is **billed per running minute**:
+Full gated run, in the cloud sandbox used for CI: `scripts/ci.sh`.
 
-```bash
-scripts/sbx.sh up && scripts/sbx.sh build && scripts/sbx.sh stop
-```
+## Roadmap
 
-`scripts/sbx.sh stop` is not optional. `scripts/sbx.sh status` shows whether
-anything is still running.
+- **v0.1 (Phase 1):** finish M1.6 certification, then tag the release.
+- **v0.2 (Phase 2):** TypeScript and JavaScript graph; hybrid retrieval with a local
+  embedding model; detection of stale memories after code changes, with
+  revalidation; an MCP server so coding agents can call Veylqora directly; context
+  packages that fit a token budget; coordination between several agents.
+- **v0.3 (Phase 3):** performance benchmarks at several corpus sizes, security
+  review and sanitizer fuzzing, Docker packaging and backup/restore, an offline
+  evaluation of retrieval quality, and the PolyFabric and StructZero integrations
+  once their contracts are available.
 
 ## Licence
 
