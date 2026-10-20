@@ -307,6 +307,7 @@ int run(const Args& args) {
 
   if (command == "init") {
     if (db_path.empty()) return usage(), kExitUsage;
+    veylqora::FileLock lock(db_path + ".lock");
     veylqora::Database db(db_path);
     std::cout << "initialized " << db_path << '\n';
     return kExitOk;
@@ -314,6 +315,7 @@ int run(const Args& args) {
 
   if (command == "memory" && (sub == "export" || sub == "import")) {
     if (db_path.empty() || args.positional.size() != 3) return usage(), kExitUsage;
+    veylqora::FileLock lock(db_path + ".lock");
     veylqora::Database db(db_path);
     if (sub == "export") {
       if (root.empty()) return usage(), kExitUsage;
@@ -334,6 +336,7 @@ int run(const Args& args) {
 
   // Everything else runs against a database file or a running server.
   if (server_url.empty() && db_path.empty()) return usage(), kExitUsage;
+  std::optional<veylqora::FileLock> lock;
   std::optional<veylqora::Database> db;
   std::optional<DirectBackend> direct;
   std::optional<RemoteBackend> remote;
@@ -342,6 +345,9 @@ int run(const Args& args) {
     remote.emplace(server_url);
     backend = &*remote;
   } else {
+    // Direct access takes the same lock as the daemon, so the two cannot write
+    // the file at once (ADR-0004).
+    lock.emplace(db_path + ".lock");
     db.emplace(db_path);
     direct.emplace(*db);
     backend = &*direct;
