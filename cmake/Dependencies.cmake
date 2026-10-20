@@ -36,12 +36,22 @@ FetchContent_Declare(tree_sitter
   SYSTEM)
 FetchContent_MakeAvailable(tree_sitter)
 
-FetchContent_Declare(tree_sitter_python
-  GIT_REPOSITORY https://github.com/tree-sitter/tree-sitter-python.git
-  GIT_TAG        v0.25.0
-  GIT_SHALLOW    TRUE
-  SYSTEM)
-FetchContent_MakeAvailable(tree_sitter_python)  # defines target tree-sitter-python
+# The grammar's own CMake regenerates parser.c with the tree-sitter CLI, which
+# this build does not need. The three generated files are fetched at the pinned
+# tag and verified by SHA-256 instead, so the build depends only on their bytes.
+set(TS_PY_BASE "https://raw.githubusercontent.com/tree-sitter/tree-sitter-python/v0.25.0")
+set(TS_PY_DIR "${CMAKE_BINARY_DIR}/third_party/tree_sitter_python")
+file(DOWNLOAD "${TS_PY_BASE}/src/parser.c" "${TS_PY_DIR}/src/parser.c"
+     EXPECTED_HASH SHA256=a895f10b3cf7b2608f3283b43cd5cfed70971c7ee4a0136abbaaccbc4a7a25e0)
+file(DOWNLOAD "${TS_PY_BASE}/src/scanner.c" "${TS_PY_DIR}/src/scanner.c"
+     EXPECTED_HASH SHA256=6db82134ac2d4c90a1a1475487a625cface02662ebda9b7478cad9c7147e9afe)
+file(DOWNLOAD "${TS_PY_BASE}/src/tree_sitter/parser.h" "${TS_PY_DIR}/src/tree_sitter/parser.h"
+     EXPECTED_HASH SHA256=180b893c8734778fd32f372dfbc27bd6ad1cd2221f26150b31256ff6716320d2)
+add_library(tree_sitter_python STATIC
+  "${TS_PY_DIR}/src/parser.c"
+  "${TS_PY_DIR}/src/scanner.c")
+target_include_directories(tree_sitter_python SYSTEM PUBLIC "${TS_PY_DIR}/src")
+target_link_libraries(tree_sitter_python PUBLIC tree-sitter)
 
 # ---- Catch2 (tests only) ----------------------------------------------------
 if(VEYLQORA_BUILD_TESTS)

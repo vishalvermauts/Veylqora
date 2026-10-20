@@ -15,7 +15,7 @@ target_include_directories(veylqora_core
 
 target_link_libraries(veylqora_core
   PUBLIC SQLite::SQLite3
-  PRIVATE picosha2 tree-sitter tree-sitter-python veylqora_warnings veylqora_sanitizers)
+  PRIVATE picosha2 tree_sitter_python veylqora_warnings veylqora_sanitizers)
 
 add_library(veylqora::core ALIAS veylqora_core)
 
