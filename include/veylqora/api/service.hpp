@@ -30,8 +30,12 @@ Json retrieve(Database& db, const std::filesystem::path& root, std::string_view 
 
 Json memory_create(Database& db, const Clock& clock, IdGenerator& ids,
                    const std::filesystem::path& root, const Json& body);
-Json memory_list(Database& db, const std::filesystem::path& root, std::string_view state);
-Json memory_inspect(Database& db, const std::filesystem::path& root, std::string_view id);
+Json memory_list(Database& db, const std::filesystem::path& root, std::string_view state,
+                 std::string_view viewer = "");
+Json memory_approve(Database& db, const Clock& clock, const std::filesystem::path& root,
+                    std::string_view id, const Json& body);
+Json memory_inspect(Database& db, const std::filesystem::path& root, std::string_view id,
+                    std::string_view viewer = "");
 Json memory_update(Database& db, const Clock& clock, const std::filesystem::path& root,
                    std::string_view id, const Json& body);
 Json memory_accept(Database& db, const Clock& clock, const std::filesystem::path& root,

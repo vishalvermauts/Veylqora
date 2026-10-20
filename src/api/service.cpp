@@ -38,6 +38,7 @@ Json memory_json(const Memory& m) {
             {"author", m.author},
             {"revision", m.revision_no},
             {"created_at", m.created_at},
+            {"approved_by", m.approved_by},
             {"updated_at", m.updated_at}};
   if (!m.superseded_by.empty()) j["superseded_by"] = m.superseded_by;
   return j;
@@ -142,15 +143,24 @@ Json memory_create(Database& db, const Clock& clock, IdGenerator& ids,
   return memory_json(*get_memory(db, root, id));
 }
 
-Json memory_list(Database& db, const fs::path& root, std::string_view state) {
+Json memory_list(Database& db, const fs::path& root, std::string_view state,
+                 std::string_view viewer) {
   Json out = Json::array();
-  for (const Memory& m : veylqora::list_memories(db, root, state))
+  for (const Memory& m : veylqora::list_memories(db, root, state, viewer))
     out.push_back(memory_json(m));
   return out;
 }
 
-Json memory_inspect(Database& db, const fs::path& root, std::string_view id) {
-  const auto m = get_memory(db, root, id);
+Json memory_approve(Database& db, const Clock& clock, const fs::path& root, std::string_view id,
+                    const Json& body) {
+  approve_memory(db, clock, root, id, int_field(body, "expected_revision"),
+                 text_field(body, "approver"), text_field(body, "reason"));
+  return memory_json(*get_memory(db, root, id));
+}
+
+Json memory_inspect(Database& db, const fs::path& root, std::string_view id,
+                    std::string_view viewer) {
+  const auto m = get_memory(db, root, id, viewer);
   if (!m) throw NotFoundError("no memory with id " + std::string(id));
   Json evidence = Json::array();
   for (const EvidenceRow& e : evidence_of(db, root, id)) {

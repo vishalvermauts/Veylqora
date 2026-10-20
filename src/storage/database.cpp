@@ -146,6 +146,10 @@ CREATE TABLE symbol_vec (
 );
 CREATE INDEX vec_by_project ON symbol_vec (project_id);
 )sql"},
+    // v5: multi-agent coordination (ADR-0017). An empty approver means not approved.
+    std::string_view{R"sql(
+ALTER TABLE memory ADD COLUMN approved_by TEXT NOT NULL DEFAULT '';
+)sql"},
 };
 
 }  // namespace

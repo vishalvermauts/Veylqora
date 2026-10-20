@@ -51,7 +51,28 @@ struct Row {
   std::string state;
   std::string content;
   std::int64_t revision;
+  std::string scope;
+  std::string author;
+  std::string approved_by;
 };
+
+// Who may see a memory (ADR-0017). An empty viewer is the local operator.
+bool visible_to(std::string_view scope, std::string_view author, std::string_view approved_by,
+                std::string_view viewer) {
+  if (viewer.empty() || author == viewer || scope == "shared") return true;
+  return scope == "approved" && !approved_by.empty();
+}
+
+// Writes need visibility; a private memory is changed only by its author.
+void authorise_write(const Row& row, std::string_view actor) {
+  require(!actor.empty(), "an actor is required for attribution");
+  if (!visible_to(row.scope, row.author, row.approved_by, actor)) {
+    throw NotFoundError("no memory with id " + row.id);
+  }
+  if (row.scope == "private" && actor != row.author) {
+    throw ForbiddenError("only the author may change a private memory");
+  }
+}
 
 std::string project_of(const std::filesystem::path& root) { return project_id_for(root); }
 
@@ -74,12 +95,12 @@ void ensure_project(Database& db, const std::filesystem::path& root,
 // so existence is not revealed across projects.
 Row load(Database& db, const std::string& pid, std::string_view id) {
   Statement q(db,
-              "SELECT id, state, content, revision_no FROM memory WHERE project_id = ? "
-              "AND id = ?");
+              "SELECT id, state, content, revision_no, scope, author, approved_by FROM memory "
+              "WHERE project_id = ? AND id = ?");
   q.bind(1, pid);
   q.bind(2, id);
   if (!q.step()) throw NotFoundError("no memory with id " + std::string(id));
-  return Row{q.text(0), q.text(1), q.text(2), q.integer(3)};
+  return Row{q.text(0), q.text(1), q.text(2), q.integer(3), q.text(4), q.text(5), q.text(6)};
 }
 
 void check_revision(const Row& row, std::int64_t expected) {
@@ -153,13 +174,13 @@ void transition_in(Database& db, const Clock& clock, const std::string& pid,
 Memory read_memory(Database& db, const std::string& pid, std::string_view id) {
   Statement q(db,
               "SELECT id, type, content, state, scope, author, revision_no, "
-              "COALESCE(superseded_by, ''), created_at, updated_at FROM memory "
+              "COALESCE(superseded_by, ''), created_at, updated_at, approved_by FROM memory "
               "WHERE project_id = ? AND id = ?");
   q.bind(1, pid);
   q.bind(2, id);
   if (!q.step()) throw NotFoundError("no memory with id " + std::string(id));
   return Memory{q.text(0), q.text(1),    q.text(2), q.text(3), q.text(4),
-                q.text(5), q.integer(6), q.text(7), q.text(8), q.text(9)};
+                q.text(5), q.integer(6), q.text(7), q.text(8), q.text(9), q.text(10)};
 }
 
 }  // namespace
@@ -243,9 +264,11 @@ std::string create_memory(Database& db, const Clock& clock, IdGenerator& ids,
 }
 
 std::optional<Memory> get_memory(Database& db, const std::filesystem::path& root,
-                                 std::string_view id) {
+                                 std::string_view id, std::string_view viewer) {
   try {
-    return read_memory(db, project_of(root), id);
+    Memory m = read_memory(db, project_of(root), id);
+    if (!visible_to(m.scope, m.author, m.approved_by, viewer)) return std::nullopt;
+    return m;
   } catch (const Error&) {
     return std::nullopt;
   }
@@ -265,7 +288,7 @@ std::vector<EvidenceRow> evidence_of(Database& db, const std::filesystem::path& 
 }
 
 std::vector<Memory> list_memories(Database& db, const std::filesystem::path& root,
-                                  std::string_view state) {
+                                  std::string_view state, std::string_view viewer) {
   const std::string pid = project_of(root);
   Statement q(db,
               state.empty()
@@ -278,7 +301,10 @@ std::vector<Memory> list_memories(Database& db, const std::filesystem::path& roo
   while (q.step()) ids.push_back(q.text(0));
   std::vector<Memory> out;
   out.reserve(ids.size());
-  for (const std::string& id : ids) out.push_back(read_memory(db, pid, id));
+  for (const std::string& id : ids) {
+    Memory m = read_memory(db, pid, id);
+    if (visible_to(m.scope, m.author, m.approved_by, viewer)) out.push_back(std::move(m));
+  }
   return out;
 }
 
@@ -292,9 +318,17 @@ void update_memory(Database& db, const Clock& clock, const std::filesystem::path
   const std::string pid = project_of(root);
   Transaction tx(db);
   const Row row = load(db, pid, id);
+  authorise_write(row, actor);
   check_revision(row, expected_revision);
   require(row.state != "archived", "archived memories are read-only");
   apply_change(db, pid, row, content, row.state, actor, reason, to_iso8601(clock.now()));
+  if (!row.approved_by.empty()) {
+    // The approved content is no longer the content that was approved (ADR-0017).
+    Statement clear(db, "UPDATE memory SET approved_by = '' WHERE project_id = ? AND id = ?");
+    clear.bind(1, pid);
+    clear.bind(2, row.id);
+    clear.step();
+  }
   tx.commit();
 }
 
@@ -305,6 +339,7 @@ void transition_memory(Database& db, const Clock& clock,
   const std::string pid = project_of(root);
   Transaction tx(db);
   const Row row = load(db, pid, id);
+  authorise_write(row, actor);
   transition_in(db, clock, pid, row, expected_revision, to_state, actor, reason);
   tx.commit();
 }
@@ -317,6 +352,7 @@ void supersede_memory(Database& db, const Clock& clock, const std::filesystem::p
   const std::string pid = project_of(root);
   Transaction tx(db);
   const Row old_row = load(db, pid, old_id);
+  authorise_write(old_row, actor);
   load(db, pid, new_id);  // the replacement must exist in this project
   transition_in(db, clock, pid, old_row, expected_revision, "superseded", actor, reason);
   Statement link(db,
@@ -487,6 +523,7 @@ void accept_memory(Database& db, const Clock& clock, const std::filesystem::path
   const std::string pid = project_of(root);
   Transaction tx(db);
   const Row row = load(db, pid, id);
+  authorise_write(row, actor);
   check_revision(row, expected_revision);
   require(row.state == "suspected_stale" || row.state == "evidence_missing",
           "only a flagged memory can be accepted");
@@ -501,6 +538,29 @@ void accept_memory(Database& db, const Clock& clock, const std::filesystem::path
     refresh.step();
   }
   transition_in(db, clock, pid, row, expected_revision, "active", actor, reason);
+  tx.commit();
+}
+
+void approve_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
+                    std::string_view id, std::int64_t expected_revision, std::string_view approver,
+                    std::string_view reason) {
+  require(!approver.empty(), "an approver is required for attribution");
+  require(!reason.empty(), "a reason is required for every approval");
+  const std::string pid = project_of(root);
+  Transaction tx(db);
+  const Row row = load(db, pid, id);
+  authorise_write(row, approver);
+  check_revision(row, expected_revision);
+  require(row.scope == "approved", "only an approved-scope memory takes an approval");
+  require(row.state != "archived", "archived memories cannot be approved");
+  require(approver != row.author, "the author cannot approve their own memory");
+  apply_change(db, pid, row, row.content, row.state, approver, "approved: " + std::string(reason),
+               to_iso8601(clock.now()));
+  Statement mark(db, "UPDATE memory SET approved_by = ? WHERE project_id = ? AND id = ?");
+  mark.bind(1, approver);
+  mark.bind(2, pid);
+  mark.bind(3, row.id);
+  mark.step();
   tx.commit();
 }
 

@@ -20,6 +20,12 @@ class ConflictError : public Error {
   using Error::Error;
 };
 
+/// The caller may see the memory but may not change it (HTTP 403). ADR-0017.
+class ForbiddenError : public Error {
+ public:
+  using Error::Error;
+};
+
 /// Points at a symbol the project has indexed. Evidence that names nothing
 /// indexed is rejected, so a memory can never cite code that does not exist.
 struct EvidenceRef {
@@ -47,6 +53,7 @@ struct Memory {
   std::string superseded_by;  // empty unless superseded
   std::string created_at;
   std::string updated_at;
+  std::string approved_by;  // empty until an approver other than the author records one
 };
 
 struct EvidenceRow {
@@ -78,14 +85,14 @@ std::string create_memory(Database& db, const Clock& clock, IdGenerator& ids,
 
 /// The memory in this project, or nullopt. Another project's id is not found.
 std::optional<Memory> get_memory(Database& db, const std::filesystem::path& root,
-                                 std::string_view id);
+                                 std::string_view id, std::string_view viewer = "");
 
 std::vector<EvidenceRow> evidence_of(Database& db, const std::filesystem::path& root,
                                      std::string_view id);
 
 /// Memories in this project, optionally filtered by state, ordered by creation.
 std::vector<Memory> list_memories(Database& db, const std::filesystem::path& root,
-                                  std::string_view state = "");
+                                  std::string_view state = "", std::string_view viewer = "");
 
 /// Replaces the content. `expected_revision` must be the current revision, or
 /// ConflictError is thrown and nothing changes.
@@ -130,6 +137,12 @@ RevalidationStats revalidate_project(Database& db, const Clock& clock,
 void accept_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
                    std::string_view id, std::int64_t expected_revision,
                    std::string_view actor, std::string_view reason);
+
+/// Records an approval of an `approved`-scope memory by someone other than its
+/// author (ADR-0017). The approval is part of the revision history.
+void approve_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
+                    std::string_view id, std::int64_t expected_revision, std::string_view approver,
+                    std::string_view reason);
 
 /// Deletes archived memories last changed before `cutoff`, with their history.
 /// Retention is explicit: nothing is deleted automatically.
