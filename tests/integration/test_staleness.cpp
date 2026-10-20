@@ -90,7 +90,10 @@ Result run(const Scenario& s) {
   }
 
   const auto memory = veylqora::get_memory(db, src, id);
-  return Result{s.name, s.needs_attention, memory->state != "active"};
+  // "Flagged" means the memory needs attention. A superseded or invalidated
+  // memory was decided on, not flagged by this check (ADR-0014).
+  const bool flagged = memory->state == "suspected_stale" || memory->state == "evidence_missing";
+  return Result{s.name, s.needs_attention, flagged};
 }
 
 }  // namespace
