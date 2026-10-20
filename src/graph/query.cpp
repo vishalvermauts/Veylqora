@@ -30,12 +30,11 @@ std::vector<GraphEdge> dependents_of(Database& db, const fs::path& root,
   Statement q(db,
               "SELECT e.kind, s.fqn, f.rel_path, COALESCE(d.fqn, ''), e.dst_hint, "
               "e.resolution, e.line "
-              "FROM edge e "
+              "FROM symbol d CROSS JOIN edge e "
               "JOIN symbol s ON s.id = e.src_symbol_id "
               "JOIN file f ON f.id = s.file_id "
-              "JOIN symbol d ON d.id = e.dst_symbol_id "
-              "WHERE e.project_id = ? AND d.name = ? AND e.kind != 'contains' "
-              "ORDER BY s.fqn, e.line");
+              "WHERE e.dst_symbol_id = d.id AND d.project_id = ? AND d.name = ? "
+              "AND e.kind != 'contains' ORDER BY s.fqn, e.line");
   q.bind(1, project_id_of(root));
   q.bind(2, name);
   std::vector<GraphEdge> out;
@@ -48,12 +47,11 @@ std::vector<GraphEdge> dependencies_of(Database& db, const fs::path& root,
   Statement q(db,
               "SELECT e.kind, s.fqn, f.rel_path, COALESCE(d.fqn, ''), e.dst_hint, "
               "e.resolution, e.line "
-              "FROM edge e "
-              "JOIN symbol s ON s.id = e.src_symbol_id "
+              "FROM symbol s CROSS JOIN edge e "
               "JOIN file f ON f.id = s.file_id "
               "LEFT JOIN symbol d ON d.id = e.dst_symbol_id "
-              "WHERE e.project_id = ? AND s.name = ? AND e.kind != 'contains' "
-              "ORDER BY e.kind, e.dst_hint, e.line");
+              "WHERE e.src_symbol_id = s.id AND s.project_id = ? AND s.name = ? "
+              "AND e.kind != 'contains' ORDER BY e.kind, e.dst_hint, e.line");
   q.bind(1, project_id_of(root));
   q.bind(2, name);
   std::vector<GraphEdge> out;
