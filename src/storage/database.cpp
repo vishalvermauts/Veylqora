@@ -128,6 +128,24 @@ CREATE TABLE evidence (
 );
 CREATE INDEX evidence_by_memory ON evidence (memory_id);
 )sql"},
+    // v4: retrieval (M2.1, ADR-0015). Both tables follow their symbol through a
+    // cascading foreign key, so deleting a symbol removes its rows.
+    std::string_view{R"sql(
+CREATE TABLE token (
+  project_id TEXT NOT NULL REFERENCES project(id) ON DELETE CASCADE,
+  token TEXT NOT NULL,
+  symbol_id TEXT NOT NULL REFERENCES symbol(id) ON DELETE CASCADE,
+  PRIMARY KEY (project_id, token, symbol_id)
+);
+CREATE INDEX token_by_symbol ON token (symbol_id);
+
+CREATE TABLE symbol_vec (
+  symbol_id TEXT PRIMARY KEY REFERENCES symbol(id) ON DELETE CASCADE,
+  project_id TEXT NOT NULL REFERENCES project(id) ON DELETE CASCADE,
+  vec BLOB NOT NULL
+);
+CREATE INDEX vec_by_project ON symbol_vec (project_id);
+)sql"},
 };
 
 }  // namespace
@@ -218,6 +236,19 @@ void Statement::bind_null(int index) {
   if (sqlite3_bind_null(stmt_, index) != SQLITE_OK) {
     throw Error(std::string("bind failed: ") + sqlite3_errmsg(db_));
   }
+}
+
+void Statement::bind_blob(int index, std::string_view value) {
+  if (sqlite3_bind_blob(stmt_, index, value.data(), static_cast<int>(value.size()),
+                        SQLITE_TRANSIENT) != SQLITE_OK) {
+    throw Error(std::string("bind failed: ") + sqlite3_errmsg(db_));
+  }
+}
+
+std::string Statement::blob(int column) const {
+  const auto* p = static_cast<const char*>(sqlite3_column_blob(stmt_, column));
+  if (p == nullptr) return {};
+  return std::string(p, static_cast<std::size_t>(sqlite3_column_bytes(stmt_, column)));
 }
 
 void Statement::reset() {

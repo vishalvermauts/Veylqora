@@ -54,6 +54,7 @@ class Statement {
   void bind(int index, std::string_view value);
   void bind(int index, std::int64_t value);
   void bind_null(int index);
+  void bind_blob(int index, std::string_view value);
 
   /// Rewinds for another execution with fresh bindings.
   void reset();
@@ -62,6 +63,7 @@ class Statement {
   bool step();
 
   std::string text(int column) const;
+  std::string blob(int column) const;
   std::int64_t integer(int column) const;
 
  private:
