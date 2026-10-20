@@ -111,6 +111,26 @@ std::vector<Revision> revisions_of(Database& db, const std::filesystem::path& ro
 std::vector<StateEvent> state_events_of(Database& db, const std::filesystem::path& root,
                                         std::string_view id);
 
+struct RevalidationStats {
+  std::size_t checked = 0;     // memories with evidence that were examined
+  std::size_t flagged = 0;     // moved to suspected_stale or evidence_missing
+  std::size_t restored = 0;    // returned to active because the evidence matches again
+  std::size_t reanchored = 0;  // evidence found at a new location with the same body
+};
+
+/// Compares every memory's cited symbols with the current index (ADR-0014).
+/// Changes are applied as system transitions with a recorded reason. Nothing is
+/// invalidated here: that needs a decision.
+RevalidationStats revalidate_project(Database& db, const Clock& clock,
+                                     const std::filesystem::path& root);
+
+/// Accepts the current code for a flagged memory: refreshes the stored
+/// fingerprints of its evidence and returns it to active, with the actor and
+/// reason recorded. Fails if a cited symbol is still missing.
+void accept_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
+                   std::string_view id, std::int64_t expected_revision, std::string_view actor,
+                   std::string_view reason);
+
 /// Deletes archived memories last changed before `cutoff`, with their history.
 /// Retention is explicit: nothing is deleted automatically.
 std::size_t purge_archived(Database& db, const std::filesystem::path& root,

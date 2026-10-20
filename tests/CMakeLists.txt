@@ -17,7 +17,8 @@ add_executable(veylqora_integration_tests
   integration/test_graph.cpp
   integration/test_memory.cpp
   integration/test_ingestion.cpp
-  integration/test_slice.cpp)
+  integration/test_slice.cpp
+  integration/test_staleness.cpp)
 
 target_compile_definitions(veylqora_integration_tests
   PRIVATE "VEYLQORA_FIXTURE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/fixtures\"")

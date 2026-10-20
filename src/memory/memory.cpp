@@ -359,6 +359,144 @@ std::vector<StateEvent> state_events_of(Database& db, const std::filesystem::pat
   return out;
 }
 
+namespace {
+
+// The fingerprint of a named, non-module symbol in this project, if it exists.
+std::optional<std::string> fingerprint_of(Database& db, const std::string& pid,
+                                          std::string_view rel_path, std::string_view fqn) {
+  Statement q(db,
+              "SELECT s.body_fingerprint FROM symbol s JOIN file f ON f.id = s.file_id "
+              "WHERE f.project_id = ? AND f.rel_path = ? AND s.fqn = ? AND s.kind != 'module' "
+              "ORDER BY s.start_line LIMIT 1");
+  q.bind(1, pid);
+  q.bind(2, rel_path);
+  q.bind(3, fqn);
+  if (!q.step()) return std::nullopt;
+  return q.text(0);
+}
+
+// Every (path, name) whose body has this fingerprint.
+std::vector<std::pair<std::string, std::string>> places_with(Database& db, const std::string& pid,
+                                                             std::string_view fingerprint) {
+  Statement q(db,
+              "SELECT f.rel_path, s.fqn FROM symbol s JOIN file f ON f.id = s.file_id "
+              "WHERE f.project_id = ? AND s.body_fingerprint = ? AND s.kind != 'module'");
+  q.bind(1, pid);
+  q.bind(2, fingerprint);
+  std::vector<std::pair<std::string, std::string>> out;
+  while (q.step()) out.emplace_back(q.text(0), q.text(1));
+  return out;
+}
+
+struct Cited {
+  std::int64_t id;
+  std::string rel_path;
+  std::string symbol_fqn;
+  std::string fingerprint;
+};
+
+std::vector<Cited> cited_by(Database& db, const std::string& pid, const std::string& memory_id) {
+  Statement q(db,
+              "SELECT id, rel_path, symbol_fqn, content_fingerprint FROM evidence "
+              "WHERE memory_id = ? AND project_id = ? ORDER BY id");
+  q.bind(1, memory_id);
+  q.bind(2, pid);
+  std::vector<Cited> out;
+  while (q.step()) out.push_back(Cited{q.integer(0), q.text(1), q.text(2), q.text(3)});
+  return out;
+}
+
+}  // namespace
+
+RevalidationStats revalidate_project(Database& db, const Clock& clock,
+                                     const std::filesystem::path& root) {
+  const std::string pid = project_of(root);
+  RevalidationStats stats;
+
+  std::vector<std::string> ids;
+  {
+    Statement q(db,
+                "SELECT DISTINCT m.id FROM memory m JOIN evidence e ON e.memory_id = m.id "
+                "WHERE m.project_id = ? AND m.state NOT IN ('superseded', 'invalidated', 'archived') "
+                "ORDER BY m.id");
+    q.bind(1, pid);
+    while (q.step()) ids.push_back(q.text(0));
+  }
+
+  Transaction tx(db);
+  for (const std::string& id : ids) {
+    const Row row = load(db, pid, id);
+    ++stats.checked;
+
+    bool changed = false;
+    bool missing = false;
+    for (const Cited& c : cited_by(db, pid, id)) {
+      const auto current = fingerprint_of(db, pid, c.rel_path, c.symbol_fqn);
+      if (current) {
+        if (*current != c.fingerprint) changed = true;
+        continue;
+      }
+      // The cited name is gone. If its exact body exists exactly once elsewhere,
+      // it was renamed or moved: follow it and keep the fingerprint (ADR-0014).
+      const auto places = places_with(db, pid, c.fingerprint);
+      if (places.size() == 1) {
+        Statement move(db, "UPDATE evidence SET rel_path = ?, symbol_fqn = ? WHERE id = ?");
+        move.bind(1, places[0].first);
+        move.bind(2, places[0].second);
+        move.bind(3, c.id);
+        move.step();
+        ++stats.reanchored;
+      } else {
+        missing = true;
+      }
+    }
+
+    if (missing) {
+      if (row.state == "active") {
+        transition_in(db, clock, pid, row, row.revision, "evidence_missing", "system",
+                      "a cited symbol could not be found");
+        ++stats.flagged;
+      }
+    } else if (changed) {
+      if (row.state == "active") {
+        transition_in(db, clock, pid, row, row.revision, "suspected_stale", "system",
+                      "a cited symbol changed");
+        ++stats.flagged;
+      }
+    } else if (row.state == "suspected_stale" || row.state == "evidence_missing") {
+      transition_in(db, clock, pid, row, row.revision, "active", "system",
+                    "cited symbols match again");
+      ++stats.restored;
+    }
+  }
+  tx.commit();
+  return stats;
+}
+
+void accept_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
+                   std::string_view id, std::int64_t expected_revision, std::string_view actor,
+                   std::string_view reason) {
+  require(!actor.empty(), "an actor is required for attribution");
+  require(!reason.empty(), "a reason is required for every change");
+  const std::string pid = project_of(root);
+  Transaction tx(db);
+  const Row row = load(db, pid, id);
+  check_revision(row, expected_revision);
+  require(row.state == "suspected_stale" || row.state == "evidence_missing",
+          "only a flagged memory can be accepted");
+
+  for (const Cited& c : cited_by(db, pid, row.id)) {
+    const auto current = fingerprint_of(db, pid, c.rel_path, c.symbol_fqn);
+    require(current.has_value(), "a cited symbol is still missing; it cannot be accepted");
+    Statement refresh(db, "UPDATE evidence SET content_fingerprint = ? WHERE id = ?");
+    refresh.bind(1, *current);
+    refresh.bind(2, c.id);
+    refresh.step();
+  }
+  transition_in(db, clock, pid, row, expected_revision, "active", actor, reason);
+  tx.commit();
+}
+
 std::size_t purge_archived(Database& db, const std::filesystem::path& root,
                            Timestamp cutoff) {
   const std::string pid = project_of(root);

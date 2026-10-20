@@ -33,6 +33,25 @@ std::string project_id(const fs::path& canonical) {
   return content_fingerprint(canonical.generic_string());
 }
 
+// The fingerprint of a definition without its own name. A rename or a move with
+// an unchanged body then keeps its fingerprint, so its memories follow it
+// (ADR-0014). The parameters are still part of the text, so a changed signature
+// still counts.
+std::string definition_fingerprint(const PySymbol& s) {
+  std::string text = s.body;
+  std::size_t at = 0;
+  if (text.starts_with("async ")) at = 6;
+  if (text.compare(at, 4, "def ") == 0) {
+    at += 4;
+  } else if (text.compare(at, 6, "class ") == 0) {
+    at += 6;
+  } else {
+    return body_fingerprint(text);
+  }
+  if (text.compare(at, s.name.size(), s.name) == 0) text.erase(at, s.name.size());
+  return body_fingerprint(text);
+}
+
 // "auth/tokens.py" -> "auth.tokens"; a package's __init__.py names the package,
 // so "auth/__init__.py" -> "auth".
 std::string module_name(std::string rel_path) {
@@ -105,7 +124,7 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
     ins.bind(5, s.name);
     ins.bind(6, s.fqn);
     ins.bind(7, static_cast<std::int64_t>(s.overload));
-    ins.bind(8, body_fingerprint(s.body));
+    ins.bind(8, definition_fingerprint(s));
     ins.bind(9, static_cast<std::int64_t>(s.start_line));
     ins.bind(10, static_cast<std::int64_t>(s.end_line));
     ins.step();

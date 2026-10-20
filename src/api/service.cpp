@@ -75,11 +75,20 @@ Json status(Database& db, const fs::path& root) {
 Json index(Database& db, const Clock& clock, const fs::path& root,
            const IndexOptions& options) {
   const IndexStats s = index_project(db, clock, root, options);
-  return Json{
+  Json out = {
       {"indexed", s.files_indexed},           {"unchanged", s.files_unchanged},
       {"removed", s.files_removed},           {"skipped", s.files_skipped},
       {"unreadable", s.files_unreadable},     {"partial", s.files_with_syntax_errors},
       {"symbols_written", s.symbols_written}, {"canceled", s.canceled}};
+  // A completed run that changed something may put memories in doubt (ADR-0014).
+  if (!s.canceled && s.files_indexed + s.files_removed + s.files_skipped > 0) {
+    const RevalidationStats r = revalidate_project(db, clock, root);
+    out["memories_checked"] = r.checked;
+    out["memories_flagged"] = r.flagged;
+    out["memories_restored"] = r.restored;
+    out["evidence_reanchored"] = r.reanchored;
+  }
+  return out;
 }
 
 Json search(Database& db, const fs::path& root, std::string_view name) {
