@@ -9,7 +9,7 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 db="$tmp/veylqora.db"
 
-"$bin" index "$fixtures" --db "$db" | grep -q "indexed 10 file(s)"
+"$bin" index "$fixtures" --db "$db" | grep -q "^indexed 10,"
 
 first=$("$bin" search verify_token --root "$fixtures" --db "$db")
 second=$("$bin" search verify_token --root "$fixtures" --db "$db")
