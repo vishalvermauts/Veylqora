@@ -28,9 +28,10 @@ struct EvidenceRef {
 };
 
 struct NewMemory {
-  std::string type;   // decision, observation, task_outcome, failed_approach, requirement, constraint
+  std::string type;  // decision, observation, task_outcome, failed_approach, requirement,
+                     // constraint
   std::string content;
-  std::string author;  // agent or user identity; required for attribution
+  std::string author;             // agent or user identity; required for attribution
   std::string scope = "private";  // private, shared, approved
   std::vector<EvidenceRef> evidence;
 };
@@ -89,19 +90,21 @@ std::vector<Memory> list_memories(Database& db, const std::filesystem::path& roo
 /// Replaces the content. `expected_revision` must be the current revision, or
 /// ConflictError is thrown and nothing changes.
 void update_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
-                   std::string_view id, std::int64_t expected_revision, std::string_view content,
-                   std::string_view actor, std::string_view reason);
+                   std::string_view id, std::int64_t expected_revision,
+                   std::string_view content, std::string_view actor,
+                   std::string_view reason);
 
 /// Moves the memory to a new state if the transition is allowed (ADR-0011).
-void transition_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
-                       std::string_view id, std::int64_t expected_revision,
-                       std::string_view to_state, std::string_view actor,
-                       std::string_view reason);
+void transition_memory(Database& db, const Clock& clock,
+                       const std::filesystem::path& root, std::string_view id,
+                       std::int64_t expected_revision, std::string_view to_state,
+                       std::string_view actor, std::string_view reason);
 
 /// Marks `old_id` superseded by `new_id`. Both must be in this project.
 void supersede_memory(Database& db, const Clock& clock, const std::filesystem::path& root,
                       std::string_view old_id, std::int64_t expected_revision,
-                      std::string_view new_id, std::string_view actor, std::string_view reason);
+                      std::string_view new_id, std::string_view actor,
+                      std::string_view reason);
 
 std::vector<Revision> revisions_of(Database& db, const std::filesystem::path& root,
                                    std::string_view id);
@@ -110,6 +113,7 @@ std::vector<StateEvent> state_events_of(Database& db, const std::filesystem::pat
 
 /// Deletes archived memories last changed before `cutoff`, with their history.
 /// Retention is explicit: nothing is deleted automatically.
-std::size_t purge_archived(Database& db, const std::filesystem::path& root, Timestamp cutoff);
+std::size_t purge_archived(Database& db, const std::filesystem::path& root,
+                           Timestamp cutoff);
 
 }  // namespace veylqora

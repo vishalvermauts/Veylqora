@@ -124,13 +124,15 @@ Record parse_line(std::string_view line, std::size_t number) {
 
 }  // namespace
 
-std::size_t export_memories(Database& db, const fs::path& root, const fs::path& out_file) {
+std::size_t export_memories(Database& db, const fs::path& root,
+                            const fs::path& out_file) {
   const std::string pid = project_id_for(root);
   std::ostringstream out;
   {
     Statement p(db, "SELECT id, name, root_path, created_at FROM project WHERE id = ?");
     p.bind(1, pid);
-    if (!p.step()) throw Error("project is not in the database; index or create a memory first");
+    if (!p.step())
+      throw Error("project is not in the database; index or create a memory first");
     out << to_line("project", {{"id", p.text(0)},
                                {"name", p.text(1)},
                                {"root_path", p.text(2)},
@@ -146,9 +148,10 @@ std::size_t export_memories(Database& db, const fs::path& root, const fs::path& 
   }
 
   for (const std::string& id : ids) {
-    Statement m(db,
-                "SELECT id, project_id, type, content, state, scope, author, revision_no, "
-                "COALESCE(superseded_by, ''), created_at, updated_at FROM memory WHERE id = ?");
+    Statement m(
+        db,
+        "SELECT id, project_id, type, content, state, scope, author, revision_no, "
+        "COALESCE(superseded_by, ''), created_at, updated_at FROM memory WHERE id = ?");
     m.bind(1, id);
     m.step();
     out << to_line("memory", {{"id", m.text(0)},
@@ -165,7 +168,8 @@ std::size_t export_memories(Database& db, const fs::path& root, const fs::path& 
         << '\n';
 
     Statement r(db,
-                "SELECT revision_no, content, state, actor, reason, changed_at FROM memory_revision "
+                "SELECT revision_no, content, state, actor, reason, changed_at FROM "
+                "memory_revision "
                 "WHERE memory_id = ? ORDER BY revision_no");
     r.bind(1, id);
     while (r.step()) {
@@ -233,17 +237,20 @@ std::size_t import_memories(Database& db, const fs::path& in_file) {
   for (const Record& r : records) {
     const std::string& kind = r.at("kind");
     if (kind == "project") {
-      Statement p(db, "INSERT INTO project (id, name, root_path, created_at) VALUES (?, ?, ?, ?)");
+      Statement p(
+          db,
+          "INSERT INTO project (id, name, root_path, created_at) VALUES (?, ?, ?, ?)");
       p.bind(1, r.at("id"));
       p.bind(2, r.at("name"));
       p.bind(3, r.at("root_path"));
       p.bind(4, r.at("created_at"));
       p.step();
     } else if (kind == "memory") {
-      Statement m(db,
-                  "INSERT INTO memory (id, project_id, type, content, state, scope, author, "
-                  "revision_no, superseded_by, created_at, updated_at) "
-                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), ?, ?)");
+      Statement m(
+          db,
+          "INSERT INTO memory (id, project_id, type, content, state, scope, author, "
+          "revision_no, superseded_by, created_at, updated_at) "
+          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), ?, ?)");
       m.bind(1, r.at("id"));
       m.bind(2, r.at("project_id"));
       m.bind(3, r.at("type"));
@@ -258,9 +265,10 @@ std::size_t import_memories(Database& db, const fs::path& in_file) {
       m.step();
       ++memories;
     } else if (kind == "revision") {
-      Statement q(db,
-                  "INSERT INTO memory_revision (memory_id, revision_no, content, state, actor, "
-                  "reason, changed_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+      Statement q(
+          db,
+          "INSERT INTO memory_revision (memory_id, revision_no, content, state, actor, "
+          "reason, changed_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
       q.bind(1, r.at("memory_id"));
       q.bind(2, static_cast<std::int64_t>(std::stoll(r.at("revision_no"))));
       q.bind(3, r.at("content"));
@@ -271,7 +279,8 @@ std::size_t import_memories(Database& db, const fs::path& in_file) {
       q.step();
     } else if (kind == "event") {
       Statement q(db,
-                  "INSERT INTO memory_state_event (memory_id, from_state, to_state, actor, reason, at) "
+                  "INSERT INTO memory_state_event (memory_id, from_state, to_state, "
+                  "actor, reason, at) "
                   "VALUES (?, ?, ?, ?, ?, ?)");
       q.bind(1, r.at("memory_id"));
       q.bind(2, r.at("from_state"));
@@ -281,9 +290,10 @@ std::size_t import_memories(Database& db, const fs::path& in_file) {
       q.bind(6, r.at("at"));
       q.step();
     } else if (kind == "evidence") {
-      Statement q(db,
-                  "INSERT INTO evidence (memory_id, project_id, rel_path, symbol_fqn, "
-                  "content_fingerprint) SELECT ?, project_id, ?, ?, ? FROM memory WHERE id = ?");
+      Statement q(
+          db,
+          "INSERT INTO evidence (memory_id, project_id, rel_path, symbol_fqn, "
+          "content_fingerprint) SELECT ?, project_id, ?, ?, ? FROM memory WHERE id = ?");
       q.bind(1, r.at("memory_id"));
       q.bind(2, r.at("rel_path"));
       q.bind(3, r.at("symbol_fqn"));
