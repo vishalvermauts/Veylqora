@@ -226,6 +226,9 @@ std::size_t import_memories(Database& db, const fs::path& in_file) {
   }
 
   Transaction tx(db);
+  // A memory may cite a memory that appears later in the file (supersession),
+  // so foreign keys are checked at commit rather than per row.
+  db.exec("PRAGMA defer_foreign_keys = ON;");
   std::size_t memories = 0;
   for (const Record& r : records) {
     const std::string& kind = r.at("kind");

@@ -124,8 +124,8 @@ TEST_CASE("state transitions follow the table; illegal ones and missing reasons 
   veylqora::transition_memory(db, clock, kFixtures, id, 1, "suspected_stale", "system", "code changed");
   CHECK(veylqora::get_memory(db, kFixtures, id)->state == "suspected_stale");
 
-  // suspected_stale -> active is allowed; active -> invalidated is not (it must pass through suspected_stale).
-  CHECK_THROWS_AS(veylqora::transition_memory(db, clock, kFixtures, id, 2, "invalidated", "x", "why"),
+  // suspected_stale -> evidence_missing is not in the table, whatever the reason.
+  CHECK_THROWS_AS(veylqora::transition_memory(db, clock, kFixtures, id, 2, "evidence_missing", "x", "why"),
                   veylqora::Error);
   CHECK_THROWS_AS(veylqora::transition_memory(db, clock, kFixtures, id, 2, "active", "x", ""),
                   veylqora::Error);  // reason required
