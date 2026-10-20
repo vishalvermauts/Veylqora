@@ -1,6 +1,5 @@
 #include "veylqora/index/javascript_parser.hpp"
 
-#include "tree_sitter_common.hpp"
 #include "veylqora/core/error.hpp"
 
 #include <algorithm>
@@ -8,6 +7,8 @@
 #include <limits>
 #include <unordered_map>
 #include <vector>
+
+#include "tree_sitter_common.hpp"
 
 extern "C" const TSLanguage* tree_sitter_javascript(void);
 extern "C" const TSLanguage* tree_sitter_typescript(void);
@@ -23,8 +24,8 @@ struct Scope {
   std::string fqn;
 };
 
-constexpr std::string_view kExtensions[] = {".tsx", ".mts", ".cts", ".jsx", ".mjs",
-                                            ".cjs", ".ts",  ".js"};
+constexpr std::string_view kExtensions[] = {".tsx", ".mts", ".cts", ".jsx",
+                                            ".mjs", ".cjs", ".ts",  ".js"};
 
 std::vector<std::string> split_path(std::string_view path) {
   std::vector<std::string> parts;
@@ -192,8 +193,8 @@ class Walker {
       }
       const std::string_view type = ts_node_type(base);
       if (type == "identifier") {
-        out_.facts.push_back(SourceFact{FactKind::inherits, cls,
-                                        std::string(text_of(source_, base)), {}, {}, line});
+        out_.facts.push_back(SourceFact{
+            FactKind::inherits, cls, std::string(text_of(source_, base)), {}, {}, line});
       } else if (type == "member_expression") {
         out_.facts.push_back(
             SourceFact{FactKind::inherits,
@@ -373,10 +374,12 @@ SourceFile parse_javascript(std::string_view module, std::string_view directory,
   }
 
   ParserPtr parser(ts_parser_new());
-  const TSLanguage* language = dialect == JsDialect::typescript ? tree_sitter_typescript()
-                                                                : tree_sitter_javascript();
+  const TSLanguage* language = dialect == JsDialect::typescript
+                                   ? tree_sitter_typescript()
+                                   : tree_sitter_javascript();
   if (!ts_parser_set_language(parser.get(), language)) {
-    throw Error("tree-sitter JavaScript/TypeScript grammar is incompatible with the runtime");
+    throw Error(
+        "tree-sitter JavaScript/TypeScript grammar is incompatible with the runtime");
   }
   TreePtr tree(ts_parser_parse_string(parser.get(), nullptr, source.data(),
                                       static_cast<std::uint32_t>(source.size())));

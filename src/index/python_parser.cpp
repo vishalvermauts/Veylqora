@@ -1,12 +1,13 @@
 #include "veylqora/index/python_parser.hpp"
 
-#include "tree_sitter_common.hpp"
 #include "veylqora/core/error.hpp"
 
 #include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <unordered_map>
+
+#include "tree_sitter_common.hpp"
 
 extern "C" const TSLanguage* tree_sitter_python(void);
 
@@ -23,7 +24,8 @@ struct Scope {
 
 class Walker {
  public:
-  Walker(std::string_view module, std::string_view source, bool is_package, SourceFile& out)
+  Walker(std::string_view module, std::string_view source, bool is_package,
+         SourceFile& out)
       : module_(module), source_(source), is_package_(is_package), out_(out) {}
 
   void run(TSNode root) {
@@ -202,7 +204,8 @@ class Walker {
 
 }  // namespace
 
-SourceFile parse_python(std::string_view module, std::string_view source, bool is_package) {
+SourceFile parse_python(std::string_view module, std::string_view source,
+                        bool is_package) {
   if (source.size() > std::numeric_limits<std::uint32_t>::max()) {
     throw Error("source too large to parse: " + std::string(module));
   }

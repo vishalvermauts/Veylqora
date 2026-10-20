@@ -32,12 +32,11 @@ const veylqora::SystemClock kClock;
 // target is a project symbol. Unresolved names make no claim and are not scored.
 std::set<std::string> emitted_edges(veylqora::Database& db, const fs::path& root) {
   std::set<std::string> out;
-  veylqora::Statement q(
-      db,
-      "SELECT s.fqn, d.fqn FROM edge e "
-      "JOIN symbol s ON s.id = e.src_symbol_id "
-      "JOIN symbol d ON d.id = e.dst_symbol_id "
-      "WHERE e.project_id = ? AND e.kind IN ('calls', 'inherits')");
+  veylqora::Statement q(db,
+                        "SELECT s.fqn, d.fqn FROM edge e "
+                        "JOIN symbol s ON s.id = e.src_symbol_id "
+                        "JOIN symbol d ON d.id = e.dst_symbol_id "
+                        "WHERE e.project_id = ? AND e.kind IN ('calls', 'inherits')");
   q.bind(1, veylqora::project_id_for(root));
   while (q.step()) out.insert(q.text(0) + " -> " + q.text(1));
   return out;
@@ -48,10 +47,12 @@ struct Score {
   std::size_t expected;
   std::size_t correct;
   double precision() const {
-    return emitted == 0 ? 0.0 : static_cast<double>(correct) / static_cast<double>(emitted);
+    return emitted == 0 ? 0.0
+                        : static_cast<double>(correct) / static_cast<double>(emitted);
   }
   double recall() const {
-    return expected == 0 ? 0.0 : static_cast<double>(correct) / static_cast<double>(expected);
+    return expected == 0 ? 0.0
+                         : static_cast<double>(correct) / static_cast<double>(expected);
   }
 };
 
@@ -86,7 +87,7 @@ const std::set<std::string> kTypeScriptLabels = {
     "api.routes.handle -> util.text.slugify",
     "util.text.slugify -> util.text.normalise",
     "billing.invoice.Invoice.amount -> billing.base.BaseInvoice.total",  // heuristic
-    "billing.invoice.Invoice -> billing.base.BaseInvoice",              // inherits
+    "billing.invoice.Invoice -> billing.base.BaseInvoice",               // inherits
 };
 
 const std::set<std::string> kJavaScriptLabels = {
@@ -95,7 +96,7 @@ const std::set<std::string> kJavaScriptLabels = {
     "lib.geometry.Square.side -> lib.geometry.area",
     "app.main.run -> lib.geometry.Square",
     "app.main.run -> lib.geometry.area",
-    "app.main.run -> lib.geometry.Square.side",  // heuristic: name match
+    "app.main.run -> lib.geometry.Square.side",   // heuristic: name match
     "lib.geometry.Square -> lib.geometry.Shape",  // inherits
 };
 
@@ -129,9 +130,10 @@ TEST_CASE("a TypeScript file with a syntax error keeps its valid definitions") {
   const auto stats = veylqora::index_project(db, kClock, kTypeScript);
   CHECK(stats.files_with_syntax_errors >= 1);
 
-  veylqora::Statement q(db,
-                        "SELECT COUNT(*) FROM symbol s JOIN project p ON p.id = s.project_id "
-                        "WHERE p.id = ? AND s.fqn = 'broken.partial.ok'");
+  veylqora::Statement q(
+      db,
+      "SELECT COUNT(*) FROM symbol s JOIN project p ON p.id = s.project_id "
+      "WHERE p.id = ? AND s.fqn = 'broken.partial.ok'");
   q.bind(1, veylqora::project_id_for(kTypeScript));
   q.step();
   CHECK(q.integer(0) == 1);

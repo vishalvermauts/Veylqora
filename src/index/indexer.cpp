@@ -192,9 +192,9 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
   const SourceFile parsed =
       language == "python"
           ? parse_python(module_name(rel), contents, rel.ends_with("/__init__.py"))
-          : parse_javascript(js_module_name(rel), directory_of(rel), contents,
-                             language == "typescript" ? JsDialect::typescript
-                                                      : JsDialect::javascript);
+          : parse_javascript(
+                js_module_name(rel), directory_of(rel), contents,
+                language == "typescript" ? JsDialect::typescript : JsDialect::javascript);
   if (parsed.has_syntax_errors) {
     log::warn(rel + ": syntax errors; indexing the parts that parsed");
     ++stats.files_with_syntax_errors;
@@ -203,8 +203,8 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
   std::vector<std::string> sids;
   sids.reserve(parsed.symbols.size());
   for (const SourceSymbol& s : parsed.symbols) {
-    const std::string sid = symbol_id(
-        SymbolKey{pid, std::string(language), rel, s.fqn, s.kind, s.overload});
+    const std::string sid =
+        symbol_id(SymbolKey{pid, std::string(language), rel, s.fqn, s.kind, s.overload});
     Statement ins(
         db,
         "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "

@@ -3,13 +3,12 @@
 // Helpers shared by the tree-sitter walkers (ADR-0010, ADR-0019). Private to the
 // index layer: nothing outside src/index includes this.
 
-#include <tree_sitter/api.h>
-
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <tree_sitter/api.h>
 #include <utility>
 #include <vector>
 
