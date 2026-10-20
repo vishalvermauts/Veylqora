@@ -41,7 +41,7 @@ expect_exit 3 "$bin" memory inspect does-not-exist --root "$fixtures" --db "$db"
 
 # --- memories through the CLI -----------------------------------------------
 add=$("$bin" memory add --root "$fixtures" --db "$db" --type decision \
-  --content "tokens are prefixed" --author agent-a --evidence "auth/tokens.py:auth.tokens.verify_token")
+  --content "tokens are prefixed" --author agent-a --scope shared --evidence "auth/tokens.py:auth.tokens.verify_token")
 id=$(echo "$add" | cut -d' ' -f1)
 echo "$add" | grep -q "  active  revision 1$" || fail "memory add: $add"
 "$bin" memory list --root "$fixtures" --db "$db" | grep -q "tokens are prefixed" || fail "memory list"
