@@ -152,51 +152,63 @@ def check_memory_validity(root: str, memory_id: str) -> dict:
 
 @mcp.tool()
 def get_task_context(root: str, task: str, budget_tokens: int = 2000) -> dict:
-    """A bounded context package for a task: relevant code, active memories and warnings.
+    """A bounded, evidence-linked context package for a task (ADR-0016).
 
-    Sections are filled in order (warnings, memories, code) until the token budget is
-    used. Anything left out is reported under `truncated`, so nothing disappears silently.
+    Sections fill in order: warnings, then memories, then code. Each item is added
+    whole or not at all, and anything left out is counted under `truncated`.
+    Every memory carries its evidence, and no definition or memory appears twice.
     """
     task = require_text("task", task)
     if not 100 <= budget_tokens <= 100000:
         raise ToolError("budget_tokens must be between 100 and 100000")
     limit = budget_tokens * CHARS_PER_TOKEN
     used = 0
-    included: dict[str, list] = {"warnings": [], "memories": [], "code": []}
-    dropped = {"memories": 0, "code": 0}
+    sections: dict[str, list] = {"warnings": [], "memories": [], "code": []}
+    truncated = {"warnings": 0, "memories": 0, "code": 0}
+    seen_memories: set[str] = set()
+    seen_code: set[str] = set()
 
-    memories = call("GET", "/api/v1/memories", {"root": root})
-    needle = task.lower().split()
-    scored = [m for m in memories if any(w in m["content"].lower() for w in needle)]
-    for m in scored:
-        if m["state"] in ("suspected_stale", "evidence_missing"):
-            entry = {"id": m["id"], "state": m["state"], "content": m["content"]}
-            cost = len(json.dumps(entry))
-            if used + cost <= limit:
-                included["warnings"].append(entry)
-                used += cost
-    for m in scored:
-        if m["state"] != "active":
-            continue
-        entry = {"id": m["id"], "content": m["content"]}
+    def take(section: str, entry: dict) -> bool:
+        nonlocal used
         cost = len(json.dumps(entry))
-        if used + cost <= limit:
-            included["memories"].append(entry)
-            used += cost
-        else:
-            dropped["memories"] += 1
+        if used + cost > limit:
+            truncated[section] += 1
+            return False
+        sections[section].append(entry)
+        used += cost
+        return True
 
-    hits = call("GET", "/api/v1/retrieve", {"root": root, "query": task, "k": 50})["hits"]
-    for h in hits:
-        cost = len(json.dumps(h))
-        if used + cost <= limit:
-            included["code"].append(h)
-            used += cost
-        else:
-            dropped["code"] += 1
+    needle = task.lower().split()
+    memories = call("GET", "/api/v1/memories", {"root": root})
+    matching = [m for m in memories if any(w in m["content"].lower() for w in needle)]
+
+    flagged = [m for m in matching if m["state"] in ("suspected_stale", "evidence_missing")]
+    active = [m for m in matching if m["state"] == "active"]
+
+    for m in flagged:
+        if m["id"] in seen_memories:
+            continue
+        seen_memories.add(m["id"])
+        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": root})
+        take("warnings", {"id": m["id"], "state": m["state"], "content": m["content"],
+                          "warning": "the code this memory cites changed or disappeared; review it",
+                          "evidence": detail["evidence"]})
+
+    for m in active:
+        if m["id"] in seen_memories:
+            continue
+        seen_memories.add(m["id"])
+        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": root})
+        take("memories", {"id": m["id"], "content": m["content"], "evidence": detail["evidence"]})
+
+    for h in call("GET", "/api/v1/retrieve", {"root": root, "query": task, "k": 50})["hits"]:
+        if h["fqn"] in seen_code:
+            continue
+        seen_code.add(h["fqn"])
+        take("code", h)
 
     return {"task": task, "budget_tokens": budget_tokens, "approx_tokens_used": used // CHARS_PER_TOKEN,
-            "sections": included, "truncated": dropped}
+            "sections": sections, "truncated": truncated}
 
 
 if __name__ == "__main__":
