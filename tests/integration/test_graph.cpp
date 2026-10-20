@@ -65,8 +65,12 @@ struct Score {
   std::size_t correct;
   std::size_t reported;
   std::size_t expected;
-  double precision() const { return reported == 0 ? 0.0 : static_cast<double>(correct) / reported; }
-  double recall() const { return expected == 0 ? 0.0 : static_cast<double>(correct) / expected; }
+  double precision() const {
+    return reported == 0 ? 0.0 : static_cast<double>(correct) / static_cast<double>(reported);
+  }
+  double recall() const {
+    return expected == 0 ? 0.0 : static_cast<double>(correct) / static_cast<double>(expected);
+  }
 };
 
 Score score(const std::set<std::string>& reported, const std::set<std::string>& expected) {

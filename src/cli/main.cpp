@@ -68,16 +68,15 @@ int run_graph(veylqora::Database& db, const std::string& root, const std::string
   std::cout << "depends on " << name << " (dependents):
 ";
   for (const veylqora::GraphEdge& e : veylqora::dependents_of(db, root, name)) {
-    std::cout << "  " << e.kind << "  " << e.src_fqn << "  [" << e.resolution << "]  " << e.src_path
-              << ':' << e.line << '
+    std::cout << "  " << e.kind << "  " << e.src_fqn << "  [" << e.resolution << "]  "
+              << e.src_path << ':' << e.line << '
 ';
   }
   std::cout << name << " depends on (dependencies):
 ";
   for (const veylqora::GraphEdge& e : veylqora::dependencies_of(db, root, name)) {
-    std::cout << "  " << e.kind << "  "
-              << (e.dst_fqn.empty() ? std::string("?") + e.dst_hint : e.dst_fqn) << "  ["
-              << e.resolution << "]
+    const std::string target = e.dst_fqn.empty() ? "?" + e.dst_hint : e.dst_fqn;
+    std::cout << "  " << e.kind << "  " << target << "  [" << e.resolution << "]
 ";
   }
   return kExitOk;
