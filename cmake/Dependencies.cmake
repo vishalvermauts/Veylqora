@@ -41,13 +41,7 @@ FetchContent_Declare(tree_sitter_python
   GIT_TAG        v0.25.0
   GIT_SHALLOW    TRUE
   SYSTEM)
-FetchContent_Populate(tree_sitter_python)
-add_library(tree_sitter_python STATIC
-  ${tree_sitter_python_SOURCE_DIR}/src/parser.c
-  ${tree_sitter_python_SOURCE_DIR}/src/scanner.c)
-target_include_directories(tree_sitter_python SYSTEM PUBLIC
-  ${tree_sitter_python_SOURCE_DIR}/src)
-target_link_libraries(tree_sitter_python PUBLIC tree-sitter)
+FetchContent_MakeAvailable(tree_sitter_python)  # defines target tree-sitter-python
 
 # ---- Catch2 (tests only) ----------------------------------------------------
 if(VEYLQORA_BUILD_TESTS)
