@@ -51,6 +51,26 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
         },
     },
+    "2.2": {
+        "title": "Index maintenance: consistency, forced rebuild, interrupted updates",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "scripts/ci.sh", "scripts/certify.py", "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
+        },
+    },
+    "2.5": {
+        "title": "MCP server: nine tools over the local API, end-to-end with the MCP SDK client",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "mcp/*", "scripts/ci.sh", "scripts/certify.py", "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs", "mcp"],
+        },
+    },
     "2.3": {
         "title": "Evidence-aware invalidation: revalidation, accept, rename and move tracking",
         "sources": [
