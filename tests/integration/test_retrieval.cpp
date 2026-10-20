@@ -73,7 +73,7 @@ TEST_CASE("labelled queries: hybrid recall@10 meets the gate (ADR-0015)") {
   const double lexical = mean_recall_at_10(db, veylqora::Mode::lexical);
   const double vector = mean_recall_at_10(db, veylqora::Mode::vector);
   const double hybrid = mean_recall_at_10(db, veylqora::Mode::hybrid);
-  INFO("mean recall@10 lexical=" << lexical << " vector=" << vector << " hybrid=" << hybrid);
+  WARN("mean recall@10 lexical=" << lexical << " vector=" << vector << " hybrid=" << hybrid);
   CHECK(hybrid >= kMinHybridRecallAt10);
 }
 
