@@ -35,6 +35,7 @@ veylqora::NewMemory decision(std::string content) {
   m.type = "decision";
   m.content = std::move(content);
   m.author = "agent-a";
+  m.scope = "shared";  // these tests exercise the engine, not visibility
   return m;
 }
 

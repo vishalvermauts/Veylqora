@@ -71,6 +71,7 @@ Result run(const Scenario& s) {
   m.type = "decision";
   m.content = "verify is the token check";
   m.author = "dataset";
+  m.scope = "shared";
   m.evidence = {{"auth.py", "auth.verify"}};
   const std::string id = veylqora::create_memory(db, clock, ids, src, m);
 
@@ -214,6 +215,7 @@ TEST_CASE("accepting a flagged memory returns it to active and keeps it there") 
   m.type = "decision";
   m.content = "verify is the token check";
   m.author = "dataset";
+  m.scope = "shared";
   m.evidence = {{"auth.py", "auth.verify"}};
   const std::string id = veylqora::create_memory(db, clock, ids, src, m);
 

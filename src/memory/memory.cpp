@@ -548,7 +548,8 @@ void approve_memory(Database& db, const Clock& clock, const std::filesystem::pat
   const std::string pid = project_of(root);
   Transaction tx(db);
   const Row row = load(db, pid, id);
-  authorise_write(row, approver);
+  // Approval does not need visibility: an unapproved approved-scope memory is hidden
+  // from other agents, and the approver must still be able to act on it.
   check_revision(row, expected_revision);
   require(row.scope == "approved", "only an approved-scope memory takes an approval");
   require(row.state != "archived", "archived memories cannot be approved");

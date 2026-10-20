@@ -80,7 +80,7 @@ TEST_CASE("service: memory operations and their error kinds") {
 
   const Json created = api::memory_create(
       db, clock, ids, kFixtures,
-      Json{{"type", "decision"}, {"content", "use bcrypt"}, {"author", "agent-a"}});
+      Json{{"type", "decision"}, {"content", "use bcrypt"}, {"author", "agent-a"}, {"scope", "shared"}});
   const std::string id = created["id"];
   CHECK(created["revision"] == 1);
 
@@ -156,7 +156,8 @@ TEST_CASE("server: JSON over HTTP, with stable error codes") {
                                    Json{{"root", root},
                                         {"type", "decision"},
                                         {"content", "http memory"},
-                                        {"author", "agent-h"}}
+                                        {"author", "agent-h"},
+                                        {"scope", "shared"}}
                                        .dump(),
                                    "application/json");
   REQUIRE(created);
