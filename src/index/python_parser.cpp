@@ -1,31 +1,19 @@
 #include "veylqora/index/python_parser.hpp"
 
+#include "tree_sitter_common.hpp"
 #include "veylqora/core/error.hpp"
 
 #include <algorithm>
 #include <cstdint>
-#include <cstring>
 #include <limits>
-#include <memory>
-#include <tree_sitter/api.h>
 #include <unordered_map>
-#include <utility>
 
 extern "C" const TSLanguage* tree_sitter_python(void);
 
 namespace veylqora {
 namespace {
 
-constexpr int kMaxDepth = 512;  // hostile nesting cannot exhaust the stack (ADR-0010)
-
-struct ParserDeleter {
-  void operator()(TSParser* p) const { ts_parser_delete(p); }
-};
-struct TreeDeleter {
-  void operator()(TSTree* t) const { ts_tree_delete(t); }
-};
-using ParserPtr = std::unique_ptr<TSParser, ParserDeleter>;
-using TreePtr = std::unique_ptr<TSTree, TreeDeleter>;
+using namespace ts;
 
 struct Scope {
   std::size_t symbol;
@@ -33,98 +21,9 @@ struct Scope {
   std::string fqn;
 };
 
-std::string_view text_of(std::string_view source, TSNode node) {
-  const std::uint32_t start = ts_node_start_byte(node);
-  const std::uint32_t end = ts_node_end_byte(node);
-  return source.substr(start, end - start);
-}
-
-// The text of a definition without its comments, so that editing a comment is
-// not a change to the code (ADR-0014). A comment that fills its own line takes
-// the line with it, so no blank line is left behind.
-void collect_comments(TSNode node,
-                      std::vector<std::pair<std::uint32_t, std::uint32_t>>& out) {
-  if (std::string_view(ts_node_type(node)) == "comment") {
-    out.emplace_back(ts_node_start_byte(node), ts_node_end_byte(node));
-    return;
-  }
-  const std::uint32_t n = ts_node_child_count(node);
-  for (std::uint32_t i = 0; i < n; ++i) collect_comments(ts_node_child(node, i), out);
-}
-
-std::string code_text(std::string_view source, TSNode node) {
-  std::vector<std::pair<std::uint32_t, std::uint32_t>> comments;
-  collect_comments(node, comments);
-  const std::uint32_t begin = ts_node_start_byte(node);
-  const std::uint32_t end = ts_node_end_byte(node);
-  std::string out;
-  std::uint32_t pos = begin;
-  for (auto [start, stop] : comments) {
-    std::uint32_t from = start;
-    std::uint32_t to = stop;
-    while (from > pos && (source[from - 1] == ' ' || source[from - 1] == '\t')) --from;
-    const bool own_line = (from == begin || source[from - 1] == '\n') &&
-                          to < source.size() && source[to] == '\n';
-    if (own_line) {
-      to += 1;  // take the newline too
-    } else {
-      from = start;
-    }
-    out += source.substr(pos, from - pos);
-    pos = to;
-  }
-  out += source.substr(pos, end - pos);
-  return out;
-}
-
-TSNode field(TSNode node, const char* name) {
-  return ts_node_child_by_field_name(node, name,
-                                     static_cast<std::uint32_t>(std::strlen(name)));
-}
-
-// Stored bodies use LF line endings, so one definition has one text on every
-// platform. Carriage returns carry no meaning in Python source.
-std::string without_cr(std::string_view text) {
-  std::string out;
-  out.reserve(text.size());
-  for (const char c : text) {
-    if (c != '\r') out += c;
-  }
-  return out;
-}
-
-std::size_t line_of(TSNode node) { return ts_node_start_point(node).row + 1; }
-
-// The last line of a node. A node that ends exactly at column 0 ends on the
-// previous line.
-std::size_t end_line_of(TSNode node) {
-  const TSPoint start = ts_node_start_point(node);
-  TSPoint end = ts_node_end_point(node);
-  if (end.column == 0 && end.row > start.row) --end.row;
-  return end.row + 1;
-}
-
-std::string last_segment(std::string_view dotted) {
-  const std::size_t dot = dotted.rfind('.');
-  return std::string(dot == std::string_view::npos ? dotted : dotted.substr(dot + 1));
-}
-
-// The package a module belongs to: "pkg.sub.mod" -> "pkg.sub", "mod" -> "".
-std::string package_of(std::string_view module) {
-  const std::size_t dot = module.rfind('.');
-  return dot == std::string_view::npos ? std::string{}
-                                       : std::string(module.substr(0, dot));
-}
-
-std::string join(const std::string& a, std::string_view b) {
-  if (a.empty()) return std::string(b);
-  if (b.empty()) return a;
-  return a + "." + std::string(b);
-}
-
 class Walker {
  public:
-  Walker(std::string_view module, std::string_view source, bool is_package, PyFile& out)
+  Walker(std::string_view module, std::string_view source, bool is_package, SourceFile& out)
       : module_(module), source_(source), is_package_(is_package), out_(out) {}
 
   void run(TSNode root) {
@@ -137,9 +36,9 @@ class Walker {
                          TSNode node) {
     const std::uint32_t overload =
         overloads_[fqn + '\x1f' + std::string(to_string(kind))]++;
-    out_.symbols.push_back(PySymbol{std::string(name), fqn, kind, line_of(node),
-                                    end_line_of(node),
-                                    without_cr(code_text(source_, node)), overload});
+    out_.symbols.push_back(SourceSymbol{std::string(name), fqn, kind, line_of(node),
+                                        end_line_of(node),
+                                        without_cr(code_text(source_, node)), overload});
     return out_.symbols.size() - 1;
   }
 
@@ -187,16 +86,16 @@ class Walker {
       const TSNode base = ts_node_named_child(supers, i);
       const std::string_view type = ts_node_type(base);
       if (type == "identifier") {
-        out_.facts.push_back(PyFact{
+        out_.facts.push_back(SourceFact{
             FactKind::inherits, cls, std::string(text_of(source_, base)), {}, {}, line});
       } else if (type == "attribute") {
         out_.facts.push_back(
-            PyFact{FactKind::inherits,
-                   cls,
-                   std::string(text_of(source_, field(base, "attribute"))),
-                   std::string(text_of(source_, field(base, "object"))),
-                   {},
-                   line});
+            SourceFact{FactKind::inherits,
+                       cls,
+                       std::string(text_of(source_, field(base, "attribute"))),
+                       std::string(text_of(source_, field(base, "object"))),
+                       {},
+                       line});
       }
     }
   }
@@ -224,8 +123,9 @@ class Walker {
         break;
       }
     }
-    out_.facts.push_back(PyFact{FactKind::call, stack_.back().symbol, std::move(name),
-                                std::move(qualifier), std::move(scope), line_of(node)});
+    out_.facts.push_back(SourceFact{FactKind::call, stack_.back().symbol, std::move(name),
+                                    std::move(qualifier), std::move(scope),
+                                    line_of(node)});
   }
 
   void record_import(TSNode node) {
@@ -237,12 +137,12 @@ class Walker {
         const std::string module(text_of(source_, child));
         // `import a.b` binds the first segment, `a`, to the top-level package.
         const std::string first = module.substr(0, module.find('.'));
-        out_.bindings.push_back(PyBinding{first, first});
+        out_.bindings.push_back(SourceBinding{first, first});
         add_import_fact(module, line_of(child));
       } else if (type == "aliased_import") {
         const std::string module(text_of(source_, field(child, "name")));
         const std::string alias(text_of(source_, field(child, "alias")));
-        out_.bindings.push_back(PyBinding{alias, module});
+        out_.bindings.push_back(SourceBinding{alias, module});
         add_import_fact(module, line_of(child));
       }
     }
@@ -262,11 +162,11 @@ class Walker {
       const std::string_view type = ts_node_type(child);
       if (type == "dotted_name") {
         const std::string name(text_of(source_, child));
-        out_.bindings.push_back(PyBinding{name, join(base, name)});
+        out_.bindings.push_back(SourceBinding{name, join(base, name)});
       } else if (type == "aliased_import") {
         const std::string name(text_of(source_, field(child, "name")));
         const std::string alias(text_of(source_, field(child, "alias")));
-        out_.bindings.push_back(PyBinding{alias, join(base, name)});
+        out_.bindings.push_back(SourceBinding{alias, join(base, name)});
       }
     }
   }
@@ -289,20 +189,20 @@ class Walker {
 
   void add_import_fact(const std::string& module, std::size_t line) {
     out_.facts.push_back(
-        PyFact{FactKind::import, stack_.back().symbol, module, {}, {}, line});
+        SourceFact{FactKind::import, stack_.back().symbol, module, {}, {}, line});
   }
 
   std::string_view module_;
   std::string_view source_;
   bool is_package_;
-  PyFile& out_;
+  SourceFile& out_;
   std::vector<Scope> stack_;
   std::unordered_map<std::string, std::uint32_t> overloads_;
 };
 
 }  // namespace
 
-PyFile parse_python(std::string_view module, std::string_view source, bool is_package) {
+SourceFile parse_python(std::string_view module, std::string_view source, bool is_package) {
   if (source.size() > std::numeric_limits<std::uint32_t>::max()) {
     throw Error("source too large to parse: " + std::string(module));
   }
@@ -316,12 +216,12 @@ PyFile parse_python(std::string_view module, std::string_view source, bool is_pa
   if (!tree) throw Error("parse failed: " + std::string(module));
 
   const TSNode root = ts_tree_root_node(tree.get());
-  PyFile out;
+  SourceFile out;
   out.has_syntax_errors = ts_node_has_error(root);
 
   const std::size_t lines =
       static_cast<std::size_t>(std::count(source.begin(), source.end(), '\n')) + 1;
-  out.symbols.push_back(PySymbol{
+  out.symbols.push_back(SourceSymbol{
       last_segment(module), std::string(module), SymbolKind::module, 1, lines, {}, 0});
   Walker(module, source, is_package, out).run(root);
   return out;

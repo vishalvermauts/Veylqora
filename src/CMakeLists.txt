@@ -6,6 +6,7 @@ add_library(veylqora_core
   ingestion/process.cpp
   ingestion/source.cpp
   index/python_parser.cpp
+  index/javascript_parser.cpp
   graph/resolver.cpp
   graph/query.cpp
   core/project.cpp
@@ -24,7 +25,7 @@ target_include_directories(veylqora_core
 
 target_link_libraries(veylqora_core
   PUBLIC SQLite::SQLite3
-  PRIVATE picosha2 tree_sitter_python veylqora_warnings veylqora_sanitizers)
+  PRIVATE picosha2 tree_sitter_python tree_sitter_javascript tree_sitter_typescript veylqora_warnings veylqora_sanitizers)
 
 target_compile_definitions(veylqora_core PRIVATE VEYLQORA_VERSION="${PROJECT_VERSION}")
 find_package(Threads REQUIRED)

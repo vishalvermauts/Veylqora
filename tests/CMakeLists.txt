@@ -21,6 +21,7 @@ add_executable(veylqora_integration_tests
   integration/test_slice.cpp
   integration/test_maintenance.cpp
   integration/test_observability.cpp
+  integration/test_javascript_graph.cpp
   integration/test_retrieval.cpp
   integration/test_staleness.cpp)
 

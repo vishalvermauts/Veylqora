@@ -5,11 +5,13 @@
 #include "veylqora/core/log.hpp"
 #include "veylqora/core/project.hpp"
 #include "veylqora/graph/resolver.hpp"
+#include "veylqora/index/javascript_parser.hpp"
 #include "veylqora/index/python_parser.hpp"
 #include "veylqora/ingestion/source.hpp"
 #include "veylqora/retrieval/text.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <cstring>
 #include <optional>
 #include <unordered_set>
@@ -18,9 +20,16 @@ namespace veylqora {
 namespace fs = std::filesystem;
 namespace {
 
-// Only Python is indexed in v0.1. Extension-based detection, as ADR-0009 records.
-bool is_python(const std::string& rel_path) {
-  return rel_path.size() > 3 && rel_path.ends_with(".py");
+// The language of a file, by extension (ADR-0009). An empty result means the
+// file is not indexed. .tsx is not indexed yet: it needs its own grammar (ADR-0019).
+std::string_view language_of(const std::string& rel_path) {
+  const auto ends = [&](std::string_view ext) {
+    return rel_path.size() > ext.size() && rel_path.ends_with(ext);
+  };
+  if (ends(".py")) return "python";
+  if (ends(".js") || ends(".mjs") || ends(".cjs") || ends(".jsx")) return "javascript";
+  if (ends(".ts") || ends(".mts") || ends(".cts")) return "typescript";
+  return {};
 }
 
 fs::path canonical_root(const fs::path& root) {
@@ -40,8 +49,26 @@ std::string project_id(const fs::path& canonical) {
 // an unchanged body then keeps its fingerprint, so its memories follow it
 // (ADR-0014). The parameters are still part of the text, so a changed signature
 // still counts.
-std::string definition_fingerprint(const PySymbol& s) {
+std::string definition_fingerprint(const SourceSymbol& s, std::string_view language) {
   std::string text = s.body;
+  if (language != "python") {
+    // JavaScript and TypeScript: the first whole-word occurrence of the name is
+    // the name in the declaration ("function f", "class A", "const f =", "m(").
+    const auto is_word = [](char c) {
+      return std::isalnum(static_cast<unsigned char>(c)) != 0 || c == '_' || c == '$';
+    };
+    for (std::size_t at = text.find(s.name); at != std::string::npos;
+         at = text.find(s.name, at + 1)) {
+      const bool before = at == 0 || !is_word(text[at - 1]);
+      const std::size_t end = at + s.name.size();
+      const bool after = end >= text.size() || !is_word(text[end]);
+      if (before && after) {
+        text.erase(at, s.name.size());
+        break;
+      }
+    }
+    return body_fingerprint(text);
+  }
   std::size_t at = 0;
   if (text.starts_with("async ")) at = 6;
   if (text.compare(at, 4, "def ") == 0) {
@@ -70,6 +97,28 @@ std::string module_name(std::string rel_path) {
   return rel_path;
 }
 
+// "auth/tokens.ts" -> "auth.tokens"; an index file names its directory, so
+// "auth/index.ts" -> "auth". This matches how import specifiers are resolved.
+std::string js_module_name(std::string rel_path) {
+  const std::size_t dot = rel_path.rfind('.');
+  const std::size_t slash = rel_path.rfind('/');
+  if (dot != std::string::npos && (slash == std::string::npos || dot > slash)) {
+    rel_path.resize(dot);
+  }
+  constexpr std::string_view kIndex = "/index";
+  if (rel_path.ends_with(kIndex)) rel_path.resize(rel_path.size() - kIndex.size());
+  for (char& c : rel_path) {
+    if (c == '/') c = '.';
+  }
+  return rel_path;
+}
+
+// The directory of a project-relative path, '/'-separated, "" at the root.
+std::string directory_of(const std::string& rel_path) {
+  const std::size_t slash = rel_path.rfind('/');
+  return slash == std::string::npos ? std::string{} : rel_path.substr(0, slash);
+}
+
 void drop_file(Database& db, const std::string& pid, const std::string& rel) {
   Statement del(db, "DELETE FROM file WHERE project_id = ? AND rel_path = ?");
   del.bind(1, pid);
@@ -80,7 +129,7 @@ void drop_file(Database& db, const std::string& pid, const std::string& rel) {
 // Lexical tokens and the hashed vector of one symbol: its name, qualified name
 // and body (ADR-0015). Tokens are stored per project so lookups stay in-project.
 void store_retrieval_rows(Database& db, const std::string& pid, const std::string& sid,
-                          const PySymbol& s) {
+                          const SourceSymbol& s) {
   const auto name_tokens = tokenize(s.name);
   const auto fqn_tokens = tokenize(s.fqn);
   const auto body_tokens = tokenize(s.body);
@@ -125,7 +174,8 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
   upsert.bind(1, fid);
   upsert.bind(2, pid);
   upsert.bind(3, rel);
-  upsert.bind(4, std::string_view{"python"});
+  const std::string_view language = language_of(rel);
+  upsert.bind(4, language);
   upsert.bind(5, sha);
   upsert.bind(6, static_cast<std::int64_t>(contents.size()));
   upsert.step();
@@ -139,8 +189,12 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
   clear_bindings.bind(1, fid);
   clear_bindings.step();
 
-  const bool is_package = rel.ends_with("/__init__.py");
-  const PyFile parsed = parse_python(module_name(rel), contents, is_package);
+  const SourceFile parsed =
+      language == "python"
+          ? parse_python(module_name(rel), contents, rel.ends_with("/__init__.py"))
+          : parse_javascript(js_module_name(rel), directory_of(rel), contents,
+                             language == "typescript" ? JsDialect::typescript
+                                                      : JsDialect::javascript);
   if (parsed.has_syntax_errors) {
     log::warn(rel + ": syntax errors; indexing the parts that parsed");
     ++stats.files_with_syntax_errors;
@@ -148,9 +202,9 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
 
   std::vector<std::string> sids;
   sids.reserve(parsed.symbols.size());
-  for (const PySymbol& s : parsed.symbols) {
-    const std::string sid =
-        symbol_id(SymbolKey{pid, "python", rel, s.fqn, s.kind, s.overload});
+  for (const SourceSymbol& s : parsed.symbols) {
+    const std::string sid = symbol_id(
+        SymbolKey{pid, std::string(language), rel, s.fqn, s.kind, s.overload});
     Statement ins(
         db,
         "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "
@@ -162,7 +216,7 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
     ins.bind(5, s.name);
     ins.bind(6, s.fqn);
     ins.bind(7, static_cast<std::int64_t>(s.overload));
-    ins.bind(8, definition_fingerprint(s));
+    ins.bind(8, definition_fingerprint(s, language));
     ins.bind(9, static_cast<std::int64_t>(s.start_line));
     ins.bind(10, static_cast<std::int64_t>(s.end_line));
     ins.step();
@@ -171,7 +225,7 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
     ++stats.symbols_written;
   }
 
-  for (const PyFact& f : parsed.facts) {
+  for (const SourceFact& f : parsed.facts) {
     std::string_view kind = "import";
     if (f.kind == FactKind::call) kind = "call";
     if (f.kind == FactKind::inherits) kind = "inherits";
@@ -189,7 +243,7 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
     ins.step();
   }
 
-  for (const PyBinding& b : parsed.bindings) {
+  for (const SourceBinding& b : parsed.bindings) {
     Statement ins(db,
                   "INSERT OR REPLACE INTO binding (file_id, local_name, target_fqn) "
                   "VALUES (?, ?, ?)");
@@ -204,7 +258,7 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
 // Decides what one candidate becomes in the database. Caller holds the transaction.
 void process_candidate(Database& db, const std::string& pid, const fs::path& base,
                        bool force, const std::string& rel, IndexStats& stats) {
-  if (!is_python(rel)) return;
+  if (language_of(rel).empty()) return;
 
   const Source src = read_source(base / rel);
   switch (src.skip) {
@@ -273,7 +327,8 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root,
 
   // Only supported file types count toward progress and the removal pass.
   std::vector<std::string> candidates = list_candidates(base);
-  std::erase_if(candidates, [](const std::string& rel) { return !is_python(rel); });
+  std::erase_if(candidates,
+                [](const std::string& rel) { return language_of(rel).empty(); });
   const std::size_t total = candidates.size();
   const std::size_t batch = std::max<std::size_t>(1, options.batch_size);
   const auto cancelled = [&] {
