@@ -9,6 +9,9 @@ add_library(veylqora_core
   graph/resolver.cpp
   graph/query.cpp
   core/project.cpp
+  core/file_lock.cpp
+  server/server.cpp
+  api/service.cpp
   memory/memory.cpp
   memory/transfer.cpp
   storage/database.cpp)
@@ -19,6 +22,10 @@ target_include_directories(veylqora_core
 target_link_libraries(veylqora_core
   PUBLIC SQLite::SQLite3
   PRIVATE picosha2 tree_sitter_python veylqora_warnings veylqora_sanitizers)
+
+target_compile_definitions(veylqora_core PRIVATE VEYLQORA_VERSION="${PROJECT_VERSION}")
+find_package(Threads REQUIRED)
+target_link_libraries(veylqora_core PUBLIC nlohmann_json::nlohmann_json httplib::httplib Threads::Threads)
 
 add_library(veylqora::core ALIAS veylqora_core)
 

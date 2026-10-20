@@ -13,6 +13,7 @@ catch_discover_tests(veylqora_unit_tests)
 # The vertical slice: index a fixed 10-file repository, search, restart, and
 # check that the answers are identical.
 add_executable(veylqora_integration_tests
+  integration/test_api.cpp
   integration/test_graph.cpp
   integration/test_memory.cpp
   integration/test_ingestion.cpp
