@@ -44,6 +44,17 @@ TSNode field(TSNode node, const char* name) {
   return ts_node_child_by_field_name(node, name, static_cast<std::uint32_t>(std::strlen(name)));
 }
 
+// Stored bodies use LF line endings, so one definition has one text on every
+// platform. Carriage returns carry no meaning in Python source.
+std::string without_cr(std::string_view text) {
+  std::string out;
+  out.reserve(text.size());
+  for (const char c : text) {
+    if (c != '') out += c;
+  }
+  return out;
+}
+
 std::size_t line_of(TSNode node) { return ts_node_start_point(node).row + 1; }
 
 // The last line of a node. A node that ends exactly at column 0 ends on the
@@ -87,7 +98,7 @@ class Walker {
                          TSNode node) {
     const std::uint32_t overload = overloads_[fqn + '\x1f' + std::string(to_string(kind))]++;
     out_.symbols.push_back(PySymbol{std::string(name), fqn, kind, line_of(node),
-                                    end_line_of(node), std::string(text_of(source_, node)),
+                                    end_line_of(node), without_cr(text_of(source_, node)),
                                     overload});
     return out_.symbols.size() - 1;
   }

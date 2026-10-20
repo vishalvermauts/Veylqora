@@ -255,7 +255,7 @@ std::vector<SymbolHit> find_symbols(Database& db, const fs::path& root,
   Statement q(db,
               "SELECT f.rel_path, s.fqn, s.kind, s.start_line FROM symbol s "
               "JOIN file f ON f.id = s.file_id "
-              "WHERE s.project_id = ? AND s.name = ? ORDER BY f.rel_path, s.start_line");
+              "WHERE s.project_id = ? AND s.name = ? AND s.kind != 'module' ORDER BY f.rel_path, s.start_line");
   q.bind(1, pid);
   q.bind(2, name);
   std::vector<SymbolHit> hits;
