@@ -85,10 +85,12 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
   std::vector<std::string> sids;
   sids.reserve(parsed.symbols.size());
   for (const PySymbol& s : parsed.symbols) {
-    const std::string sid = symbol_id(SymbolKey{pid, "python", rel, s.fqn, s.kind, s.overload});
-    Statement ins(db,
-                  "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "
-                  "body_fingerprint, start_line, end_line) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    const std::string sid =
+        symbol_id(SymbolKey{pid, "python", rel, s.fqn, s.kind, s.overload});
+    Statement ins(
+        db,
+        "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "
+        "body_fingerprint, start_line, end_line) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     ins.bind(1, sid);
     ins.bind(2, pid);
     ins.bind(3, fid);
@@ -108,9 +110,10 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
     std::string_view kind = "import";
     if (f.kind == FactKind::call) kind = "call";
     if (f.kind == FactKind::inherits) kind = "inherits";
-    Statement ins(db,
-                  "INSERT INTO fact (file_id, src_symbol_id, kind, name, qualifier, scope, line) "
-                  "VALUES (?, ?, ?, ?, ?, ?, ?)");
+    Statement ins(
+        db,
+        "INSERT INTO fact (file_id, src_symbol_id, kind, name, qualifier, scope, line) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)");
     ins.bind(1, fid);
     ins.bind(2, sids[f.src]);
     ins.bind(3, kind);
@@ -255,7 +258,8 @@ std::vector<SymbolHit> find_symbols(Database& db, const fs::path& root,
   Statement q(db,
               "SELECT f.rel_path, s.fqn, s.kind, s.start_line FROM symbol s "
               "JOIN file f ON f.id = s.file_id "
-              "WHERE s.project_id = ? AND s.name = ? AND s.kind != 'module' ORDER BY f.rel_path, s.start_line");
+              "WHERE s.project_id = ? AND s.name = ? AND s.kind != 'module' ORDER BY "
+              "f.rel_path, s.start_line");
   q.bind(1, pid);
   q.bind(2, name);
   std::vector<SymbolHit> hits;

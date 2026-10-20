@@ -10,7 +10,8 @@ namespace {
 
 // Forward-only migrations. Entry N takes the schema from version N to N+1. An
 // entry is never edited once a release has shipped (ADR-0008).
-constexpr std::array kMigrations = {std::string_view{R"sql(
+constexpr std::array kMigrations = {
+    std::string_view{R"sql(
 CREATE TABLE project (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,

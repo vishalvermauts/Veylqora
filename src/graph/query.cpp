@@ -19,14 +19,17 @@ std::string project_id_of(const fs::path& root) {
 }
 
 GraphEdge read_edge(const Statement& q) {
-  return GraphEdge{q.text(0), q.text(1), q.text(2), q.text(3), q.text(4), q.text(5), q.integer(6)};
+  return GraphEdge{q.text(0), q.text(1), q.text(2),   q.text(3),
+                   q.text(4), q.text(5), q.integer(6)};
 }
 
 }  // namespace
 
-std::vector<GraphEdge> dependents_of(Database& db, const fs::path& root, std::string_view name) {
+std::vector<GraphEdge> dependents_of(Database& db, const fs::path& root,
+                                     std::string_view name) {
   Statement q(db,
-              "SELECT e.kind, s.fqn, f.rel_path, COALESCE(d.fqn, ''), e.dst_hint, e.resolution, e.line "
+              "SELECT e.kind, s.fqn, f.rel_path, COALESCE(d.fqn, ''), e.dst_hint, "
+              "e.resolution, e.line "
               "FROM edge e "
               "JOIN symbol s ON s.id = e.src_symbol_id "
               "JOIN file f ON f.id = s.file_id "
@@ -40,9 +43,11 @@ std::vector<GraphEdge> dependents_of(Database& db, const fs::path& root, std::st
   return out;
 }
 
-std::vector<GraphEdge> dependencies_of(Database& db, const fs::path& root, std::string_view name) {
+std::vector<GraphEdge> dependencies_of(Database& db, const fs::path& root,
+                                       std::string_view name) {
   Statement q(db,
-              "SELECT e.kind, s.fqn, f.rel_path, COALESCE(d.fqn, ''), e.dst_hint, e.resolution, e.line "
+              "SELECT e.kind, s.fqn, f.rel_path, COALESCE(d.fqn, ''), e.dst_hint, "
+              "e.resolution, e.line "
               "FROM edge e "
               "JOIN symbol s ON s.id = e.src_symbol_id "
               "JOIN file f ON f.id = s.file_id "
@@ -56,8 +61,8 @@ std::vector<GraphEdge> dependencies_of(Database& db, const fs::path& root, std::
   return out;
 }
 
-std::vector<Reached> neighbourhood(Database& db, const fs::path& root, std::string_view name,
-                                   std::size_t hops) {
+std::vector<Reached> neighbourhood(Database& db, const fs::path& root,
+                                   std::string_view name, std::size_t hops) {
   const std::string pid = project_id_of(root);
   struct Node {
     std::string id;
@@ -67,12 +72,14 @@ std::vector<Reached> neighbourhood(Database& db, const fs::path& root, std::stri
 
   std::vector<Node> frontier;
   {
-    Statement start(db,
-                    "SELECT s.id, s.fqn, f.rel_path FROM symbol s JOIN file f ON f.id = s.file_id "
-                    "WHERE s.project_id = ? AND s.name = ?");
+    Statement start(
+        db,
+        "SELECT s.id, s.fqn, f.rel_path FROM symbol s JOIN file f ON f.id = s.file_id "
+        "WHERE s.project_id = ? AND s.name = ?");
     start.bind(1, pid);
     start.bind(2, name);
-    while (start.step()) frontier.push_back(Node{start.text(0), start.text(1), start.text(2)});
+    while (start.step())
+      frontier.push_back(Node{start.text(0), start.text(1), start.text(2)});
   }
 
   // Both directions, resolved and heuristic edges only: an unresolved edge has
@@ -120,9 +127,10 @@ std::vector<Reached> change_impact(Database& db, const fs::path& root,
   std::vector<Reached> out;
   std::set<std::string> seen;
 
-  Statement in_file(db,
-                    "SELECT s.id, s.fqn, f.rel_path FROM symbol s JOIN file f ON f.id = s.file_id "
-                    "WHERE f.project_id = ? AND f.rel_path = ?");
+  Statement in_file(
+      db,
+      "SELECT s.id, s.fqn, f.rel_path FROM symbol s JOIN file f ON f.id = s.file_id "
+      "WHERE f.project_id = ? AND f.rel_path = ?");
   Statement dependents(db,
                        "SELECT s.fqn, f.rel_path FROM edge e "
                        "JOIN symbol s ON s.id = e.src_symbol_id "

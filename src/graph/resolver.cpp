@@ -34,12 +34,14 @@ struct Graph {
   std::vector<Sym> syms;
   std::unordered_map<std::string, std::vector<std::size_t>> by_fqn;
   std::unordered_map<std::string, std::vector<std::size_t>> by_name;
-  std::unordered_map<std::string, std::size_t> module_of_file;  // file id -> module symbol
-  std::unordered_map<std::string, std::string> bindings;        // file\x1flocal -> target fqn
+  std::unordered_map<std::string, std::size_t>
+      module_of_file;                                     // file id -> module symbol
+  std::unordered_map<std::string, std::string> bindings;  // file\x1flocal -> target fqn
 };
 
-const std::vector<std::size_t>& lookup(const std::unordered_map<std::string, std::vector<std::size_t>>& m,
-                                       const std::string& key) {
+const std::vector<std::size_t>& lookup(
+    const std::unordered_map<std::string, std::vector<std::size_t>>& m,
+    const std::string& key) {
   static const std::vector<std::size_t> kEmpty;
   const auto it = m.find(key);
   return it == m.end() ? kEmpty : it->second;
@@ -57,8 +59,8 @@ bool wanted(const Sym& s, Want want) {
   return false;
 }
 
-std::vector<std::size_t> filter(const Graph& g, const std::vector<std::size_t>& ids, Want want,
-                                const std::string* file_id = nullptr) {
+std::vector<std::size_t> filter(const Graph& g, const std::vector<std::size_t>& ids,
+                                Want want, const std::string* file_id = nullptr) {
   std::vector<std::size_t> out;
   for (const std::size_t i : ids) {
     const Sym& s = g.syms[i];
@@ -77,7 +79,8 @@ Target bounded(std::vector<std::size_t> ids, Level level) {
 
 // Looks a bare name up the way Python would: an import in this file first,
 // then a definition in this file, then anywhere in the project as a guess.
-Target resolve_name(const Graph& g, const std::string& file_id, const std::string& name, Want want) {
+Target resolve_name(const Graph& g, const std::string& file_id, const std::string& name,
+                    Want want) {
   const auto bound = g.bindings.find(file_id + '\x1f' + name);
   if (bound != g.bindings.end()) {
     auto ids = filter(g, lookup(g.by_fqn, bound->second), want);
@@ -90,12 +93,13 @@ Target resolve_name(const Graph& g, const std::string& file_id, const std::strin
 
 // Resolves `receiver.name` where the receiver may be an imported module
 // (`import pkg.util` then `pkg.util.helper()`), or an unknown object.
-Target resolve_qualified(const Graph& g, const std::string& file_id, const std::string& qualifier,
-                         const std::string& name) {
+Target resolve_qualified(const Graph& g, const std::string& file_id,
+                         const std::string& qualifier, const std::string& name) {
   const std::string first = qualifier.substr(0, qualifier.find('.'));
   const auto bound = g.bindings.find(file_id + '\x1f' + first);
   if (bound != g.bindings.end()) {
-    const std::string target = bound->second + qualifier.substr(first.size()) + "." + name;
+    const std::string target =
+        bound->second + qualifier.substr(first.size()) + "." + name;
     auto ids = filter(g, lookup(g.by_fqn, target), Want::callable);
     if (!ids.empty()) return bounded(std::move(ids), Level::resolved);
   }
@@ -106,19 +110,23 @@ class EdgeWriter {
  public:
   EdgeWriter(Database& db, const std::string& pid)
       : pid_(pid),
-        insert_(db, "INSERT INTO edge (project_id, src_symbol_id, dst_symbol_id, dst_hint, kind, "
-                    "resolution, line) VALUES (?, ?, ?, ?, ?, ?, ?)") {}
+        insert_(
+            db,
+            "INSERT INTO edge (project_id, src_symbol_id, dst_symbol_id, dst_hint, kind, "
+            "resolution, line) VALUES (?, ?, ?, ?, ?, ?, ?)") {}
 
   // One edge per candidate. An unresolved reference is one edge with no target.
-  void emit(const Graph& g, const std::string& src_id, const Target& t, const std::string& hint,
-            std::string_view kind, std::int64_t line) {
+  void emit(const Graph& g, const std::string& src_id, const Target& t,
+            const std::string& hint, std::string_view kind, std::int64_t line) {
     if (t.ids.empty()) return write(src_id, nullptr, hint, kind, Level::unresolved, line);
-    for (const std::size_t i : t.ids) write(src_id, &g.syms[i].id, hint, kind, t.level, line);
+    for (const std::size_t i : t.ids)
+      write(src_id, &g.syms[i].id, hint, kind, t.level, line);
   }
 
  private:
-  void write(const std::string& src_id, const std::string* dst_id, const std::string& hint,
-             std::string_view kind, Level level, std::int64_t line) {
+  void write(const std::string& src_id, const std::string* dst_id,
+             const std::string& hint, std::string_view kind, Level level,
+             std::int64_t line) {
     insert_.reset();
     insert_.bind(1, pid_);
     insert_.bind(2, src_id);
@@ -143,12 +151,14 @@ class EdgeWriter {
 Graph load(Database& db, const std::string& pid) {
   Graph g;
   {
-    Statement q(db,
-                "SELECT s.id, s.fqn, s.name, s.kind, s.file_id, s.start_line FROM symbol s "
-                "WHERE s.project_id = ?");
+    Statement q(
+        db,
+        "SELECT s.id, s.fqn, s.name, s.kind, s.file_id, s.start_line FROM symbol s "
+        "WHERE s.project_id = ?");
     q.bind(1, pid);
     while (q.step()) {
-      g.syms.push_back(Sym{q.text(0), q.text(1), q.text(2), q.text(3), q.text(4), q.integer(5)});
+      g.syms.push_back(
+          Sym{q.text(0), q.text(1), q.text(2), q.text(3), q.text(4), q.integer(5)});
     }
   }
   for (std::size_t i = 0; i < g.syms.size(); ++i) {
@@ -177,8 +187,8 @@ void write_containment(const Graph& g, EdgeWriter& out) {
     if (dot == std::string::npos) continue;
     const auto parent = by_fqn_first.find(child.fqn.substr(0, dot));
     if (parent == by_fqn_first.end()) continue;
-    out.emit(g, g.syms[parent->second].id, Target{{i}, Level::resolved}, child.name, "contains",
-             child.start_line);
+    out.emit(g, g.syms[parent->second].id, Target{{i}, Level::resolved}, child.name,
+             "contains", child.start_line);
   }
 }
 
@@ -193,9 +203,10 @@ void rebuild_graph(Database& db, const std::string& project_id) {
   EdgeWriter out(db, project_id);
   write_containment(g, out);
 
-  Statement facts(db,
-                  "SELECT fa.file_id, fa.src_symbol_id, fa.kind, fa.name, fa.qualifier, fa.scope, "
-                  "fa.line FROM fact fa JOIN file f ON f.id = fa.file_id WHERE f.project_id = ?");
+  Statement facts(
+      db,
+      "SELECT fa.file_id, fa.src_symbol_id, fa.kind, fa.name, fa.qualifier, fa.scope, "
+      "fa.line FROM fact fa JOIN file f ON f.id = fa.file_id WHERE f.project_id = ?");
   facts.bind(1, project_id);
   while (facts.step()) {
     const std::string file_id = facts.text(0);
@@ -208,18 +219,21 @@ void rebuild_graph(Database& db, const std::string& project_id) {
 
     if (kind == "import") {
       const auto module = g.by_fqn.find(name);
-      const Target t = module == g.by_fqn.end()
-                           ? Target{{}, Level::unresolved}
-                           : bounded(filter(g, module->second, Want::module), Level::resolved);
+      const Target t =
+          module == g.by_fqn.end()
+              ? Target{{}, Level::unresolved}
+              : bounded(filter(g, module->second, Want::module), Level::resolved);
       out.emit(g, src_id, t, name, "imports", line);
     } else if (kind == "inherits") {
-      out.emit(g, src_id, resolve_name(g, file_id, name, Want::classes), name, "inherits", line);
+      out.emit(g, src_id, resolve_name(g, file_id, name, Want::classes), name, "inherits",
+               line);
     } else {  // call
       Target t{{}, Level::unresolved};
       if (qualifier.empty()) {
         t = resolve_name(g, file_id, name, Want::callable);
       } else if (qualifier == "self" && !scope.empty()) {
-        t = bounded(filter(g, lookup(g.by_fqn, scope + "." + name), Want::callable), Level::resolved);
+        t = bounded(filter(g, lookup(g.by_fqn, scope + "." + name), Want::callable),
+                    Level::resolved);
         if (t.ids.empty()) t = resolve_qualified(g, file_id, "", name);
       } else {
         t = resolve_qualified(g, file_id, qualifier, name);

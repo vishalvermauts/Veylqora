@@ -2,13 +2,12 @@
 
 #include "veylqora/core/error.hpp"
 
-#include <tree_sitter/api.h>
-
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <tree_sitter/api.h>
 #include <unordered_map>
 #include <utility>
 
@@ -41,7 +40,8 @@ std::string_view text_of(std::string_view source, TSNode node) {
 }
 
 TSNode field(TSNode node, const char* name) {
-  return ts_node_child_by_field_name(node, name, static_cast<std::uint32_t>(std::strlen(name)));
+  return ts_node_child_by_field_name(node, name,
+                                     static_cast<std::uint32_t>(std::strlen(name)));
 }
 
 // Stored bodies use LF line endings, so one definition has one text on every
@@ -74,7 +74,8 @@ std::string last_segment(std::string_view dotted) {
 // The package a module belongs to: "pkg.sub.mod" -> "pkg.sub", "mod" -> "".
 std::string package_of(std::string_view module) {
   const std::size_t dot = module.rfind('.');
-  return dot == std::string_view::npos ? std::string{} : std::string(module.substr(0, dot));
+  return dot == std::string_view::npos ? std::string{}
+                                       : std::string(module.substr(0, dot));
 }
 
 std::string join(const std::string& a, std::string_view b) {
@@ -96,7 +97,8 @@ class Walker {
  private:
   std::size_t add_symbol(SymbolKind kind, std::string_view name, const std::string& fqn,
                          TSNode node) {
-    const std::uint32_t overload = overloads_[fqn + '\x1f' + std::string(to_string(kind))]++;
+    const std::uint32_t overload =
+        overloads_[fqn + '\x1f' + std::string(to_string(kind))]++;
     out_.symbols.push_back(PySymbol{std::string(name), fqn, kind, line_of(node),
                                     end_line_of(node), without_cr(text_of(source_, node)),
                                     overload});
@@ -129,7 +131,7 @@ class Walker {
     const std::string_view name = text_of(source_, name_node);
     const bool parent_is_class = stack_.back().is_class;
     const std::string fqn = join(stack_.back().fqn, name);
-    const SymbolKind kind = is_class           ? SymbolKind::klass
+    const SymbolKind kind = is_class          ? SymbolKind::klass
                             : parent_is_class ? SymbolKind::method
                                               : SymbolKind::function;
     const std::size_t idx = add_symbol(kind, name, fqn, node);
@@ -147,13 +149,16 @@ class Walker {
       const TSNode base = ts_node_named_child(supers, i);
       const std::string_view type = ts_node_type(base);
       if (type == "identifier") {
-        out_.facts.push_back(PyFact{FactKind::inherits, cls, std::string(text_of(source_, base)),
-                                    {}, {}, line});
+        out_.facts.push_back(PyFact{
+            FactKind::inherits, cls, std::string(text_of(source_, base)), {}, {}, line});
       } else if (type == "attribute") {
-        out_.facts.push_back(PyFact{FactKind::inherits, cls,
-                                    std::string(text_of(source_, field(base, "attribute"))),
-                                    std::string(text_of(source_, field(base, "object"))), {},
-                                    line});
+        out_.facts.push_back(
+            PyFact{FactKind::inherits,
+                   cls,
+                   std::string(text_of(source_, field(base, "attribute"))),
+                   std::string(text_of(source_, field(base, "object"))),
+                   {},
+                   line});
       }
     }
   }
@@ -214,7 +219,8 @@ class Walker {
     const std::uint32_t n = ts_node_named_child_count(node);
     for (std::uint32_t i = 0; i < n; ++i) {
       const TSNode child = ts_node_named_child(node, i);
-      if (ts_node_start_byte(child) == ts_node_start_byte(mod)) continue;  // the module itself
+      if (ts_node_start_byte(child) == ts_node_start_byte(mod))
+        continue;  // the module itself
       const std::string_view type = ts_node_type(child);
       if (type == "dotted_name") {
         const std::string name(text_of(source_, child));
@@ -237,13 +243,15 @@ class Walker {
     const std::size_t dots = text_of(source_, prefix).size();
     std::string base = package_of(module_);
     for (std::size_t d = 1; d < dots && !base.empty(); ++d) base = package_of(base);
-    const TSNode rest = ts_node_named_child_count(mod) > 1 ? ts_node_named_child(mod, 1)
-                                                           : TSNode{};
-    return join(base, ts_node_is_null(rest) ? std::string_view{} : text_of(source_, rest));
+    const TSNode rest =
+        ts_node_named_child_count(mod) > 1 ? ts_node_named_child(mod, 1) : TSNode{};
+    return join(base,
+                ts_node_is_null(rest) ? std::string_view{} : text_of(source_, rest));
   }
 
   void add_import_fact(const std::string& module, std::size_t line) {
-    out_.facts.push_back(PyFact{FactKind::import, stack_.back().symbol, module, {}, {}, line});
+    out_.facts.push_back(
+        PyFact{FactKind::import, stack_.back().symbol, module, {}, {}, line});
   }
 
   std::string_view module_;
@@ -274,8 +282,8 @@ PyFile parse_python(std::string_view module, std::string_view source) {
 
   const std::size_t lines =
       static_cast<std::size_t>(std::count(source.begin(), source.end(), '\n')) + 1;
-  out.symbols.push_back(PySymbol{last_segment(module), std::string(module),
-                                 SymbolKind::module, 1, lines, {}, 0});
+  out.symbols.push_back(PySymbol{
+      last_segment(module), std::string(module), SymbolKind::module, 1, lines, {}, 0});
   Walker(module, source, out).run(root);
   return out;
 }

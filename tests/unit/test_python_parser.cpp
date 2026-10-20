@@ -95,7 +95,8 @@ TEST_CASE("calls, bases and imports are recorded as facts with their caller") {
   for (const auto& f : parsed.facts) {
     if (f.kind == FactKind::import && f.name == "os.path") import_os = true;
     if (f.kind == FactKind::import && f.name == "pkg.util") import_util = true;
-    if (f.kind == FactKind::inherits && f.name == "Base" && f.qualifier.empty()) inherits_base = true;
+    if (f.kind == FactKind::inherits && f.name == "Base" && f.qualifier.empty())
+      inherits_base = true;
     if (f.kind == FactKind::call && f.name == "step" && f.qualifier == "self") {
       self_step = true;
       CHECK(f.scope == "pkg.core.Child");
@@ -111,7 +112,8 @@ TEST_CASE("calls, bases and imports are recorded as facts with their caller") {
 }
 
 TEST_CASE("from-imports bind local names to fully qualified targets") {
-  const auto parsed = parse_python("pkg.core", "from pkg.util import helper as h, other\n");
+  const auto parsed =
+      parse_python("pkg.core", "from pkg.util import helper as h, other\n");
   bool alias = false;
   bool plain = false;
   for (const auto& b : parsed.bindings) {

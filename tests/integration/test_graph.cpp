@@ -5,15 +5,15 @@
 #include "veylqora/graph/query.hpp"
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/storage/database.hpp"
-#include "support/temp_dir.hpp"
-
-#include <catch2/catch_test_macros.hpp>
 
 #include <filesystem>
 #include <fstream>
 #include <set>
 #include <string>
 #include <string_view>
+
+#include "support/temp_dir.hpp"
+#include <catch2/catch_test_macros.hpp>
 
 namespace fs = std::filesystem;
 using veylqora::test::TempDir;
@@ -26,9 +26,9 @@ const veylqora::SystemClock kClock;
 // Written by hand from reading tests/fixtures/graph/*.py. Format: kind|fqn for
 // symbols, kind|src|dst|resolution for edges. "-" means no resolved target.
 const std::set<std::string> kLabelledSymbols = {
-    "module|util",          "module|core",         "module|main",
-    "function|util.helper", "function|util.unused", "class|core.Base",
-    "method|core.Base.run", "method|core.Base.step", "class|core.Child",
+    "module|util",           "module|core",           "module|main",
+    "function|util.helper",  "function|util.unused",  "class|core.Base",
+    "method|core.Base.run",  "method|core.Base.step", "class|core.Child",
     "method|core.Child.run", "function|main.main",
 };
 
@@ -52,13 +52,13 @@ const std::set<std::string> kLabelledEdges = {
     "calls|core.Base.step|util.helper|resolved",     // helper, bound by the import
     "calls|core.Child.run|core.Base.run|heuristic",  // super().run(): receiver unknown
     "calls|core.Child.run|core.Child.run|heuristic",
-    "calls|core.Child.run|-|unresolved",             // super() is not defined in the project
-    "calls|main.main|core.Child|resolved",           // Child(), bound by from-import
-    "calls|main.main|core.Base|resolved",            // core.Base(), bound by import core
-    "calls|main.main|core.Base.run|heuristic",       // c.run(): receiver unknown
+    "calls|core.Child.run|-|unresolved",        // super() is not defined in the project
+    "calls|main.main|core.Child|resolved",      // Child(), bound by from-import
+    "calls|main.main|core.Base|resolved",       // core.Base(), bound by import core
+    "calls|main.main|core.Base.run|heuristic",  // c.run(): receiver unknown
     "calls|main.main|core.Child.run|heuristic",
-    "calls|main.main|core.Base.step|heuristic",      // core.Base().step(): receiver is a call
-    "calls|main.main|-|unresolved",                  // len() is a builtin
+    "calls|main.main|core.Base.step|heuristic",  // core.Base().step(): receiver is a call
+    "calls|main.main|-|unresolved",              // len() is a builtin
 };
 
 struct Score {
@@ -66,14 +66,17 @@ struct Score {
   std::size_t reported;
   std::size_t expected;
   double precision() const {
-    return reported == 0 ? 0.0 : static_cast<double>(correct) / static_cast<double>(reported);
+    return reported == 0 ? 0.0
+                         : static_cast<double>(correct) / static_cast<double>(reported);
   }
   double recall() const {
-    return expected == 0 ? 0.0 : static_cast<double>(correct) / static_cast<double>(expected);
+    return expected == 0 ? 0.0
+                         : static_cast<double>(correct) / static_cast<double>(expected);
   }
 };
 
-Score score(const std::set<std::string>& reported, const std::set<std::string>& expected) {
+Score score(const std::set<std::string>& reported,
+            const std::set<std::string>& expected) {
   std::size_t correct = 0;
   for (const std::string& r : reported) correct += expected.count(r);
   return Score{correct, reported.size(), expected.size()};
@@ -88,11 +91,13 @@ std::set<std::string> actual_symbols(veylqora::Database& db) {
 
 std::set<std::string> actual_edges(veylqora::Database& db) {
   std::set<std::string> out;
-  veylqora::Statement q(db,
-                        "SELECT e.kind, s.fqn, COALESCE(d.fqn, '-'), e.resolution FROM edge e "
-                        "JOIN symbol s ON s.id = e.src_symbol_id "
-                        "LEFT JOIN symbol d ON d.id = e.dst_symbol_id");
-  while (q.step()) out.insert(q.text(0) + "|" + q.text(1) + "|" + q.text(2) + "|" + q.text(3));
+  veylqora::Statement q(
+      db,
+      "SELECT e.kind, s.fqn, COALESCE(d.fqn, '-'), e.resolution FROM edge e "
+      "JOIN symbol s ON s.id = e.src_symbol_id "
+      "LEFT JOIN symbol d ON d.id = e.dst_symbol_id");
+  while (q.step())
+    out.insert(q.text(0) + "|" + q.text(1) + "|" + q.text(2) + "|" + q.text(3));
   return out;
 }
 
@@ -107,8 +112,8 @@ void copy_tree(const fs::path& from, const fs::path& to) {
   fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
 }
 
-bool has_dependent(const std::vector<veylqora::GraphEdge>& edges, std::string_view src_fqn,
-                   std::string_view resolution) {
+bool has_dependent(const std::vector<veylqora::GraphEdge>& edges,
+                   std::string_view src_fqn, std::string_view resolution) {
   for (const auto& e : edges) {
     if (e.src_fqn == src_fqn && e.resolution == resolution) return true;
   }
@@ -142,9 +147,10 @@ TEST_CASE("every calls edge carries a resolution level") {
   TempDir tmp;
   veylqora::Database db(tmp.path() / "v.db");
   veylqora::index_project(db, kClock, kGraph);
-  veylqora::Statement q(db,
-                        "SELECT COUNT(*) FROM edge WHERE kind = 'calls' AND resolution NOT IN "
-                        "('resolved', 'heuristic', 'unresolved')");
+  veylqora::Statement q(
+      db,
+      "SELECT COUNT(*) FROM edge WHERE kind = 'calls' AND resolution NOT IN "
+      "('resolved', 'heuristic', 'unresolved')");
   REQUIRE(q.step());
   CHECK(q.integer(0) == 0);
 }
@@ -210,7 +216,8 @@ TEST_CASE("deleting a file removes its symbols and the edges that pointed at the
   copy_tree(kGraph, src);
   veylqora::Database db(tmp.path() / "v.db");
   veylqora::index_project(db, kClock, src);
-  REQUIRE(has_dependent(veylqora::dependents_of(db, src, "helper"), "core.Base.step", "resolved"));
+  REQUIRE(has_dependent(veylqora::dependents_of(db, src, "helper"), "core.Base.step",
+                        "resolved"));
 
   fs::remove(src / "core.py");
   veylqora::index_project(db, kClock, src);
@@ -229,12 +236,15 @@ TEST_CASE("editing a file rewires its edges, with no stale ones left behind") {
 
   // Base.step stops calling helper and calls unused instead.
   write(src / "core.py",
-        "from util import unused\n\n\nclass Base:\n    def run(self):\n        return self.step()\n\n"
-        "    def step(self):\n        return unused()\n\n\nclass Child(Base):\n    def run(self):\n"
+        "from util import unused\n\n\nclass Base:\n    def run(self):\n        return "
+        "self.step()\n\n"
+        "    def step(self):\n        return unused()\n\n\nclass Child(Base):\n    def "
+        "run(self):\n"
         "        return super().run()\n");
   veylqora::index_project(db, kClock, src);
   CHECK(veylqora::dependents_of(db, src, "helper").empty());
-  CHECK(has_dependent(veylqora::dependents_of(db, src, "unused"), "core.Base.step", "resolved"));
+  CHECK(has_dependent(veylqora::dependents_of(db, src, "unused"), "core.Base.step",
+                      "resolved"));
 }
 
 TEST_CASE("two projects in one database have separate graphs") {
@@ -262,5 +272,6 @@ TEST_CASE("a malformed file does not stop the rest of the graph from being built
   veylqora::Database db(tmp.path() / "v.db");
   const auto stats = veylqora::index_project(db, kClock, src);
   CHECK(stats.files_with_syntax_errors == 1);
-  CHECK(has_dependent(veylqora::dependents_of(db, src, "helper"), "core.Base.step", "resolved"));
+  CHECK(has_dependent(veylqora::dependents_of(db, src, "helper"), "core.Base.step",
+                      "resolved"));
 }

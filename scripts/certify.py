@@ -41,6 +41,17 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san"],
         },
     },
+    "1.3a": {
+        "title": "Code graph (Python): tree-sitter symbols, facts, resolved edges",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "scripts/ci.sh", "scripts/corpus.sh", "scripts/certify.py",
+            "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
+        },
+    },
     "1.2": {
         "title": "Repository ingestion: git-aware listing, classification, batching",
         "sources": [

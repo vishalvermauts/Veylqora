@@ -12,7 +12,7 @@
 namespace veylqora {
 
 struct GraphEdge {
-  std::string kind;        // calls, imports, inherits (contains is excluded from these queries)
+  std::string kind;  // calls, imports, inherits (contains is excluded from these queries)
   std::string src_fqn;
   std::string src_path;
   std::string dst_fqn;     // empty when unresolved
