@@ -1,0 +1,478 @@
+gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+Ubuntu clang version 21.1.8 (6ubuntu1)
+cmake version 4.2.3
+testing 7e75860 Format M1.5 sources and add certification entry
+
+[1m== format[0m
+[32m   PASS[0m  format
+
+[1m== gcc[0m
+Test project /home/agent/ci-work/build-gcc
+      Start  1: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences
+ 1/71 Test  #1: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences ...........   Passed    0.00 sec
+      Start  2: identity distinguishes every identity-bearing field
+ 2/71 Test  #2: identity distinguishes every identity-bearing field ................................   Passed    0.00 sec
+      Start  3: empty source yields only the module symbol and no errors
+ 3/71 Test  #3: empty source yields only the module symbol and no errors ...........................   Passed    0.01 sec
+      Start  4: empty and whitespace-only bodies fingerprint identically
+ 4/71 Test  #4: empty and whitespace-only bodies fingerprint identically ...........................   Passed    0.00 sec
+      Start  5: deeply nested input is cut off instead of exhausting the stack
+ 5/71 Test  #5: deeply nested input is cut off instead of exhausting the stack .....................   Passed    0.01 sec
+      Start  6: from-imports bind local names to fully qualified targets
+ 6/71 Test  #6: from-imports bind local names to fully qualified targets ...........................   Passed    0.00 sec
+      Start  7: a definition's lines and body come from the syntax tree
+ 7/71 Test  #7: a definition's lines and body come from the syntax tree ............................   Passed    0.00 sec
+      Start  8: comments inside a body belong to it
+ 8/71 Test  #8: comments inside a body belong to it ................................................   Passed    0.00 sec
+      Start  9: body fingerprint ignores formatting-only changes
+ 9/71 Test  #9: body fingerprint ignores formatting-only changes ...................................   Passed    0.00 sec
+      Start 10: field boundaries cannot be forged by moving text between fields
+10/71 Test #10: field boundaries cannot be forged by moving text between fields ....................   Passed    0.00 sec
+      Start 11: functions, classes, methods and nested functions get dotted names
+11/71 Test #11: functions, classes, methods and nested functions get dotted names ..................   Passed    0.00 sec
+      Start 12: symbol ids are stable and well formed
+12/71 Test #12: symbol ids are stable and well formed ..............................................   Passed    0.00 sec
+      Start 13: a def inside a string is not a symbol
+13/71 Test #13: a def inside a string is not a symbol ..............................................   Passed    0.00 sec
+      Start 14: repeated names in one scope get distinct overloads
+14/71 Test #14: repeated names in one scope get distinct overloads .................................   Passed    0.00 sec
+      Start 15: relative imports resolve against the importing module's package
+15/71 Test #15: relative imports resolve against the importing module's package ....................   Passed    0.00 sec
+      Start 16: syntax errors are reported, and parsing still yields the valid parts
+16/71 Test #16: syntax errors are reported, and parsing still yields the valid parts ...............   Passed    0.00 sec
+      Start 17: malformed UTF-8 is rejected
+17/71 Test #17: malformed UTF-8 is rejected ........................................................   Passed    0.00 sec
+      Start 18: calls, bases and imports are recorded as facts with their caller
+18/71 Test #18: calls, bases and imports are recorded as facts with their caller ...................   Passed    0.00 sec
+      Start 19: CRLF line endings produce the same symbols
+19/71 Test #19: CRLF line endings produce the same symbols .........................................   Passed    0.00 sec
+      Start 20: body fingerprint detects real changes
+20/71 Test #20: body fingerprint detects real changes ..............................................   Passed    0.00 sec
+      Start 21: fixed clock returns exactly the instant it was given
+21/71 Test #21: fixed clock returns exactly the instant it was given ...............................   Passed    0.00 sec
+      Start 22: timestamps format as UTC ISO-8601 to the second
+22/71 Test #22: timestamps format as UTC ISO-8601 to the second ....................................   Passed    0.00 sec
+      Start 23: slice: projects sharing one database do not see each other
+23/71 Test #23: slice: projects sharing one database do not see each other .........................   Passed    0.04 sec
+      Start 24: server: JSON over HTTP, with stable error codes
+24/71 Test #24: server: JSON over HTTP, with stable error codes ....................................   Passed    0.02 sec
+      Start 25: slice: index, search, restart, and get the same answers
+25/71 Test #25: slice: index, search, restart, and get the same answers ............................   Passed    0.01 sec
+      Start 26: a malformed file does not stop the rest of the graph from being built
+26/71 Test #26: a malformed file does not stop the rest of the graph from being built ..............   Passed    0.01 sec
+      Start 27: neighbourhood reaches symbols within the hop limit
+27/71 Test #27: neighbourhood reaches symbols within the hop limit .................................   Passed    0.01 sec
+      Start 28: file lock: a second holder is refused while the first is alive
+28/71 Test #28: file lock: a second holder is refused while the first is alive .....................   Passed    0.00 sec
+      Start 29: symlinks are never followed, even to files outside the project
+29/71 Test #29: symlinks are never followed, even to files outside the project .....................   Passed    0.01 sec
+      Start 30: deleted file: its symbols disappear and the removal is counted
+30/71 Test #30: deleted file: its symbols disappear and the removal is counted .....................   Passed    0.01 sec
+      Start 31: renamed file: old path disappears, new path is indexed
+31/71 Test #31: renamed file: old path disappears, new path is indexed .............................   Passed    0.01 sec
+      Start 32: server: refuses a non-loopback bind
+32/71 Test #32: server: refuses a non-loopback bind ................................................   Passed    0.00 sec
+      Start 33: a stale revision is a conflict and nothing is written
+33/71 Test #33: a stale revision is a conflict and nothing is written ..............................   Passed    0.01 sec
+      Start 34: evidence must name an indexed symbol, or the memory is not created at all
+34/71 Test #34: evidence must name an indexed symbol, or the memory is not created at all ..........   Passed    0.01 sec
+      Start 35: slice: an edited file is re-parsed and its symbols replaced
+35/71 Test #35: slice: an edited file is re-parsed and its symbols replaced ........................   Passed    0.01 sec
+      Start 36: update with the current revision succeeds and keeps history
+36/71 Test #36: update with the current revision succeeds and keeps history ........................   Passed    0.00 sec
+      Start 37: re-exported names resolve to their defining module
+37/71 Test #37: re-exported names resolve to their defining module .................................   Passed    0.01 sec
+      Start 38: deleting a file removes its symbols and the edges that pointed at them
+38/71 Test #38: deleting a file removes its symbols and the edges that pointed at them .............   Passed    0.01 sec
+      Start 39: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept
+39/71 Test #39: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept ...   Passed    0.01 sec
+      Start 40: a corrupt import file is rejected as a whole
+40/71 Test #40: a corrupt import file is rejected as a whole .......................................   Passed    0.00 sec
+      Start 41: required fields are validated
+41/71 Test #41: required fields are validated ......................................................   Passed    0.00 sec
+      Start 42: concurrent writers from separate connections never lose an update
+42/71 Test #42: concurrent writers from separate connections never lose an update ..................   Passed    0.00 sec
+      Start 43: empty python file is indexed with no symbols
+43/71 Test #43: empty python file is indexed with no symbols .......................................   Passed    0.01 sec
+      Start 44: unreadable file keeps its previously indexed symbols
+44/71 Test #44: unreadable file keeps its previously indexed symbols ...............................   Passed    0.01 sec
+      Start 45: labelled fixture: symbol and edge precision and recall meet the gate
+45/71 Test #45: labelled fixture: symbol and edge precision and recall meet the gate ...............   Passed    0.01 sec
+      Start 46: every calls edge carries a resolution level
+46/71 Test #46: every calls edge carries a resolution level ........................................   Passed    0.01 sec
+      Start 47: valid multi-byte UTF-8 is indexed
+47/71 Test #47: valid multi-byte UTF-8 is indexed ..................................................   Passed    0.01 sec
+      Start 48: two projects in one database have separate graphs
+48/71 Test #48: two projects in one database have separate graphs ..................................   Passed    0.01 sec
+      Start 49: service: memory operations and their error kinds
+49/71 Test #49: service: memory operations and their error kinds ...................................   Passed    0.01 sec
+      Start 50: reverse lookup: what depends on helper
+50/71 Test #50: reverse lookup: what depends on helper .............................................   Passed    0.01 sec
+      Start 51: invalid UTF-8 is skipped and does not stop the run
+51/71 Test #51: invalid UTF-8 is skipped and does not stop the run .................................   Passed    0.01 sec
+      Start 52: empty directory indexes to nothing without error
+52/71 Test #52: empty directory indexes to nothing without error ...................................   Passed    0.01 sec
+      Start 53: service: status, index, search and graph agree with the library
+53/71 Test #53: service: status, index, search and graph agree with the library ....................   Passed    0.01 sec
+      Start 54: editing a file rewires its edges, with no stale ones left behind
+54/71 Test #54: editing a file rewires its edges, with no stale ones left behind ...................   Passed    0.01 sec
+      Start 55: export, import into an empty database, and export again: byte-identical
+55/71 Test #55: export, import into an empty database, and export again: byte-identical ............   Passed    0.01 sec
+      Start 56: projects are isolated: another project's memory is not found
+56/71 Test #56: projects are isolated: another project's memory is not found .......................   Passed    0.00 sec
+      Start 57: state transitions follow the table; illegal ones and missing reasons are refused
+57/71 Test #57: state transitions follow the table; illegal ones and missing reasons are refused ...   Passed    0.00 sec
+      Start 58: create, read back and list a memory
+58/71 Test #58: create, read back and list a memory ................................................   Passed    0.01 sec
+      Start 59: archived memories are read-only
+59/71 Test #59: archived memories are read-only ....................................................   Passed    0.00 sec
+      Start 60: retention purges only archived memories older than the cutoff
+60/71 Test #60: retention purges only archived memories older than the cutoff ......................   Passed    0.00 sec
+      Start 61: slice: re-indexing an unchanged tree parses nothing
+61/71 Test #61: slice: re-indexing an unchanged tree parses nothing ................................   Passed    0.01 sec
+      Start 62: change impact: editing util.py puts its dependents in doubt
+62/71 Test #62: change impact: editing util.py puts its dependents in doubt ........................   Passed    0.01 sec
+      Start 63: large repository is processed in batches with progress
+63/71 Test #63: large repository is processed in batches with progress .............................   Passed    0.58 sec
+      Start 64: slice: a deleted file's symbols disappear from search
+64/71 Test #64: slice: a deleted file's symbols disappear from search ..............................   Passed    0.02 sec
+      Start 65: slice: unknown names and unknown projects return no hits
+65/71 Test #65: slice: unknown names and unknown projects return no hits ...........................   Passed    0.02 sec
+      Start 66: supersession links the old memory to its replacement
+66/71 Test #66: supersession links the old memory to its replacement ...............................   Passed    0.01 sec
+      Start 67: binary file with a .py name is skipped, not parsed
+67/71 Test #67: binary file with a .py name is skipped, not parsed .................................   Passed    0.01 sec
+      Start 68: forward lookup: what main depends on
+68/71 Test #68: forward lookup: what main depends on ...............................................   Passed    0.01 sec
+      Start 69: memories survive a restart
+69/71 Test #69: memories survive a restart .........................................................   Passed    0.01 sec
+      Start 70: interrupted run keeps committed batches and does not remove anything
+70/71 Test #70: interrupted run keeps committed batches and does not remove anything ...............   Passed    0.01 sec
+      Start 71: cli_slice
+71/71 Test #71: cli_slice ..........................................................................   Passed    0.10 sec
+
+100% tests passed, 0 tests failed out of 71
+
+Total Test time (real) =   1.20 sec
+[32m   PASS[0m  gcc
+
+[1m== clang[0m
+Test project /home/agent/ci-work/build-clang
+      Start  1: from-imports bind local names to fully qualified targets
+ 1/71 Test  #1: from-imports bind local names to fully qualified targets ...........................   Passed    0.00 sec
+      Start  2: deeply nested input is cut off instead of exhausting the stack
+ 2/71 Test  #2: deeply nested input is cut off instead of exhausting the stack .....................   Passed    0.06 sec
+      Start  3: relative imports resolve against the importing module's package
+ 3/71 Test  #3: relative imports resolve against the importing module's package ....................   Passed    0.00 sec
+      Start  4: fixed clock returns exactly the instant it was given
+ 4/71 Test  #4: fixed clock returns exactly the instant it was given ...............................   Passed    0.00 sec
+      Start  5: syntax errors are reported, and parsing still yields the valid parts
+ 5/71 Test  #5: syntax errors are reported, and parsing still yields the valid parts ...............   Passed    0.00 sec
+      Start  6: functions, classes, methods and nested functions get dotted names
+ 6/71 Test  #6: functions, classes, methods and nested functions get dotted names ..................   Passed    0.00 sec
+      Start  7: repeated names in one scope get distinct overloads
+ 7/71 Test  #7: repeated names in one scope get distinct overloads .................................   Passed    0.00 sec
+      Start  8: CRLF line endings produce the same symbols
+ 8/71 Test  #8: CRLF line endings produce the same symbols .........................................   Passed    0.00 sec
+      Start  9: field boundaries cannot be forged by moving text between fields
+ 9/71 Test  #9: field boundaries cannot be forged by moving text between fields ....................   Passed    0.00 sec
+      Start 10: symbol ids are stable and well formed
+10/71 Test #10: symbol ids are stable and well formed ..............................................   Passed    0.00 sec
+      Start 11: comments inside a body belong to it
+11/71 Test #11: comments inside a body belong to it ................................................   Passed    0.00 sec
+      Start 12: identity distinguishes every identity-bearing field
+12/71 Test #12: identity distinguishes every identity-bearing field ................................   Passed    0.00 sec
+      Start 13: body fingerprint ignores formatting-only changes
+13/71 Test #13: body fingerprint ignores formatting-only changes ...................................   Passed    0.00 sec
+      Start 14: body fingerprint detects real changes
+14/71 Test #14: body fingerprint detects real changes ..............................................   Passed    0.00 sec
+      Start 15: empty and whitespace-only bodies fingerprint identically
+15/71 Test #15: empty and whitespace-only bodies fingerprint identically ...........................   Passed    0.00 sec
+      Start 16: timestamps format as UTC ISO-8601 to the second
+16/71 Test #16: timestamps format as UTC ISO-8601 to the second ....................................   Passed    0.00 sec
+      Start 17: empty source yields only the module symbol and no errors
+17/71 Test #17: empty source yields only the module symbol and no errors ...........................   Passed    0.00 sec
+      Start 18: a def inside a string is not a symbol
+18/71 Test #18: a def inside a string is not a symbol ..............................................   Passed    0.00 sec
+      Start 19: malformed UTF-8 is rejected
+19/71 Test #19: malformed UTF-8 is rejected ........................................................   Passed    0.00 sec
+      Start 20: calls, bases and imports are recorded as facts with their caller
+20/71 Test #20: calls, bases and imports are recorded as facts with their caller ...................   Passed    0.00 sec
+      Start 21: a definition's lines and body come from the syntax tree
+21/71 Test #21: a definition's lines and body come from the syntax tree ............................   Passed    0.00 sec
+      Start 22: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences
+22/71 Test #22: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences ...........   Passed    0.00 sec
+      Start 23: empty directory indexes to nothing without error
+23/71 Test #23: empty directory indexes to nothing without error ...................................   Passed    0.01 sec
+      Start 24: labelled fixture: symbol and edge precision and recall meet the gate
+24/71 Test #24: labelled fixture: symbol and edge precision and recall meet the gate ...............   Passed    0.01 sec
+      Start 25: service: memory operations and their error kinds
+25/71 Test #25: service: memory operations and their error kinds ...................................   Passed    0.00 sec
+      Start 26: server: JSON over HTTP, with stable error codes
+26/71 Test #26: server: JSON over HTTP, with stable error codes ....................................   Passed    0.02 sec
+      Start 27: file lock: a second holder is refused while the first is alive
+27/71 Test #27: file lock: a second holder is refused while the first is alive .....................   Passed    0.00 sec
+      Start 28: interrupted run keeps committed batches and does not remove anything
+28/71 Test #28: interrupted run keeps committed batches and does not remove anything ...............   Passed    0.01 sec
+      Start 29: editing a file rewires its edges, with no stale ones left behind
+29/71 Test #29: editing a file rewires its edges, with no stale ones left behind ...................   Passed    0.01 sec
+      Start 30: two projects in one database have separate graphs
+30/71 Test #30: two projects in one database have separate graphs ..................................   Passed    0.01 sec
+      Start 31: valid multi-byte UTF-8 is indexed
+31/71 Test #31: valid multi-byte UTF-8 is indexed ..................................................   Passed    0.01 sec
+      Start 32: archived memories are read-only
+32/71 Test #32: archived memories are read-only ....................................................   Passed    0.00 sec
+      Start 33: forward lookup: what main depends on
+33/71 Test #33: forward lookup: what main depends on ...............................................   Passed    0.01 sec
+      Start 34: export, import into an empty database, and export again: byte-identical
+34/71 Test #34: export, import into an empty database, and export again: byte-identical ............   Passed    0.01 sec
+      Start 35: required fields are validated
+35/71 Test #35: required fields are validated ......................................................   Passed    0.00 sec
+      Start 36: slice: projects sharing one database do not see each other
+36/71 Test #36: slice: projects sharing one database do not see each other .........................   Passed    0.01 sec
+      Start 37: change impact: editing util.py puts its dependents in doubt
+37/71 Test #37: change impact: editing util.py puts its dependents in doubt ........................   Passed    0.01 sec
+      Start 38: symlinks are never followed, even to files outside the project
+38/71 Test #38: symlinks are never followed, even to files outside the project .....................   Passed    0.00 sec
+      Start 39: memories survive a restart
+39/71 Test #39: memories survive a restart .........................................................   Passed    0.00 sec
+      Start 40: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept
+40/71 Test #40: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept ...   Passed    0.01 sec
+      Start 41: a corrupt import file is rejected as a whole
+41/71 Test #41: a corrupt import file is rejected as a whole .......................................   Passed    0.00 sec
+      Start 42: deleted file: its symbols disappear and the removal is counted
+42/71 Test #42: deleted file: its symbols disappear and the removal is counted .....................   Passed    0.01 sec
+      Start 43: slice: a deleted file's symbols disappear from search
+43/71 Test #43: slice: a deleted file's symbols disappear from search ..............................   Passed    0.01 sec
+      Start 44: server: refuses a non-loopback bind
+44/71 Test #44: server: refuses a non-loopback bind ................................................   Passed    0.00 sec
+      Start 45: a malformed file does not stop the rest of the graph from being built
+45/71 Test #45: a malformed file does not stop the rest of the graph from being built ..............   Passed    0.01 sec
+      Start 46: invalid UTF-8 is skipped and does not stop the run
+46/71 Test #46: invalid UTF-8 is skipped and does not stop the run .................................   Passed    0.01 sec
+      Start 47: empty python file is indexed with no symbols
+47/71 Test #47: empty python file is indexed with no symbols .......................................   Passed    0.01 sec
+      Start 48: binary file with a .py name is skipped, not parsed
+48/71 Test #48: binary file with a .py name is skipped, not parsed .................................   Passed    0.00 sec
+      Start 49: create, read back and list a memory
+49/71 Test #49: create, read back and list a memory ................................................   Passed    0.00 sec
+      Start 50: concurrent writers from separate connections never lose an update
+50/71 Test #50: concurrent writers from separate connections never lose an update ..................   Passed    0.00 sec
+      Start 51: deleting a file removes its symbols and the edges that pointed at them
+51/71 Test #51: deleting a file removes its symbols and the edges that pointed at them .............   Passed    0.01 sec
+      Start 52: slice: index, search, restart, and get the same answers
+52/71 Test #52: slice: index, search, restart, and get the same answers ............................   Passed    0.01 sec
+      Start 53: large repository is processed in batches with progress
+53/71 Test #53: large repository is processed in batches with progress .............................   Passed    0.51 sec
+      Start 54: reverse lookup: what depends on helper
+54/71 Test #54: reverse lookup: what depends on helper .............................................   Passed    0.01 sec
+      Start 55: update with the current revision succeeds and keeps history
+55/71 Test #55: update with the current revision succeeds and keeps history ........................   Passed    0.01 sec
+      Start 56: a stale revision is a conflict and nothing is written
+56/71 Test #56: a stale revision is a conflict and nothing is written ..............................   Passed    0.00 sec
+      Start 57: slice: unknown names and unknown projects return no hits
+57/71 Test #57: slice: unknown names and unknown projects return no hits ...........................   Passed    0.01 sec
+      Start 58: evidence must name an indexed symbol, or the memory is not created at all
+58/71 Test #58: evidence must name an indexed symbol, or the memory is not created at all ..........   Passed    0.01 sec
+      Start 59: projects are isolated: another project's memory is not found
+59/71 Test #59: projects are isolated: another project's memory is not found .......................   Passed    0.01 sec
+      Start 60: renamed file: old path disappears, new path is indexed
+60/71 Test #60: renamed file: old path disappears, new path is indexed .............................   Passed    0.01 sec
+      Start 61: service: status, index, search and graph agree with the library
+61/71 Test #61: service: status, index, search and graph agree with the library ....................   Passed    0.01 sec
+      Start 62: every calls edge carries a resolution level
+62/71 Test #62: every calls edge carries a resolution level ........................................   Passed    0.01 sec
+      Start 63: supersession links the old memory to its replacement
+63/71 Test #63: supersession links the old memory to its replacement ...............................   Passed    0.00 sec
+      Start 64: neighbourhood reaches symbols within the hop limit
+64/71 Test #64: neighbourhood reaches symbols within the hop limit .................................   Passed    0.01 sec
+      Start 65: slice: re-indexing an unchanged tree parses nothing
+65/71 Test #65: slice: re-indexing an unchanged tree parses nothing ................................   Passed    0.01 sec
+      Start 66: retention purges only archived memories older than the cutoff
+66/71 Test #66: retention purges only archived memories older than the cutoff ......................   Passed    0.01 sec
+      Start 67: slice: an edited file is re-parsed and its symbols replaced
+67/71 Test #67: slice: an edited file is re-parsed and its symbols replaced ........................   Passed    0.01 sec
+      Start 68: state transitions follow the table; illegal ones and missing reasons are refused
+68/71 Test #68: state transitions follow the table; illegal ones and missing reasons are refused ...   Passed    0.00 sec
+      Start 69: re-exported names resolve to their defining module
+69/71 Test #69: re-exported names resolve to their defining module .................................   Passed    0.01 sec
+      Start 70: unreadable file keeps its previously indexed symbols
+70/71 Test #70: unreadable file keeps its previously indexed symbols ...............................   Passed    0.01 sec
+      Start 71: cli_slice
+71/71 Test #71: cli_slice ..........................................................................   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 71
+
+Total Test time (real) =   1.06 sec
+[32m   PASS[0m  clang
+
+[1m== san[0m
+Test project /home/agent/ci-work/build-san
+      Start  1: syntax errors are reported, and parsing still yields the valid parts
+ 1/71 Test  #1: syntax errors are reported, and parsing still yields the valid parts ...............   Passed    0.02 sec
+      Start  2: fixed clock returns exactly the instant it was given
+ 2/71 Test  #2: fixed clock returns exactly the instant it was given ...............................   Passed    0.02 sec
+      Start  3: symbol ids are stable and well formed
+ 3/71 Test  #3: symbol ids are stable and well formed ..............................................   Passed    0.02 sec
+      Start  4: empty source yields only the module symbol and no errors
+ 4/71 Test  #4: empty source yields only the module symbol and no errors ...........................   Passed    0.01 sec
+      Start  5: body fingerprint detects real changes
+ 5/71 Test  #5: body fingerprint detects real changes ..............................................   Passed    0.02 sec
+      Start  6: from-imports bind local names to fully qualified targets
+ 6/71 Test  #6: from-imports bind local names to fully qualified targets ...........................   Passed    0.02 sec
+      Start  7: comments inside a body belong to it
+ 7/71 Test  #7: comments inside a body belong to it ................................................   Passed    0.02 sec
+      Start  8: repeated names in one scope get distinct overloads
+ 8/71 Test  #8: repeated names in one scope get distinct overloads .................................   Passed    0.01 sec
+      Start  9: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences
+ 9/71 Test  #9: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences ...........   Passed    0.01 sec
+      Start 10: identity distinguishes every identity-bearing field
+10/71 Test #10: identity distinguishes every identity-bearing field ................................   Passed    0.01 sec
+      Start 11: timestamps format as UTC ISO-8601 to the second
+11/71 Test #11: timestamps format as UTC ISO-8601 to the second ....................................   Passed    0.01 sec
+      Start 12: calls, bases and imports are recorded as facts with their caller
+12/71 Test #12: calls, bases and imports are recorded as facts with their caller ...................   Passed    0.01 sec
+      Start 13: a def inside a string is not a symbol
+13/71 Test #13: a def inside a string is not a symbol ..............................................   Passed    0.01 sec
+      Start 14: relative imports resolve against the importing module's package
+14/71 Test #14: relative imports resolve against the importing module's package ....................   Passed    0.01 sec
+      Start 15: malformed UTF-8 is rejected
+15/71 Test #15: malformed UTF-8 is rejected ........................................................   Passed    0.01 sec
+      Start 16: a definition's lines and body come from the syntax tree
+16/71 Test #16: a definition's lines and body come from the syntax tree ............................   Passed    0.01 sec
+      Start 17: functions, classes, methods and nested functions get dotted names
+17/71 Test #17: functions, classes, methods and nested functions get dotted names ..................   Passed    0.01 sec
+      Start 18: field boundaries cannot be forged by moving text between fields
+18/71 Test #18: field boundaries cannot be forged by moving text between fields ....................   Passed    0.01 sec
+      Start 19: body fingerprint ignores formatting-only changes
+19/71 Test #19: body fingerprint ignores formatting-only changes ...................................   Passed    0.01 sec
+      Start 20: CRLF line endings produce the same symbols
+20/71 Test #20: CRLF line endings produce the same symbols .........................................   Passed    0.01 sec
+      Start 21: deeply nested input is cut off instead of exhausting the stack
+21/71 Test #21: deeply nested input is cut off instead of exhausting the stack .....................   Passed    0.17 sec
+      Start 22: empty and whitespace-only bodies fingerprint identically
+22/71 Test #22: empty and whitespace-only bodies fingerprint identically ...........................   Passed    0.01 sec
+      Start 23: forward lookup: what main depends on
+23/71 Test #23: forward lookup: what main depends on ...............................................   Passed    0.04 sec
+      Start 24: empty directory indexes to nothing without error
+24/71 Test #24: empty directory indexes to nothing without error ...................................   Passed    0.03 sec
+      Start 25: memories survive a restart
+25/71 Test #25: memories survive a restart .........................................................   Passed    0.02 sec
+      Start 26: retention purges only archived memories older than the cutoff
+26/71 Test #26: retention purges only archived memories older than the cutoff ......................   Passed    0.02 sec
+      Start 27: service: memory operations and their error kinds
+27/71 Test #27: service: memory operations and their error kinds ...................................   Passed    0.03 sec
+      Start 28: change impact: editing util.py puts its dependents in doubt
+28/71 Test #28: change impact: editing util.py puts its dependents in doubt ........................   Passed    0.04 sec
+      Start 29: create, read back and list a memory
+29/71 Test #29: create, read back and list a memory ................................................   Passed    0.02 sec
+      Start 30: neighbourhood reaches symbols within the hop limit
+30/71 Test #30: neighbourhood reaches symbols within the hop limit .................................   Passed    0.04 sec
+      Start 31: state transitions follow the table; illegal ones and missing reasons are refused
+31/71 Test #31: state transitions follow the table; illegal ones and missing reasons are refused ...   Passed    0.02 sec
+      Start 32: invalid UTF-8 is skipped and does not stop the run
+32/71 Test #32: invalid UTF-8 is skipped and does not stop the run .................................   Passed    0.03 sec
+      Start 33: export, import into an empty database, and export again: byte-identical
+33/71 Test #33: export, import into an empty database, and export again: byte-identical ............   Passed    0.06 sec
+      Start 34: symlinks are never followed, even to files outside the project
+34/71 Test #34: symlinks are never followed, even to files outside the project .....................   Passed    0.03 sec
+      Start 35: slice: re-indexing an unchanged tree parses nothing
+35/71 Test #35: slice: re-indexing an unchanged tree parses nothing ................................   Passed    0.07 sec
+      Start 36: slice: projects sharing one database do not see each other
+36/71 Test #36: slice: projects sharing one database do not see each other .........................   Passed    0.09 sec
+      Start 37: interrupted run keeps committed batches and does not remove anything
+37/71 Test #37: interrupted run keeps committed batches and does not remove anything ...............   Passed    0.05 sec
+      Start 38: concurrent writers from separate connections never lose an update
+38/71 Test #38: concurrent writers from separate connections never lose an update ..................   Passed    0.02 sec
+      Start 39: unreadable file keeps its previously indexed symbols
+39/71 Test #39: unreadable file keeps its previously indexed symbols ...............................   Passed    0.03 sec
+      Start 40: evidence must name an indexed symbol, or the memory is not created at all
+40/71 Test #40: evidence must name an indexed symbol, or the memory is not created at all ..........   Passed    0.06 sec
+      Start 41: a corrupt import file is rejected as a whole
+41/71 Test #41: a corrupt import file is rejected as a whole .......................................   Passed    0.02 sec
+      Start 42: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept
+42/71 Test #42: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept ...   Passed    0.06 sec
+      Start 43: valid multi-byte UTF-8 is indexed
+43/71 Test #43: valid multi-byte UTF-8 is indexed ..................................................   Passed    0.03 sec
+      Start 44: reverse lookup: what depends on helper
+44/71 Test #44: reverse lookup: what depends on helper .............................................   Passed    0.04 sec
+      Start 45: slice: index, search, restart, and get the same answers
+45/71 Test #45: slice: index, search, restart, and get the same answers ............................   Passed    0.07 sec
+      Start 46: server: JSON over HTTP, with stable error codes
+46/71 Test #46: server: JSON over HTTP, with stable error codes ....................................   Passed    0.09 sec
+      Start 47: empty python file is indexed with no symbols
+47/71 Test #47: empty python file is indexed with no symbols .......................................   Passed    0.03 sec
+      Start 48: projects are isolated: another project's memory is not found
+48/71 Test #48: projects are isolated: another project's memory is not found .......................   Passed    0.02 sec
+      Start 49: labelled fixture: symbol and edge precision and recall meet the gate
+49/71 Test #49: labelled fixture: symbol and edge precision and recall meet the gate ...............   Passed    0.04 sec
+      Start 50: service: status, index, search and graph agree with the library
+50/71 Test #50: service: status, index, search and graph agree with the library ....................   Passed    0.07 sec
+      Start 51: slice: unknown names and unknown projects return no hits
+51/71 Test #51: slice: unknown names and unknown projects return no hits ...........................   Passed    0.06 sec
+      Start 52: slice: a deleted file's symbols disappear from search
+52/71 Test #52: slice: a deleted file's symbols disappear from search ..............................   Passed    0.10 sec
+      Start 53: supersession links the old memory to its replacement
+53/71 Test #53: supersession links the old memory to its replacement ...............................   Passed    0.03 sec
+      Start 54: required fields are validated
+54/71 Test #54: required fields are validated ......................................................   Passed    0.03 sec
+      Start 55: update with the current revision succeeds and keeps history
+55/71 Test #55: update with the current revision succeeds and keeps history ........................   Passed    0.03 sec
+      Start 56: re-exported names resolve to their defining module
+56/71 Test #56: re-exported names resolve to their defining module .................................   Passed    0.03 sec
+      Start 57: editing a file rewires its edges, with no stale ones left behind
+57/71 Test #57: editing a file rewires its edges, with no stale ones left behind ...................   Passed    0.05 sec
+      Start 58: two projects in one database have separate graphs
+58/71 Test #58: two projects in one database have separate graphs ..................................   Passed    0.05 sec
+      Start 59: server: refuses a non-loopback bind
+59/71 Test #59: server: refuses a non-loopback bind ................................................   Passed    0.02 sec
+      Start 60: deleted file: its symbols disappear and the removal is counted
+60/71 Test #60: deleted file: its symbols disappear and the removal is counted .....................   Passed    0.03 sec
+      Start 61: deleting a file removes its symbols and the edges that pointed at them
+61/71 Test #61: deleting a file removes its symbols and the edges that pointed at them .............   Passed    0.04 sec
+      Start 62: every calls edge carries a resolution level
+62/71 Test #62: every calls edge carries a resolution level ........................................   Passed    0.04 sec
+      Start 63: file lock: a second holder is refused while the first is alive
+63/71 Test #63: file lock: a second holder is refused while the first is alive .....................   Passed    0.02 sec
+      Start 64: binary file with a .py name is skipped, not parsed
+64/71 Test #64: binary file with a .py name is skipped, not parsed .................................   Passed    0.03 sec
+      Start 65: a stale revision is a conflict and nothing is written
+65/71 Test #65: a stale revision is a conflict and nothing is written ..............................   Passed    0.02 sec
+      Start 66: a malformed file does not stop the rest of the graph from being built
+66/71 Test #66: a malformed file does not stop the rest of the graph from being built ..............   Passed    0.04 sec
+      Start 67: archived memories are read-only
+67/71 Test #67: archived memories are read-only ....................................................   Passed    0.03 sec
+      Start 68: renamed file: old path disappears, new path is indexed
+68/71 Test #68: renamed file: old path disappears, new path is indexed .............................   Passed    0.04 sec
+      Start 69: slice: an edited file is re-parsed and its symbols replaced
+69/71 Test #69: slice: an edited file is re-parsed and its symbols replaced ........................   Passed    0.08 sec
+      Start 70: large repository is processed in batches with progress
+70/71 Test #70: large repository is processed in batches with progress .............................   Passed    2.20 sec
+      Start 71: cli_slice
+71/71 Test #71: cli_slice ..........................................................................   Passed    0.51 sec
+
+100% tests passed, 0 tests failed out of 71
+
+Total Test time (real) =   5.19 sec
+[32m   PASS[0m  san
+
+[1m== certs[0m
+WARN  docs/certification/0.1/98ba21e776bb81d3939c5301f0db86cb82e34266/manifest.json: stale, module sources changed since commit 98ba21e776bb
+WARN  docs/certification/1.1/3f5597596262c8c260351730bd2bed383167ca8f/manifest.json: stale, module sources changed since commit 3f5597596262
+WARN  docs/certification/1.1/d827704fda2dd7aa1f3d8c860bf2b86c253dbb6b/manifest.json: stale, module sources changed since commit d827704fda2d
+WARN  docs/certification/1.2/71f7318d511d519e7cb50921ea8c4c93bf3f0494/manifest.json: stale, module sources changed since commit 71f7318d511d
+WARN  docs/certification/1.3a/71b59f18d17bd3b858db1159f3b9fbc28df011c7/manifest.json: stale, module sources changed since commit 71b59f18d17b
+WARN  docs/certification/1.3a/9003aff16c3e51e68f04646ff6f41f3418aa0366/manifest.json: stale, module sources changed since commit 9003aff16c3e
+WARN  docs/certification/1.4/be804fcce28c270bd76a23d56d72b9cccfccde49/manifest.json: stale, module sources changed since commit be804fcce28c
+WARN  module 0.1: no PASS manifest matches HEAD sources
+WARN  module 1.1: no PASS manifest matches HEAD sources
+WARN  module 1.2: no PASS manifest matches HEAD sources
+WARN  module 1.3a: no PASS manifest matches HEAD sources
+WARN  module 1.4: no PASS manifest matches HEAD sources
+WARN  module 1.5: no PASS manifest matches HEAD sources
+[32m   PASS[0m  certs
+
+[1m== summary[0m
+[32m   PASS[0m  all jobs passed
+
+[1m== stopping shell/veylqora-ci[0m
