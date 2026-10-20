@@ -6,7 +6,7 @@
 ## Context
 
 The host development machine runs Windows 11 and had no C++ toolchain, no CMake
-and no package manager (see `PLAN_REVIEW.md` §0). Three mandated activities are
+and no package manager. Three mandated activities are
 degraded or impossible on MSVC:
 
 1. UndefinedBehaviorSanitizer does not exist on MSVC.

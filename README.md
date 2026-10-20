@@ -98,7 +98,7 @@ search, and an MCP server (ADR-0007) for AI coding clients.
 
 ## Current implementation
 
-Modules follow the plan in [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md). Each is
+Each module is
 certified by `scripts/certify.py`, which runs the checks at a pushed commit and
 records the result under `docs/certification/`.
 
@@ -204,8 +204,6 @@ results are in `docs/research/`.
 
 | File | Contents |
 |---|---|
-| [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) | Phases, modules, data model, gates |
-| [`PLAN_REVIEW.md`](PLAN_REVIEW.md) | Critique of the original directive and how each flaw is handled |
 | [`docs/adr/`](docs/adr/) | Architecture decisions, each with evidence and reversal criteria |
 | [`docs/certification/`](docs/certification/) | Certification manifests and logs per module and commit |
 | [`docs/research/`](docs/research/) | Measurements on public repositories and spike results |
