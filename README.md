@@ -132,8 +132,8 @@ records the result under `docs/certification/`.
 | M1.4 | Memory engine: revisions, CAS, state machine, evidence, retention, JSONL export/import | PASS (`2c84c51`) |
 | M1.5 | Local HTTP API, `veylqora` CLI with `--json`, single-writer file lock | PASS (`6027d9a`) |
 | M1.6 | Read-only React dashboard served by the daemon | PASS (`19f50cf`) |
-| M1.3b | JavaScript and TypeScript graph | Not started (v0.2) |
-| Phase 2 | Hybrid retrieval, incremental index maintenance, evidence invalidation, MCP server, context packaging, multi-agent coordination, observability | Not started |
+| M1.3b | JavaScript and TypeScript graph: tree-sitter JS and TS, per-language labelled gate (ADR-0019) | PASS (`25d3a7f`) |
+| Phase 2 | Hybrid retrieval, incremental index maintenance, evidence invalidation, MCP server (two named clients), context packaging, multi-agent coordination, observability | PASS: M2.1–M2.7 certified (M2.5 at `dc6628e`, M2.7 at `903a267`) |
 | Phase 3 | Hardening, benchmarks, packaging and Docker, offline evaluation | Not started |
 | M3.5 | PolyFabric and StructZero adapters | Blocked: needs their contract documents |
 | M3.6b | Paid agent comparison study | Blocked: needs an approved spending budget |
