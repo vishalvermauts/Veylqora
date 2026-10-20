@@ -26,32 +26,6 @@ EXPECTED_TOOLS = {
 }
 
 
-@pytest.fixture(scope="module")
-def daemon():
-    work = tempfile.mkdtemp()
-    db = os.path.join(work, "v.db")
-    proc = subprocess.Popen([BIN, "serve", "--db", db, "--port", "0"],
-                            stdout=subprocess.PIPE, text=True)
-    line = proc.stdout.readline()
-    assert line.startswith("listening on http://127.0.0.1:"), line
-    url = line.split()[2].rstrip()
-    body = json.dumps({"root": str(FIXTURES)}).encode()
-    req = urllib.request.Request(url + "/api/v1/index", data=body, method="POST",
-                                 headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req) as r:
-        assert json.loads(r.read())["indexed"] == 10
-    yield url
-    proc.terminate()
-    proc.wait(timeout=10)
-
-
-def data(result):
-    """The tool result as a dict, whichever form the SDK returned it in."""
-    if result.structured_content is not None:
-        return result.structured_content
-    return json.loads(result.content[0].text)
-
-
 async def session_for(url):
     params = StdioServerParameters(
         command=sys.executable, args=[str(SERVER)], env={**os.environ, "VEYLQORA_URL": url})
