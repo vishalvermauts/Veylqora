@@ -189,6 +189,13 @@ Json memory_update(Database& db, const Clock& clock, const fs::path& root,
   return memory_json(*get_memory(db, root, id));
 }
 
+Json memory_accept(Database& db, const Clock& clock, const fs::path& root, std::string_view id,
+                   const Json& body) {
+  accept_memory(db, clock, root, id, int_field(body, "expected_revision"),
+                text_field(body, "actor"), text_field(body, "reason"));
+  return memory_json(*get_memory(db, root, id));
+}
+
 Json memory_transition(Database& db, const Clock& clock, const fs::path& root,
                        std::string_view id, const Json& body) {
   transition_memory(db, clock, root, id, int_field(body, "expected_revision"),

@@ -109,6 +109,7 @@ class Backend {
   virtual Json memory_list(const fs::path& root, const std::string& state) = 0;
   virtual Json memory_inspect(const fs::path& root, const std::string& id) = 0;
   virtual Json memory_update(const std::string& id, const Json& body) = 0;
+  virtual Json memory_accept(const std::string& id, const Json& body) = 0;
   virtual Json memory_transition(const std::string& id, const Json& body) = 0;
 };
 
@@ -137,6 +138,9 @@ class DirectBackend final : public Backend {
   Json memory_update(const std::string& id, const Json& body) override {
     return api::memory_update(db_, clock_, fs::path(body.at("root").get<std::string>()),
                               id, body);
+  }
+  Json memory_accept(const std::string& id, const Json& body) override {
+    return api::memory_accept(db_, clock_, fs::path(body.at("root").get<std::string>()), id, body);
   }
   Json memory_transition(const std::string& id, const Json& body) override {
     return api::memory_transition(db_, clock_,
@@ -194,6 +198,9 @@ class RemoteBackend final : public Backend {
   }
   Json memory_update(const std::string& id, const Json& body) override {
     return post("/api/v1/memories/" + id + "/update", body);
+  }
+  Json memory_accept(const std::string& id, const Json& body) override {
+    return post("/api/v1/memories/" + id + "/accept", body);
   }
   Json memory_transition(const std::string& id, const Json& body) override {
     return post("/api/v1/memories/" + id + "/transition", body);
@@ -417,6 +424,12 @@ int run(const Args& args) {
                        {"actor", args.flag("actor")},
                        {"reason", args.flag("reason")}};
     result = backend->memory_update(args.positional[2], body);
+  } else if (command == "memory" && sub == "accept" && args.positional.size() == 3 && !root.empty()) {
+    const Json body = {{"root", root.string()},
+                       {"expected_revision", std::stoll(args.flag("expected"))},
+                       {"actor", args.flag("actor")},
+                       {"reason", args.flag("reason")}};
+    result = backend->memory_accept(args.positional[2], body);
   } else if (command == "memory" && sub == "transition" && args.positional.size() == 3 &&
              !root.empty()) {
     const Json body = {{"root", root.string()},

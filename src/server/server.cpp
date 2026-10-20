@@ -159,6 +159,17 @@ void Server::add_routes() {
       reply_error(res, e);
     }
   });
+  http_.Post(R"(/api/v1/memories/([^/]+)/accept)",
+             [this](const httplib::Request& req, httplib::Response& res) {
+               try {
+                 std::lock_guard<std::mutex> lock(mu_);
+                 const Json body = parse_body(req);
+                 const auto root = std::filesystem::path(body.at("root").get<std::string>());
+                 reply_json(res, api::memory_accept(db_, clock_, root, req.matches[1].str(), body));
+               } catch (const std::exception& e) {
+                 reply_error(res, e);
+               }
+             });
   http_.Post(R"(/api/v1/memories/([^/]+)/transition)", [this](const httplib::Request& req,
                                                               httplib::Response& res) {
     try {

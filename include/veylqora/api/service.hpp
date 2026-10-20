@@ -31,6 +31,8 @@ Json memory_list(Database& db, const std::filesystem::path& root, std::string_vi
 Json memory_inspect(Database& db, const std::filesystem::path& root, std::string_view id);
 Json memory_update(Database& db, const Clock& clock, const std::filesystem::path& root,
                    std::string_view id, const Json& body);
+Json memory_accept(Database& db, const Clock& clock, const std::filesystem::path& root,
+                   std::string_view id, const Json& body);
 Json memory_transition(Database& db, const Clock& clock,
                        const std::filesystem::path& root, std::string_view id,
                        const Json& body);
