@@ -87,7 +87,7 @@ Ranking vector_ranking(Database& db, const std::string& pid,
     if (blob.size() != sizeof(float) * kVectorDims) continue;
     std::array<float, kVectorDims> v{};
     std::memcpy(v.data(), blob.data(), blob.size());
-    const double score = dot(query, v);
+    const double score = static_cast<double>(dot(query, v));
     if (score > 0.0) scored.emplace_back(q.text(0), score);
   }
   sort_by_score(scored);
