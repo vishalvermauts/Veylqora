@@ -77,6 +77,57 @@ CREATE TABLE edge (
 CREATE INDEX edge_by_src ON edge (src_symbol_id, kind);
 CREATE INDEX edge_by_dst ON edge (dst_symbol_id, kind);
 )sql"},
+    // v3: agent memory (M1.4). Revisions and state events are append-only;
+    // evidence keeps the symbol's name and fingerprint even if the symbol goes.
+    std::string_view{R"sql(
+CREATE TABLE memory (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES project(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('decision', 'observation', 'task_outcome',
+                                     'failed_approach', 'requirement', 'constraint')),
+  content TEXT NOT NULL,
+  state TEXT NOT NULL CHECK (state IN ('active', 'suspected_stale', 'superseded',
+                                       'invalidated', 'evidence_missing', 'archived')),
+  scope TEXT NOT NULL CHECK (scope IN ('private', 'shared', 'approved')),
+  author TEXT NOT NULL,
+  revision_no INTEGER NOT NULL,
+  superseded_by TEXT REFERENCES memory(id),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX memory_by_state ON memory (project_id, state);
+
+CREATE TABLE memory_revision (
+  memory_id TEXT NOT NULL REFERENCES memory(id) ON DELETE CASCADE,
+  revision_no INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  state TEXT NOT NULL,
+  actor TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  changed_at TEXT NOT NULL,
+  PRIMARY KEY (memory_id, revision_no)
+);
+
+CREATE TABLE memory_state_event (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  memory_id TEXT NOT NULL REFERENCES memory(id) ON DELETE CASCADE,
+  from_state TEXT NOT NULL,
+  to_state TEXT NOT NULL,
+  actor TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  at TEXT NOT NULL
+);
+
+CREATE TABLE evidence (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  memory_id TEXT NOT NULL REFERENCES memory(id) ON DELETE CASCADE,
+  project_id TEXT NOT NULL REFERENCES project(id) ON DELETE CASCADE,
+  rel_path TEXT NOT NULL,
+  symbol_fqn TEXT NOT NULL,
+  content_fingerprint TEXT NOT NULL
+);
+CREATE INDEX evidence_by_memory ON evidence (memory_id);
+)sql"},
 };
 
 }  // namespace

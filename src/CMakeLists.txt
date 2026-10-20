@@ -8,6 +8,9 @@ add_library(veylqora_core
   index/python_parser.cpp
   graph/resolver.cpp
   graph/query.cpp
+  core/project.cpp
+  memory/memory.cpp
+  memory/transfer.cpp
   storage/database.cpp)
 
 target_include_directories(veylqora_core

@@ -14,6 +14,7 @@ catch_discover_tests(veylqora_unit_tests)
 # check that the answers are identical.
 add_executable(veylqora_integration_tests
   integration/test_graph.cpp
+  integration/test_memory.cpp
   integration/test_ingestion.cpp
   integration/test_slice.cpp)
 

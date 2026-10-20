@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <cstdint>
 #include <string>
 
 namespace veylqora {
@@ -26,6 +27,28 @@ class FixedClock final : public Clock {
 
  private:
   Timestamp t_;
+};
+
+/// Source of opaque identifiers for new rows.
+class IdGenerator {
+ public:
+  virtual ~IdGenerator() = default;
+  virtual std::string next() = 0;
+};
+
+/// 128 random bits as 32 lowercase hex characters.
+class RandomIds final : public IdGenerator {
+ public:
+  std::string next() override;
+};
+
+/// "id-1", "id-2", ... for tests that need predictable ids.
+class SequentialIds final : public IdGenerator {
+ public:
+  std::string next() override { return "id-" + std::to_string(++n_); }
+
+ private:
+  std::uint64_t n_ = 0;
 };
 
 /// UTC, second precision, e.g. "2023-11-14T22:13:20Z".
