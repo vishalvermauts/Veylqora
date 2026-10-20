@@ -92,7 +92,7 @@ def test_memory_workflow_and_validity(daemon):
 def test_context_package_respects_its_budget(daemon):
     async def scenario(session):
         return await session.call_tool("get_task_context", {
-            "root": str(FIXTURES), "task": "token verification", "budget_tokens": 100})
+            "root": str(FIXTURES), "task": "token verification", "agent": "budget-test", "budget_tokens": 100})
     result = data(run(daemon, scenario))
     assert result["approx_tokens_used"] <= 100
     assert result["truncated"]["code"] >= 0
