@@ -1,0 +1,360 @@
+gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+Ubuntu clang version 21.1.8 (6ubuntu1)
+cmake version 4.2.3
+testing 71b59f1 Apply clang-format to re-export changes
+
+[1m== format[0m
+[32m   PASS[0m  format
+
+[1m== gcc[0m
+Test project /home/agent/ci-work/build-gcc
+      Start  1: field boundaries cannot be forged by moving text between fields
+ 1/52 Test  #1: field boundaries cannot be forged by moving text between fields ....................   Passed    0.00 sec
+      Start  2: fixed clock returns exactly the instant it was given
+ 2/52 Test  #2: fixed clock returns exactly the instant it was given ...............................   Passed    0.00 sec
+      Start  3: deeply nested input is cut off instead of exhausting the stack
+ 3/52 Test  #3: deeply nested input is cut off instead of exhausting the stack .....................   Passed    0.01 sec
+      Start  4: repeated names in one scope get distinct overloads
+ 4/52 Test  #4: repeated names in one scope get distinct overloads .................................   Passed    0.00 sec
+      Start  5: identity distinguishes every identity-bearing field
+ 5/52 Test  #5: identity distinguishes every identity-bearing field ................................   Passed    0.00 sec
+      Start  6: relative imports resolve against the importing module's package
+ 6/52 Test  #6: relative imports resolve against the importing module's package ....................   Passed    0.00 sec
+      Start  7: empty and whitespace-only bodies fingerprint identically
+ 7/52 Test  #7: empty and whitespace-only bodies fingerprint identically ...........................   Passed    0.00 sec
+      Start  8: functions, classes, methods and nested functions get dotted names
+ 8/52 Test  #8: functions, classes, methods and nested functions get dotted names ..................   Passed    0.00 sec
+      Start  9: empty source yields only the module symbol and no errors
+ 9/52 Test  #9: empty source yields only the module symbol and no errors ...........................   Passed    0.00 sec
+      Start 10: syntax errors are reported, and parsing still yields the valid parts
+10/52 Test #10: syntax errors are reported, and parsing still yields the valid parts ...............   Passed    0.00 sec
+      Start 11: malformed UTF-8 is rejected
+11/52 Test #11: malformed UTF-8 is rejected ........................................................   Passed    0.00 sec
+      Start 12: body fingerprint detects real changes
+12/52 Test #12: body fingerprint detects real changes ..............................................   Passed    0.00 sec
+      Start 13: a definition's lines and body come from the syntax tree
+13/52 Test #13: a definition's lines and body come from the syntax tree ............................   Passed    0.00 sec
+      Start 14: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences
+14/52 Test #14: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences ...........   Passed    0.00 sec
+      Start 15: calls, bases and imports are recorded as facts with their caller
+15/52 Test #15: calls, bases and imports are recorded as facts with their caller ...................   Passed    0.00 sec
+      Start 16: from-imports bind local names to fully qualified targets
+16/52 Test #16: from-imports bind local names to fully qualified targets ...........................   Passed    0.00 sec
+      Start 17: timestamps format as UTC ISO-8601 to the second
+17/52 Test #17: timestamps format as UTC ISO-8601 to the second ....................................   Passed    0.00 sec
+      Start 18: a def inside a string is not a symbol
+18/52 Test #18: a def inside a string is not a symbol ..............................................   Passed    0.00 sec
+      Start 19: body fingerprint ignores formatting-only changes
+19/52 Test #19: body fingerprint ignores formatting-only changes ...................................   Passed    0.00 sec
+      Start 20: CRLF line endings produce the same symbols
+20/52 Test #20: CRLF line endings produce the same symbols .........................................   Passed    0.00 sec
+      Start 21: comments inside a body belong to it
+21/52 Test #21: comments inside a body belong to it ................................................   Passed    0.00 sec
+      Start 22: symbol ids are stable and well formed
+22/52 Test #22: symbol ids are stable and well formed ..............................................   Passed    0.00 sec
+      Start 23: change impact: editing util.py puts its dependents in doubt
+23/52 Test #23: change impact: editing util.py puts its dependents in doubt ........................   Passed    0.03 sec
+      Start 24: slice: re-indexing an unchanged tree parses nothing
+24/52 Test #24: slice: re-indexing an unchanged tree parses nothing ................................   Passed    0.01 sec
+      Start 25: slice: a deleted file's symbols disappear from search
+25/52 Test #25: slice: a deleted file's symbols disappear from search ..............................   Passed    0.01 sec
+      Start 26: binary file with a .py name is skipped, not parsed
+26/52 Test #26: binary file with a .py name is skipped, not parsed .................................   Passed    0.00 sec
+      Start 27: slice: index, search, restart, and get the same answers
+27/52 Test #27: slice: index, search, restart, and get the same answers ............................   Passed    0.01 sec
+      Start 28: slice: projects sharing one database do not see each other
+28/52 Test #28: slice: projects sharing one database do not see each other .........................   Passed    0.01 sec
+      Start 29: symlinks are never followed, even to files outside the project
+29/52 Test #29: symlinks are never followed, even to files outside the project .....................   Passed    0.00 sec
+      Start 30: every calls edge carries a resolution level
+30/52 Test #30: every calls edge carries a resolution level ........................................   Passed    0.01 sec
+      Start 31: a malformed file does not stop the rest of the graph from being built
+31/52 Test #31: a malformed file does not stop the rest of the graph from being built ..............   Passed    0.01 sec
+      Start 32: invalid UTF-8 is skipped and does not stop the run
+32/52 Test #32: invalid UTF-8 is skipped and does not stop the run .................................   Passed    0.00 sec
+      Start 33: re-exported names resolve to their defining module
+33/52 Test #33: re-exported names resolve to their defining module .................................   Passed    0.01 sec
+      Start 34: deleting a file removes its symbols and the edges that pointed at them
+34/52 Test #34: deleting a file removes its symbols and the edges that pointed at them .............   Passed    0.01 sec
+      Start 35: reverse lookup: what depends on helper
+35/52 Test #35: reverse lookup: what depends on helper .............................................   Passed    0.01 sec
+      Start 36: slice: unknown names and unknown projects return no hits
+36/52 Test #36: slice: unknown names and unknown projects return no hits ...........................   Passed    0.01 sec
+      Start 37: two projects in one database have separate graphs
+37/52 Test #37: two projects in one database have separate graphs ..................................   Passed    0.01 sec
+      Start 38: renamed file: old path disappears, new path is indexed
+38/52 Test #38: renamed file: old path disappears, new path is indexed .............................   Passed    0.00 sec
+      Start 39: slice: an edited file is re-parsed and its symbols replaced
+39/52 Test #39: slice: an edited file is re-parsed and its symbols replaced ........................   Passed    0.01 sec
+      Start 40: unreadable file keeps its previously indexed symbols
+40/52 Test #40: unreadable file keeps its previously indexed symbols ...............................   Passed    0.00 sec
+      Start 41: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept
+41/52 Test #41: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept ...   Passed    0.01 sec
+      Start 42: interrupted run keeps committed batches and does not remove anything
+42/52 Test #42: interrupted run keeps committed batches and does not remove anything ...............   Passed    0.01 sec
+      Start 43: empty python file is indexed with no symbols
+43/52 Test #43: empty python file is indexed with no symbols .......................................   Passed    0.00 sec
+      Start 44: editing a file rewires its edges, with no stale ones left behind
+44/52 Test #44: editing a file rewires its edges, with no stale ones left behind ...................   Passed    0.01 sec
+      Start 45: labelled fixture: symbol and edge precision and recall meet the gate
+45/52 Test #45: labelled fixture: symbol and edge precision and recall meet the gate ...............   Passed    0.01 sec
+      Start 46: empty directory indexes to nothing without error
+46/52 Test #46: empty directory indexes to nothing without error ...................................   Passed    0.00 sec
+      Start 47: large repository is processed in batches with progress
+47/52 Test #47: large repository is processed in batches with progress .............................   Passed    0.55 sec
+      Start 48: neighbourhood reaches symbols within the hop limit
+48/52 Test #48: neighbourhood reaches symbols within the hop limit .................................   Passed    0.01 sec
+      Start 49: valid multi-byte UTF-8 is indexed
+49/52 Test #49: valid multi-byte UTF-8 is indexed ..................................................   Passed    0.00 sec
+      Start 50: deleted file: its symbols disappear and the removal is counted
+50/52 Test #50: deleted file: its symbols disappear and the removal is counted .....................   Passed    0.00 sec
+      Start 51: forward lookup: what main depends on
+51/52 Test #51: forward lookup: what main depends on ...............................................   Passed    0.01 sec
+      Start 52: cli_slice
+52/52 Test #52: cli_slice ..........................................................................   Passed    0.02 sec
+
+100% tests passed, 0 tests failed out of 52
+
+Total Test time (real) =   0.84 sec
+[32m   PASS[0m  gcc
+
+[1m== clang[0m
+Test project /home/agent/ci-work/build-clang
+      Start  1: repeated names in one scope get distinct overloads
+ 1/52 Test  #1: repeated names in one scope get distinct overloads .................................   Passed    0.00 sec
+      Start  2: symbol ids are stable and well formed
+ 2/52 Test  #2: symbol ids are stable and well formed ..............................................   Passed    0.00 sec
+      Start  3: functions, classes, methods and nested functions get dotted names
+ 3/52 Test  #3: functions, classes, methods and nested functions get dotted names ..................   Passed    0.00 sec
+      Start  4: malformed UTF-8 is rejected
+ 4/52 Test  #4: malformed UTF-8 is rejected ........................................................   Passed    0.00 sec
+      Start  5: from-imports bind local names to fully qualified targets
+ 5/52 Test  #5: from-imports bind local names to fully qualified targets ...........................   Passed    0.00 sec
+      Start  6: syntax errors are reported, and parsing still yields the valid parts
+ 6/52 Test  #6: syntax errors are reported, and parsing still yields the valid parts ...............   Passed    0.00 sec
+      Start  7: timestamps format as UTC ISO-8601 to the second
+ 7/52 Test  #7: timestamps format as UTC ISO-8601 to the second ....................................   Passed    0.00 sec
+      Start  8: comments inside a body belong to it
+ 8/52 Test  #8: comments inside a body belong to it ................................................   Passed    0.00 sec
+      Start  9: CRLF line endings produce the same symbols
+ 9/52 Test  #9: CRLF line endings produce the same symbols .........................................   Passed    0.00 sec
+      Start 10: empty and whitespace-only bodies fingerprint identically
+10/52 Test #10: empty and whitespace-only bodies fingerprint identically ...........................   Passed    0.00 sec
+      Start 11: fixed clock returns exactly the instant it was given
+11/52 Test #11: fixed clock returns exactly the instant it was given ...............................   Passed    0.00 sec
+      Start 12: calls, bases and imports are recorded as facts with their caller
+12/52 Test #12: calls, bases and imports are recorded as facts with their caller ...................   Passed    0.00 sec
+      Start 13: relative imports resolve against the importing module's package
+13/52 Test #13: relative imports resolve against the importing module's package ....................   Passed    0.00 sec
+      Start 14: body fingerprint ignores formatting-only changes
+14/52 Test #14: body fingerprint ignores formatting-only changes ...................................   Passed    0.00 sec
+      Start 15: deeply nested input is cut off instead of exhausting the stack
+15/52 Test #15: deeply nested input is cut off instead of exhausting the stack .....................   Passed    0.05 sec
+      Start 16: body fingerprint detects real changes
+16/52 Test #16: body fingerprint detects real changes ..............................................   Passed    0.00 sec
+      Start 17: empty source yields only the module symbol and no errors
+17/52 Test #17: empty source yields only the module symbol and no errors ...........................   Passed    0.00 sec
+      Start 18: identity distinguishes every identity-bearing field
+18/52 Test #18: identity distinguishes every identity-bearing field ................................   Passed    0.00 sec
+      Start 19: a definition's lines and body come from the syntax tree
+19/52 Test #19: a definition's lines and body come from the syntax tree ............................   Passed    0.00 sec
+      Start 20: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences
+20/52 Test #20: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences ...........   Passed    0.00 sec
+      Start 21: field boundaries cannot be forged by moving text between fields
+21/52 Test #21: field boundaries cannot be forged by moving text between fields ....................   Passed    0.00 sec
+      Start 22: a def inside a string is not a symbol
+22/52 Test #22: a def inside a string is not a symbol ..............................................   Passed    0.00 sec
+      Start 23: unreadable file keeps its previously indexed symbols
+23/52 Test #23: unreadable file keeps its previously indexed symbols ...............................   Passed    0.01 sec
+      Start 24: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept
+24/52 Test #24: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept ...   Passed    0.01 sec
+      Start 25: slice: an edited file is re-parsed and its symbols replaced
+25/52 Test #25: slice: an edited file is re-parsed and its symbols replaced ........................   Passed    0.01 sec
+      Start 26: renamed file: old path disappears, new path is indexed
+26/52 Test #26: renamed file: old path disappears, new path is indexed .............................   Passed    0.01 sec
+      Start 27: editing a file rewires its edges, with no stale ones left behind
+27/52 Test #27: editing a file rewires its edges, with no stale ones left behind ...................   Passed    0.01 sec
+      Start 28: slice: re-indexing an unchanged tree parses nothing
+28/52 Test #28: slice: re-indexing an unchanged tree parses nothing ................................   Passed    0.01 sec
+      Start 29: every calls edge carries a resolution level
+29/52 Test #29: every calls edge carries a resolution level ........................................   Passed    0.01 sec
+      Start 30: empty directory indexes to nothing without error
+30/52 Test #30: empty directory indexes to nothing without error ...................................   Passed    0.00 sec
+      Start 31: deleting a file removes its symbols and the edges that pointed at them
+31/52 Test #31: deleting a file removes its symbols and the edges that pointed at them .............   Passed    0.01 sec
+      Start 32: binary file with a .py name is skipped, not parsed
+32/52 Test #32: binary file with a .py name is skipped, not parsed .................................   Passed    0.00 sec
+      Start 33: slice: projects sharing one database do not see each other
+33/52 Test #33: slice: projects sharing one database do not see each other .........................   Passed    0.01 sec
+      Start 34: empty python file is indexed with no symbols
+34/52 Test #34: empty python file is indexed with no symbols .......................................   Passed    0.00 sec
+      Start 35: forward lookup: what main depends on
+35/52 Test #35: forward lookup: what main depends on ...............................................   Passed    0.01 sec
+      Start 36: invalid UTF-8 is skipped and does not stop the run
+36/52 Test #36: invalid UTF-8 is skipped and does not stop the run .................................   Passed    0.00 sec
+      Start 37: interrupted run keeps committed batches and does not remove anything
+37/52 Test #37: interrupted run keeps committed batches and does not remove anything ...............   Passed    0.01 sec
+      Start 38: labelled fixture: symbol and edge precision and recall meet the gate
+38/52 Test #38: labelled fixture: symbol and edge precision and recall meet the gate ...............   Passed    0.01 sec
+      Start 39: reverse lookup: what depends on helper
+39/52 Test #39: reverse lookup: what depends on helper .............................................   Passed    0.01 sec
+      Start 40: a malformed file does not stop the rest of the graph from being built
+40/52 Test #40: a malformed file does not stop the rest of the graph from being built ..............   Passed    0.01 sec
+      Start 41: symlinks are never followed, even to files outside the project
+41/52 Test #41: symlinks are never followed, even to files outside the project .....................   Passed    0.00 sec
+      Start 42: change impact: editing util.py puts its dependents in doubt
+42/52 Test #42: change impact: editing util.py puts its dependents in doubt ........................   Passed    0.01 sec
+      Start 43: two projects in one database have separate graphs
+43/52 Test #43: two projects in one database have separate graphs ..................................   Passed    0.01 sec
+      Start 44: deleted file: its symbols disappear and the removal is counted
+44/52 Test #44: deleted file: its symbols disappear and the removal is counted .....................   Passed    0.01 sec
+      Start 45: large repository is processed in batches with progress
+45/52 Test #45: large repository is processed in batches with progress .............................   Passed    0.52 sec
+      Start 46: slice: unknown names and unknown projects return no hits
+46/52 Test #46: slice: unknown names and unknown projects return no hits ...........................   Passed    0.01 sec
+      Start 47: re-exported names resolve to their defining module
+47/52 Test #47: re-exported names resolve to their defining module .................................   Passed    0.00 sec
+      Start 48: neighbourhood reaches symbols within the hop limit
+48/52 Test #48: neighbourhood reaches symbols within the hop limit .................................   Passed    0.01 sec
+      Start 49: valid multi-byte UTF-8 is indexed
+49/52 Test #49: valid multi-byte UTF-8 is indexed ..................................................   Passed    0.00 sec
+      Start 50: slice: index, search, restart, and get the same answers
+50/52 Test #50: slice: index, search, restart, and get the same answers ............................   Passed    0.01 sec
+      Start 51: slice: a deleted file's symbols disappear from search
+51/52 Test #51: slice: a deleted file's symbols disappear from search ..............................   Passed    0.01 sec
+      Start 52: cli_slice
+52/52 Test #52: cli_slice ..........................................................................   Passed    0.02 sec
+
+100% tests passed, 0 tests failed out of 52
+
+Total Test time (real) =   0.83 sec
+[32m   PASS[0m  clang
+
+[1m== san[0m
+Test project /home/agent/ci-work/build-san
+      Start  1: relative imports resolve against the importing module's package
+ 1/52 Test  #1: relative imports resolve against the importing module's package ....................   Passed    0.01 sec
+      Start  2: identity distinguishes every identity-bearing field
+ 2/52 Test  #2: identity distinguishes every identity-bearing field ................................   Passed    0.01 sec
+      Start  3: body fingerprint detects real changes
+ 3/52 Test  #3: body fingerprint detects real changes ..............................................   Passed    0.01 sec
+      Start  4: comments inside a body belong to it
+ 4/52 Test  #4: comments inside a body belong to it ................................................   Passed    0.01 sec
+      Start  5: malformed UTF-8 is rejected
+ 5/52 Test  #5: malformed UTF-8 is rejected ........................................................   Passed    0.01 sec
+      Start  6: from-imports bind local names to fully qualified targets
+ 6/52 Test  #6: from-imports bind local names to fully qualified targets ...........................   Passed    0.01 sec
+      Start  7: a definition's lines and body come from the syntax tree
+ 7/52 Test  #7: a definition's lines and body come from the syntax tree ............................   Passed    0.01 sec
+      Start  8: field boundaries cannot be forged by moving text between fields
+ 8/52 Test  #8: field boundaries cannot be forged by moving text between fields ....................   Passed    0.01 sec
+      Start  9: empty source yields only the module symbol and no errors
+ 9/52 Test  #9: empty source yields only the module symbol and no errors ...........................   Passed    0.01 sec
+      Start 10: fixed clock returns exactly the instant it was given
+10/52 Test #10: fixed clock returns exactly the instant it was given ...............................   Passed    0.01 sec
+      Start 11: CRLF line endings produce the same symbols
+11/52 Test #11: CRLF line endings produce the same symbols .........................................   Passed    0.01 sec
+      Start 12: calls, bases and imports are recorded as facts with their caller
+12/52 Test #12: calls, bases and imports are recorded as facts with their caller ...................   Passed    0.01 sec
+      Start 13: functions, classes, methods and nested functions get dotted names
+13/52 Test #13: functions, classes, methods and nested functions get dotted names ..................   Passed    0.01 sec
+      Start 14: symbol ids are stable and well formed
+14/52 Test #14: symbol ids are stable and well formed ..............................................   Passed    0.01 sec
+      Start 15: deeply nested input is cut off instead of exhausting the stack
+15/52 Test #15: deeply nested input is cut off instead of exhausting the stack .....................   Passed    0.17 sec
+      Start 16: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences
+16/52 Test #16: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences ...........   Passed    0.01 sec
+      Start 17: empty and whitespace-only bodies fingerprint identically
+17/52 Test #17: empty and whitespace-only bodies fingerprint identically ...........................   Passed    0.01 sec
+      Start 18: body fingerprint ignores formatting-only changes
+18/52 Test #18: body fingerprint ignores formatting-only changes ...................................   Passed    0.01 sec
+      Start 19: timestamps format as UTC ISO-8601 to the second
+19/52 Test #19: timestamps format as UTC ISO-8601 to the second ....................................   Passed    0.01 sec
+      Start 20: a def inside a string is not a symbol
+20/52 Test #20: a def inside a string is not a symbol ..............................................   Passed    0.01 sec
+      Start 21: syntax errors are reported, and parsing still yields the valid parts
+21/52 Test #21: syntax errors are reported, and parsing still yields the valid parts ...............   Passed    0.01 sec
+      Start 22: repeated names in one scope get distinct overloads
+22/52 Test #22: repeated names in one scope get distinct overloads .................................   Passed    0.01 sec
+      Start 23: two projects in one database have separate graphs
+23/52 Test #23: two projects in one database have separate graphs ..................................   Passed    0.04 sec
+      Start 24: symlinks are never followed, even to files outside the project
+24/52 Test #24: symlinks are never followed, even to files outside the project .....................   Passed    0.02 sec
+      Start 25: renamed file: old path disappears, new path is indexed
+25/52 Test #25: renamed file: old path disappears, new path is indexed .............................   Passed    0.03 sec
+      Start 26: slice: an edited file is re-parsed and its symbols replaced
+26/52 Test #26: slice: an edited file is re-parsed and its symbols replaced ........................   Passed    0.07 sec
+      Start 27: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept
+27/52 Test #27: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept ...   Passed    0.04 sec
+      Start 28: large repository is processed in batches with progress
+28/52 Test #28: large repository is processed in batches with progress .............................   Passed    2.20 sec
+      Start 29: labelled fixture: symbol and edge precision and recall meet the gate
+29/52 Test #29: labelled fixture: symbol and edge precision and recall meet the gate ...............   Passed    0.03 sec
+      Start 30: change impact: editing util.py puts its dependents in doubt
+30/52 Test #30: change impact: editing util.py puts its dependents in doubt ........................   Passed    0.03 sec
+      Start 31: deleting a file removes its symbols and the edges that pointed at them
+31/52 Test #31: deleting a file removes its symbols and the edges that pointed at them .............   Passed    0.03 sec
+      Start 32: unreadable file keeps its previously indexed symbols
+32/52 Test #32: unreadable file keeps its previously indexed symbols ...............................   Passed    0.02 sec
+      Start 33: valid multi-byte UTF-8 is indexed
+33/52 Test #33: valid multi-byte UTF-8 is indexed ..................................................   Passed    0.02 sec
+      Start 34: forward lookup: what main depends on
+34/52 Test #34: forward lookup: what main depends on ...............................................   Passed    0.03 sec
+      Start 35: neighbourhood reaches symbols within the hop limit
+35/52 Test #35: neighbourhood reaches symbols within the hop limit .................................   Passed    0.03 sec
+      Start 36: interrupted run keeps committed batches and does not remove anything
+36/52 Test #36: interrupted run keeps committed batches and does not remove anything ...............   Passed    0.05 sec
+      Start 37: slice: projects sharing one database do not see each other
+37/52 Test #37: slice: projects sharing one database do not see each other .........................   Passed    0.08 sec
+      Start 38: a malformed file does not stop the rest of the graph from being built
+38/52 Test #38: a malformed file does not stop the rest of the graph from being built ..............   Passed    0.03 sec
+      Start 39: editing a file rewires its edges, with no stale ones left behind
+39/52 Test #39: editing a file rewires its edges, with no stale ones left behind ...................   Passed    0.04 sec
+      Start 40: every calls edge carries a resolution level
+40/52 Test #40: every calls edge carries a resolution level ........................................   Passed    0.03 sec
+      Start 41: invalid UTF-8 is skipped and does not stop the run
+41/52 Test #41: invalid UTF-8 is skipped and does not stop the run .................................   Passed    0.02 sec
+      Start 42: binary file with a .py name is skipped, not parsed
+42/52 Test #42: binary file with a .py name is skipped, not parsed .................................   Passed    0.02 sec
+      Start 43: slice: re-indexing an unchanged tree parses nothing
+43/52 Test #43: slice: re-indexing an unchanged tree parses nothing ................................   Passed    0.06 sec
+      Start 44: empty python file is indexed with no symbols
+44/52 Test #44: empty python file is indexed with no symbols .......................................   Passed    0.02 sec
+      Start 45: slice: index, search, restart, and get the same answers
+45/52 Test #45: slice: index, search, restart, and get the same answers ............................   Passed    0.06 sec
+      Start 46: reverse lookup: what depends on helper
+46/52 Test #46: reverse lookup: what depends on helper .............................................   Passed    0.03 sec
+      Start 47: slice: a deleted file's symbols disappear from search
+47/52 Test #47: slice: a deleted file's symbols disappear from search ..............................   Passed    0.06 sec
+      Start 48: slice: unknown names and unknown projects return no hits
+48/52 Test #48: slice: unknown names and unknown projects return no hits ...........................   Passed    0.05 sec
+      Start 49: deleted file: its symbols disappear and the removal is counted
+49/52 Test #49: deleted file: its symbols disappear and the removal is counted .....................   Passed    0.03 sec
+      Start 50: re-exported names resolve to their defining module
+50/52 Test #50: re-exported names resolve to their defining module .................................   Passed    0.02 sec
+      Start 51: empty directory indexes to nothing without error
+51/52 Test #51: empty directory indexes to nothing without error ...................................   Passed    0.02 sec
+      Start 52: cli_slice
+52/52 Test #52: cli_slice ..........................................................................   Passed    0.09 sec
+
+100% tests passed, 0 tests failed out of 52
+
+Total Test time (real) =   3.72 sec
+[32m   PASS[0m  san
+
+[1m== certs[0m
+WARN  docs/certification/0.1/98ba21e776bb81d3939c5301f0db86cb82e34266/manifest.json: stale, module sources changed since commit 98ba21e776bb
+WARN  docs/certification/1.1/3f5597596262c8c260351730bd2bed383167ca8f/manifest.json: stale, module sources changed since commit 3f5597596262
+WARN  docs/certification/1.1/d827704fda2dd7aa1f3d8c860bf2b86c253dbb6b/manifest.json: stale, module sources changed since commit d827704fda2d
+WARN  docs/certification/1.2/71f7318d511d519e7cb50921ea8c4c93bf3f0494/manifest.json: stale, module sources changed since commit 71f7318d511d
+WARN  docs/certification/1.3a/9003aff16c3e51e68f04646ff6f41f3418aa0366/manifest.json: stale, module sources changed since commit 9003aff16c3e
+WARN  module 0.1: no PASS manifest matches HEAD sources
+WARN  module 1.1: no PASS manifest matches HEAD sources
+WARN  module 1.2: no PASS manifest matches HEAD sources
+WARN  module 1.3a: no PASS manifest matches HEAD sources
+[32m   PASS[0m  certs
+
+[1m== summary[0m
+[32m   PASS[0m  all jobs passed
+
+[1m== stopping shell/veylqora-ci[0m
