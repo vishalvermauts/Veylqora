@@ -54,6 +54,7 @@ void usage() {
          "  veylqora memory update <id> --root <root> --expected <n> --content <c>\n"
          "                      --actor <a> --reason <r>                   (+ "
          "db/server)\n"
+         "  veylqora memory accept <id> --root <root> --expected <n> --actor <a> --reason <r>\n"
          "  veylqora memory transition <id> --root <root> --expected <n> --to <s>\n"
          "                      --actor <a> --reason <r>                   (+ "
          "db/server)\n"

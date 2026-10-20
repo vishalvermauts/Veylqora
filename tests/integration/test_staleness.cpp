@@ -200,3 +200,32 @@ TEST_CASE("labelled dataset: precision and recall meet the gate (ADR-0014)") {
   CHECK(precision >= kMinPrecision);
   CHECK(recall >= kMinRecall);
 }
+
+TEST_CASE("accepting a flagged memory returns it to active and keeps it there") {
+  TempDir tmp;
+  const fs::path src = tmp.path() / "src";
+  write(src / "auth.py", kAuthBase);
+  veylqora::Database db(tmp.path() / "v.db");
+  const veylqora::SystemClock clock;
+  veylqora::RandomIds ids;
+  api::index(db, clock, src);
+
+  veylqora::NewMemory m;
+  m.type = "decision";
+  m.content = "verify is the token check";
+  m.author = "dataset";
+  m.evidence = {{"auth.py", "auth.verify"}};
+  const std::string id = veylqora::create_memory(db, clock, ids, src, m);
+
+  write(src / "auth.py", "def verify(token):\n    return bool(token)\n\n\ndef unrelated():\n    return 1\n");
+  api::index(db, clock, src);
+  REQUIRE(veylqora::get_memory(db, src, id)->state == "suspected_stale");
+
+  veylqora::accept_memory(db, clock, src, id, 2, "reviewer", "checked the new check");
+  CHECK(veylqora::get_memory(db, src, id)->state == "active");
+
+  // The accepted fingerprint is now the current one, so a re-run changes nothing.
+  const auto again = veylqora::revalidate_project(db, clock, src);
+  CHECK(again.flagged == 0);
+  CHECK(veylqora::get_memory(db, src, id)->state == "active");
+}
