@@ -80,12 +80,13 @@ job_certs() { python3 "$SRC/scripts/verify_certs.py"; }
 # The MCP server, tested end to end: the real daemon, the MCP server as a process,
 # and the MCP SDK client over stdio (M2.5). Needs package-index access.
 job_mcp() {
-  local venv=/mcp-venv
-  mkdir -p 
-  [ -x /bin/python ] || python3 -m venv  || return 1
-  /bin/pip install -q -r /mcp/requirements.txt || return 1
+  local venv="$WORK/mcp-venv"
+  mkdir -p "$WORK"
+  [ -x "$venv/bin/python" ] || python3 -m venv "$venv" || return 1
+  "$venv/bin/pip" install -q -r "$SRC/mcp/requirements.txt" || return 1
   job_gcc >/dev/null || return 1
-  VEYLQORA_BIN=/build-gcc/src/veylqora VEYLQORA_FIXTURES=/tests/fixtures/python     /bin/python -m pytest -q /mcp/tests
+  VEYLQORA_BIN="$WORK/build-gcc/src/veylqora" VEYLQORA_FIXTURES="$SRC/tests/fixtures/python" \
+    "$venv/bin/python" -m pytest -q "$SRC/mcp/tests"
 }
 
 job_tidy() {
