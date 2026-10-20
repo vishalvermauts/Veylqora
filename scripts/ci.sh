@@ -29,7 +29,7 @@ CHECKOUT=/home/agent/ci
 CPUS="${CPUS:-4}"
 MEMORY="${MEMORY:-8g}"
 TTL="${TTL:-30m}"
-ALL_JOBS=(format gcc clang san certs)
+ALL_JOBS=(format gcc clang san certs mcp)
 
 ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com'
 
@@ -76,6 +76,17 @@ job_san() {
 # Verifies committed certification evidence. Non-strict: a module that has not
 # been re-certified at HEAD is a warning here; release gating uses --strict.
 job_certs() { python3 "$SRC/scripts/verify_certs.py"; }
+
+# The MCP server, tested end to end: the real daemon, the MCP server as a process,
+# and the MCP SDK client over stdio (M2.5). Needs package-index access.
+job_mcp() {
+  local venv=/mcp-venv
+  mkdir -p 
+  [ -x /bin/python ] || python3 -m venv  || return 1
+  /bin/pip install -q -r /mcp/requirements.txt || return 1
+  job_gcc >/dev/null || return 1
+  VEYLQORA_BIN=/build-gcc/src/veylqora VEYLQORA_FIXTURES=/tests/fixtures/python     /bin/python -m pytest -q /mcp/tests
+}
 
 job_tidy() {
   [ -f "$WORK/build-clang/compile_commands.json" ] || job_clang >/dev/null || return 1
