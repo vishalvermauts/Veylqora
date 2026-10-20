@@ -27,7 +27,8 @@ void usage() {
   std::cerr << "usage:\n"
                "  veylqora --version\n"
                "  veylqora index <root> --db <file>\n"
-               "  veylqora search <name> --root <root> --db <file>\n";
+               "  veylqora search <name> --root <root> --db <file>\n"
+               "  veylqora graph <name> --root <root> --db <file>\n";
 }
 
 // Removes `flag <value>` from args and returns the value, or "" if absent.
@@ -42,8 +43,7 @@ std::string take_flag(std::vector<std::string>& args, const std::string& flag) {
   return {};
 }
 
-int run_index(veylqora::Database& db, const veylqora::Clock& clock,
-              const std::string& root) {
+int run_index(veylqora::Database& db, const veylqora::Clock& clock, const std::string& root) {
   veylqora::IndexOptions options;
   options.cancel = &g_cancel;
   options.on_progress = [](std::size_t done, std::size_t total) {
@@ -57,34 +57,30 @@ int run_index(veylqora::Database& db, const veylqora::Clock& clock,
     std::cout << "interrupted: re-run the same command to resume\n";
     return kExitError;
   }
-  std::cout << "indexed " << s.files_indexed << " file(s), unchanged "
-            << s.files_unchanged << ", removed " << s.files_removed << ", skipped "
-            << s.files_skipped << ", unreadable " << s.files_unreadable
+  std::cout << "indexed " << s.files_indexed << " file(s), unchanged " << s.files_unchanged
+            << ", removed " << s.files_removed << ", skipped " << s.files_skipped
+            << ", unreadable " << s.files_unreadable << ", partial " << s.files_with_syntax_errors
             << ", symbols written " << s.symbols_written << '\n';
-  return kExitOk;
-}
-
-int run_graph(veylqora::Database& db, const std::string& root, const std::string& name) {
-  std::cout << "depends on " << name << " (dependents):
-";
-  for (const veylqora::GraphEdge& e : veylqora::dependents_of(db, root, name)) {
-    std::cout << "  " << e.kind << "  " << e.src_fqn << "  [" << e.resolution << "]  "
-              << e.src_path << ':' << e.line << '
-';
-  }
-  std::cout << name << " depends on (dependencies):
-";
-  for (const veylqora::GraphEdge& e : veylqora::dependencies_of(db, root, name)) {
-    const std::string target = e.dst_fqn.empty() ? "?" + e.dst_hint : e.dst_fqn;
-    std::cout << "  " << e.kind << "  " << target << "  [" << e.resolution << "]
-";
-  }
   return kExitOk;
 }
 
 int run_search(veylqora::Database& db, const std::string& root, const std::string& name) {
   for (const veylqora::SymbolHit& h : veylqora::find_symbols(db, root, name)) {
     std::cout << h.path << ':' << h.start_line << "  " << h.kind << "  " << h.fqn << '\n';
+  }
+  return kExitOk;
+}
+
+int run_graph(veylqora::Database& db, const std::string& root, const std::string& name) {
+  std::cout << "dependents of " << name << ":\n";
+  for (const veylqora::GraphEdge& e : veylqora::dependents_of(db, root, name)) {
+    std::cout << "  " << e.kind << "  " << e.src_fqn << "  [" << e.resolution << "]  "
+              << e.src_path << ':' << e.line << '\n';
+  }
+  std::cout << "dependencies of " << name << ":\n";
+  for (const veylqora::GraphEdge& e : veylqora::dependencies_of(db, root, name)) {
+    const std::string target = e.dst_fqn.empty() ? "?" + e.dst_hint : e.dst_fqn;
+    std::cout << "  " << e.kind << "  " << target << "  [" << e.resolution << "]\n";
   }
   return kExitOk;
 }
