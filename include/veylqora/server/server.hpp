@@ -21,6 +21,9 @@ class Server {
   /// authentication, which this version does not have.
   int bind(const std::string& host, int port);
 
+  /// Serves the built web UI from `dir` at "/". API routes take precedence.
+  void mount_web(const std::string& dir);
+
   /// Serves requests until stop() is called.
   void serve();
   void stop();

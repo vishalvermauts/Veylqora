@@ -81,6 +81,10 @@ int Server::bind(const std::string& host, int port) {
   return port;
 }
 
+void Server::mount_web(const std::string& dir) {
+  if (!http_.set_mount_point("/", dir)) throw Error("web directory does not exist: " + dir);
+}
+
 void Server::serve() { http_.listen_after_bind(); }
 
 void Server::stop() { http_.stop(); }

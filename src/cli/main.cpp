@@ -302,6 +302,7 @@ int run_server(const Args& args, veylqora::Database& db) {
   veylqora::RandomIds ids;
   veylqora::Server server(db, clock, ids);
   const int bound = server.bind(host, port);
+  if (!args.flag("web").empty()) server.mount_web(args.flag("web"));
   std::cout << "listening on http://" << host << ':' << bound << " (ctrl-c to stop)"
             << std::endl;
 
