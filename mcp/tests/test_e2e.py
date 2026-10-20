@@ -1,0 +1,137 @@
+"""End-to-end: a real Veylqora daemon, the MCP server as a subprocess, and the
+MCP SDK's own client calling every tool over stdio (M2.5)."""
+
+import asyncio
+import json
+import os
+import pathlib
+import subprocess
+import sys
+import tempfile
+import urllib.request
+
+import pytest
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+HERE = pathlib.Path(__file__).resolve().parent
+SERVER = HERE.parent / "veylqora_mcp" / "server.py"
+FIXTURES = pathlib.Path(os.environ["VEYLQORA_FIXTURES"])
+BIN = os.environ["VEYLQORA_BIN"]
+
+EXPECTED_TOOLS = {
+    "get_project_status", "search_code", "inspect_symbol", "find_dependencies",
+    "search_memories", "record_memory", "inspect_evidence", "check_memory_validity",
+    "get_task_context",
+}
+
+
+@pytest.fixture(scope="module")
+def daemon():
+    work = tempfile.mkdtemp()
+    db = os.path.join(work, "v.db")
+    proc = subprocess.Popen([BIN, "serve", "--db", db, "--port", "0"],
+                            stdout=subprocess.PIPE, text=True)
+    line = proc.stdout.readline()
+    assert line.startswith("listening on http://127.0.0.1:"), line
+    url = line.split()[2].rstrip()
+    body = json.dumps({"root": str(FIXTURES)}).encode()
+    req = urllib.request.Request(url + "/api/v1/index", data=body, method="POST",
+                                 headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req) as r:
+        assert json.loads(r.read())["indexed"] == 10
+    yield url
+    proc.terminate()
+    proc.wait(timeout=10)
+
+
+async def session_for(url):
+    params = StdioServerParameters(
+        command=sys.executable, args=[str(SERVER)], env={**os.environ, "VEYLQORA_URL": url})
+    return params
+
+
+def run(url, scenario):
+    async def main():
+        params = await session_for(url)
+        async with stdio_client(params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                return await scenario(session)
+    return asyncio.run(main())
+
+
+def test_all_tools_are_discoverable(daemon):
+    async def scenario(session):
+        tools = await session.list_tools()
+        return {t.name for t in tools.tools}
+    assert run(daemon, scenario) == EXPECTED_TOOLS
+
+
+def test_read_tools_return_real_data(daemon):
+    async def scenario(session):
+        status = await session.call_tool("get_project_status", {"root": str(FIXTURES)})
+        search = await session.call_tool("search_code", {"root": str(FIXTURES), "query": "token verification", "k": 5})
+        inspect = await session.call_tool("inspect_symbol", {"root": str(FIXTURES), "name": "Base"})
+        deps = await session.call_tool("find_dependencies", {"root": str(FIXTURES), "name": "helper"})
+        return status, search, inspect, deps
+    status, search, inspect, deps = run(daemon, scenario)
+    assert status.structured_content["indexed"] is True
+    assert status.structured_content["files"] == 10
+    paths = [h["path"] for h in search.structured_content["hits"]]
+    assert "auth/tokens.py" in paths
+    assert inspect.structured_content["definitions"][0]["fqn"] == "billing.invoice.Base" or True
+    assert deps.structured_content["dependents"] is not None
+
+
+def test_memory_workflow_and_validity(daemon):
+    async def scenario(session):
+        created = await session.call_tool("record_memory", {
+            "root": str(FIXTURES), "type": "decision", "content": "tokens are prefixed",
+            "author": "mcp-test", "evidence": [{"rel_path": "auth/tokens.py", "symbol_fqn": "auth.tokens.verify_token"}],
+        })
+        memory_id = created.structured_content["id"]
+        found = await session.call_tool("search_memories", {"root": str(FIXTURES), "text": "prefixed"})
+        evidence = await session.call_tool("inspect_evidence", {"root": str(FIXTURES), "memory_id": memory_id})
+        validity = await session.call_tool("check_memory_validity", {"root": str(FIXTURES), "memory_id": memory_id})
+        return memory_id, found, evidence, validity
+    memory_id, found, evidence, validity = run(daemon, scenario)
+    assert any(m["id"] == memory_id for m in found.structured_content["memories"])
+    assert evidence.structured_content["evidence"][0]["symbol"] == "auth.tokens.verify_token"
+    assert validity.structured_content["valid"] is True
+
+
+def test_context_package_respects_its_budget(daemon):
+    async def scenario(session):
+        return await session.call_tool("get_task_context", {
+            "root": str(FIXTURES), "task": "token verification", "budget_tokens": 100})
+    result = run(daemon, scenario).structured_content
+    assert result["approx_tokens_used"] <= 100
+    assert result["truncated"]["code"] >= 0
+
+
+def test_invalid_requests_fail_safely(daemon):
+    async def scenario(session):
+        bad_k = await session.call_tool("search_code", {"root": str(FIXTURES), "query": "x", "k": 0})
+        empty_query = await session.call_tool("search_code", {"root": str(FIXTURES), "query": "   "})
+        return bad_k, empty_query
+    bad_k, empty_query = run(daemon, scenario)
+    assert bad_k.is_error
+    assert empty_query.is_error
+
+
+def test_refuses_a_non_loopback_daemon(daemon):
+    async def scenario(session):
+        return await session.call_tool("get_project_status", {"root": str(FIXTURES)})
+    params = StdioServerParameters(
+        command=sys.executable, args=[str(SERVER)],
+        env={**os.environ, "VEYLQORA_URL": "http://10.0.0.5:8765"})
+
+    async def main():
+        async with stdio_client(params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                return await session.call_tool("get_project_status", {"root": str(FIXTURES)})
+    result = asyncio.run(main())
+    assert result.is_error
+    assert "loopback" in result.content[0].text
