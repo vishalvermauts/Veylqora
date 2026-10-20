@@ -13,6 +13,8 @@ add_library(veylqora_core
   server/server.cpp
   api/service.cpp
   memory/memory.cpp
+  retrieval/text.cpp
+  retrieval/search.cpp
   memory/transfer.cpp
   storage/database.cpp)
 
