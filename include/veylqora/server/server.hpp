@@ -4,7 +4,6 @@
 #include "veylqora/storage/database.hpp"
 
 #include <httplib.h>
-
 #include <mutex>
 #include <string>
 

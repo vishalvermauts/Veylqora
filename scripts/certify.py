@@ -41,6 +41,16 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san"],
         },
     },
+    "1.5": {
+        "title": "Daemon, CLI with JSON output and exit codes, single-writer lock",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "scripts/ci.sh", "scripts/certify.py", "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
+        },
+    },
     "1.4": {
         "title": "Agent memory: revisions, transitions, evidence, export and import",
         "sources": [

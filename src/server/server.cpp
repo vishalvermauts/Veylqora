@@ -113,7 +113,8 @@ void Server::add_routes() {
   });
   route("POST", "/api/v1/index", [this](const httplib::Request& req) {
     const Json body = parse_body(req);
-    return api::index(db_, clock_, std::filesystem::path(body.at("root").get<std::string>()));
+    return api::index(db_, clock_,
+                      std::filesystem::path(body.at("root").get<std::string>()));
   });
   route("GET", "/api/v1/search", [this](const httplib::Request& req) {
     return api::search(db_, root_param(req), param(req, "name"));
@@ -121,16 +122,20 @@ void Server::add_routes() {
   route("GET", "/api/v1/graph", [this](const httplib::Request& req) {
     return api::graph(db_, root_param(req), param(req, "name"));
   });
-  route("GET", "/api/v1/doctor", [this](const httplib::Request&) { return api::doctor(db_); });
+  route("GET", "/api/v1/doctor",
+        [this](const httplib::Request&) { return api::doctor(db_); });
   route("GET", "/api/v1/memories", [this](const httplib::Request& req) {
     return api::memory_list(db_, root_param(req), param(req, "state"));
   });
   route("POST", "/api/v1/memories", [this](const httplib::Request& req) {
     const Json body = parse_body(req);
-    return api::memory_create(db_, clock_, ids_, std::filesystem::path(body.at("root").get<std::string>()), body);
+    return api::memory_create(db_, clock_, ids_,
+                              std::filesystem::path(body.at("root").get<std::string>()),
+                              body);
   });
 
-  http_.Get(R"(/api/v1/memories/([^/]+))", [this](const httplib::Request& req, httplib::Response& res) {
+  http_.Get(R"(/api/v1/memories/([^/]+))", [this](const httplib::Request& req,
+                                                  httplib::Response& res) {
     try {
       std::lock_guard<std::mutex> lock(mu_);
       reply_json(res, api::memory_inspect(db_, root_param(req), req.matches[1].str()));
@@ -138,28 +143,29 @@ void Server::add_routes() {
       reply_error(res, e);
     }
   });
-  http_.Post(R"(/api/v1/memories/([^/]+)/update)",
-             [this](const httplib::Request& req, httplib::Response& res) {
-               try {
-                 std::lock_guard<std::mutex> lock(mu_);
-                 const Json body = parse_body(req);
-                 const auto root = std::filesystem::path(body.at("root").get<std::string>());
-                 reply_json(res, api::memory_update(db_, clock_, root, req.matches[1].str(), body));
-               } catch (const std::exception& e) {
-                 reply_error(res, e);
-               }
-             });
-  http_.Post(R"(/api/v1/memories/([^/]+)/transition)",
-             [this](const httplib::Request& req, httplib::Response& res) {
-               try {
-                 std::lock_guard<std::mutex> lock(mu_);
-                 const Json body = parse_body(req);
-                 const auto root = std::filesystem::path(body.at("root").get<std::string>());
-                 reply_json(res, api::memory_transition(db_, clock_, root, req.matches[1].str(), body));
-               } catch (const std::exception& e) {
-                 reply_error(res, e);
-               }
-             });
+  http_.Post(R"(/api/v1/memories/([^/]+)/update)", [this](const httplib::Request& req,
+                                                          httplib::Response& res) {
+    try {
+      std::lock_guard<std::mutex> lock(mu_);
+      const Json body = parse_body(req);
+      const auto root = std::filesystem::path(body.at("root").get<std::string>());
+      reply_json(res, api::memory_update(db_, clock_, root, req.matches[1].str(), body));
+    } catch (const std::exception& e) {
+      reply_error(res, e);
+    }
+  });
+  http_.Post(R"(/api/v1/memories/([^/]+)/transition)", [this](const httplib::Request& req,
+                                                              httplib::Response& res) {
+    try {
+      std::lock_guard<std::mutex> lock(mu_);
+      const Json body = parse_body(req);
+      const auto root = std::filesystem::path(body.at("root").get<std::string>());
+      reply_json(res,
+                 api::memory_transition(db_, clock_, root, req.matches[1].str(), body));
+    } catch (const std::exception& e) {
+      reply_error(res, e);
+    }
+  });
 }
 
 }  // namespace veylqora

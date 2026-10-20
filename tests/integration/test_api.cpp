@@ -7,14 +7,14 @@
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/server/server.hpp"
 #include "veylqora/storage/database.hpp"
-#include "support/temp_dir.hpp"
 
-#include <catch2/catch_test_macros.hpp>
-#include <httplib.h>
-
-#include <filesystem>
 #include <chrono>
+#include <filesystem>
+#include <httplib.h>
 #include <thread>
+
+#include "support/temp_dir.hpp"
+#include <catch2/catch_test_macros.hpp>
 
 namespace fs = std::filesystem;
 using veylqora::test::TempDir;
@@ -89,13 +89,17 @@ TEST_CASE("service: memory operations and their error kinds") {
                                      Json{{"type", "decision"}, {"content", "x"}}),
                   veylqora::Error);  // author missing: invalid, not not-found
 
-  const Json updated = api::memory_update(
-      db, clock, kFixtures, id,
-      Json{{"expected_revision", 1}, {"content", "use argon2"}, {"actor", "agent-b"}, {"reason", "policy"}});
+  const Json updated = api::memory_update(db, clock, kFixtures, id,
+                                          Json{{"expected_revision", 1},
+                                               {"content", "use argon2"},
+                                               {"actor", "agent-b"},
+                                               {"reason", "policy"}});
   CHECK(updated["revision"] == 2);
   CHECK_THROWS_AS(api::memory_update(db, clock, kFixtures, id,
-                                     Json{{"expected_revision", 1}, {"content", "stale"},
-                                          {"actor", "agent-c"}, {"reason", "late"}}),
+                                     Json{{"expected_revision", 1},
+                                          {"content", "stale"},
+                                          {"actor", "agent-c"},
+                                          {"reason", "late"}}),
                   veylqora::ConflictError);
 
   const Json inspected = api::memory_inspect(db, kFixtures, id);
@@ -109,7 +113,8 @@ TEST_CASE("file lock: a second holder is refused while the first is alive") {
     veylqora::FileLock first(lock_file);
     CHECK_THROWS_AS(veylqora::FileLock(lock_file), veylqora::Error);
   }
-  CHECK_NOTHROW(veylqora::FileLock(lock_file));  // released when the first goes out of scope
+  CHECK_NOTHROW(
+      veylqora::FileLock(lock_file));  // released when the first goes out of scope
 }
 
 TEST_CASE("server: refuses a non-loopback bind") {
@@ -136,31 +141,41 @@ TEST_CASE("server: JSON over HTTP, with stable error codes") {
   CHECK(Json::parse(health->body)["ok"] == true);
 
   const std::string root = kFixtures.string();
-  const auto indexed = client.Post("/api/v1/index", Json{{"root", root}}.dump(), "application/json");
+  const auto indexed =
+      client.Post("/api/v1/index", Json{{"root", root}}.dump(), "application/json");
   REQUIRE(indexed);
   CHECK(indexed->status == 200);
   CHECK(Json::parse(indexed->body)["indexed"] == 10);
 
-  const auto search = client.Get("/api/v1/search", httplib::Params{{"root", root}, {"name", "health"}});
+  const auto search =
+      client.Get("/api/v1/search", httplib::Params{{"root", root}, {"name", "health"}});
   REQUIRE(search);
   CHECK(Json::parse(search->body)["hits"].size() == 1);
 
-  const auto created = client.Post(
-      "/api/v1/memories",
-      Json{{"root", root}, {"type", "decision"}, {"content", "http memory"}, {"author", "agent-h"}}.dump(),
-      "application/json");
+  const auto created = client.Post("/api/v1/memories",
+                                   Json{{"root", root},
+                                        {"type", "decision"},
+                                        {"content", "http memory"},
+                                        {"author", "agent-h"}}
+                                       .dump(),
+                                   "application/json");
   REQUIRE(created);
   const std::string id = Json::parse(created->body)["id"];
 
-  const auto missing = client.Get("/api/v1/memories/nope", httplib::Params{{"root", root}});
+  const auto missing =
+      client.Get("/api/v1/memories/nope", httplib::Params{{"root", root}});
   REQUIRE(missing);
   CHECK(missing->status == 404);
   CHECK(Json::parse(missing->body)["error"]["code"] == "not_found");
 
-  const auto stale = client.Post(
-      "/api/v1/memories/" + id + "/update",
-      Json{{"root", root}, {"expected_revision", 9}, {"content", "x"}, {"actor", "a"}, {"reason", "r"}}.dump(),
-      "application/json");
+  const auto stale = client.Post("/api/v1/memories/" + id + "/update",
+                                 Json{{"root", root},
+                                      {"expected_revision", 9},
+                                      {"content", "x"},
+                                      {"actor", "a"},
+                                      {"reason", "r"}}
+                                     .dump(),
+                                 "application/json");
   REQUIRE(stale);
   CHECK(stale->status == 409);
   CHECK(Json::parse(stale->body)["error"]["code"] == "conflict");
@@ -170,10 +185,14 @@ TEST_CASE("server: JSON over HTTP, with stable error codes") {
   CHECK(malformed->status == 400);
   CHECK(Json::parse(malformed->body)["error"]["code"] == "invalid");
 
-  const auto ok_update = client.Post(
-      "/api/v1/memories/" + id + "/update",
-      Json{{"root", root}, {"expected_revision", 1}, {"content", "http v2"}, {"actor", "a"}, {"reason", "r"}}.dump(),
-      "application/json");
+  const auto ok_update = client.Post("/api/v1/memories/" + id + "/update",
+                                     Json{{"root", root},
+                                          {"expected_revision", 1},
+                                          {"content", "http v2"},
+                                          {"actor", "a"},
+                                          {"reason", "r"}}
+                                         .dump(),
+                                     "application/json");
   REQUIRE(ok_update);
   CHECK(ok_update->status == 200);
   CHECK(Json::parse(ok_update->body)["revision"] == 2);

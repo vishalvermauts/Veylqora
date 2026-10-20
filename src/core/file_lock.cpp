@@ -13,18 +13,18 @@ FileLock::~FileLock() = default;
 
 #else
 
+#include <cerrno>
+#include <cstring>
 #include <fcntl.h>
 #include <sys/file.h>
 #include <unistd.h>
-
-#include <cerrno>
-#include <cstring>
 
 namespace veylqora {
 
 FileLock::FileLock(const std::filesystem::path& file) {
   fd_ = open(file.c_str(), O_RDWR | O_CREAT, 0600);
-  if (fd_ < 0) throw Error("cannot create lock file " + file.string() + ": " + std::strerror(errno));
+  if (fd_ < 0)
+    throw Error("cannot create lock file " + file.string() + ": " + std::strerror(errno));
   if (flock(fd_, LOCK_EX | LOCK_NB) != 0) {
     close(fd_);
     fd_ = -1;

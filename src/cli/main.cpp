@@ -6,13 +6,12 @@
 #include "veylqora/memory/transfer.hpp"
 #include "veylqora/server/server.hpp"
 
-#include <httplib.h>
-
 #include <atomic>
 #include <chrono>
 #include <csignal>
 #include <cstddef>
 #include <exception>
+#include <httplib.h>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -36,27 +35,33 @@ std::atomic<bool> g_interrupted{false};
 extern "C" void on_interrupt(int /*signal*/) { g_interrupted.store(true); }
 
 void usage() {
-  std::cerr << "usage:\n"
-               "  veylqora --version\n"
-               "  veylqora init --db <file>\n"
-               "  veylqora index <root> --db <file> | --server <url>\n"
-               "  veylqora search <name> --root <root> --db <file> | --server <url>\n"
-               "  veylqora graph <name> --root <root> --db <file> | --server <url>\n"
-               "  veylqora status --root <root> --db <file> | --server <url>\n"
-               "  veylqora doctor --db <file> | --server <url>\n"
-               "  veylqora memory add --root <root> --type <t> --content <c> --author <a>\n"
-               "                      [--scope <s>] [--evidence <path>:<fqn>]...  (+ db/server)\n"
-               "  veylqora memory list --root <root> [--state <s>]               (+ db/server)\n"
-               "  veylqora memory inspect <id> --root <root>                     (+ db/server)\n"
-               "  veylqora memory update <id> --root <root> --expected <n> --content <c>\n"
-               "                      --actor <a> --reason <r>                   (+ db/server)\n"
-               "  veylqora memory transition <id> --root <root> --expected <n> --to <s>\n"
-               "                      --actor <a> --reason <r>                   (+ db/server)\n"
-               "  veylqora memory export <file> --root <root> --db <file>\n"
-               "  veylqora memory import <file> --db <file>\n"
-               "  veylqora serve --db <file> [--host 127.0.0.1] [--port 8765]\n"
-               "global: --json prints machine-readable output\n"
-               "exit codes: 0 ok, 1 error, 2 usage, 3 not found, 4 conflict\n";
+  std::cerr
+      << "usage:\n"
+         "  veylqora --version\n"
+         "  veylqora init --db <file>\n"
+         "  veylqora index <root> --db <file> | --server <url>\n"
+         "  veylqora search <name> --root <root> --db <file> | --server <url>\n"
+         "  veylqora graph <name> --root <root> --db <file> | --server <url>\n"
+         "  veylqora status --root <root> --db <file> | --server <url>\n"
+         "  veylqora doctor --db <file> | --server <url>\n"
+         "  veylqora memory add --root <root> --type <t> --content <c> --author <a>\n"
+         "                      [--scope <s>] [--evidence <path>:<fqn>]...  (+ "
+         "db/server)\n"
+         "  veylqora memory list --root <root> [--state <s>]               (+ "
+         "db/server)\n"
+         "  veylqora memory inspect <id> --root <root>                     (+ "
+         "db/server)\n"
+         "  veylqora memory update <id> --root <root> --expected <n> --content <c>\n"
+         "                      --actor <a> --reason <r>                   (+ "
+         "db/server)\n"
+         "  veylqora memory transition <id> --root <root> --expected <n> --to <s>\n"
+         "                      --actor <a> --reason <r>                   (+ "
+         "db/server)\n"
+         "  veylqora memory export <file> --root <root> --db <file>\n"
+         "  veylqora memory import <file> --db <file>\n"
+         "  veylqora serve --db <file> [--host 127.0.0.1] [--port 8765]\n"
+         "global: --json prints machine-readable output\n"
+         "exit codes: 0 ok, 1 error, 2 usage, 3 not found, 4 conflict\n";
 }
 
 struct Args {
@@ -120,7 +125,8 @@ class DirectBackend final : public Backend {
   }
   Json doctor() override { return api::doctor(db_); }
   Json memory_create(const Json& body) override {
-    return api::memory_create(db_, clock_, ids_, fs::path(body.at("root").get<std::string>()), body);
+    return api::memory_create(db_, clock_, ids_,
+                              fs::path(body.at("root").get<std::string>()), body);
   }
   Json memory_list(const fs::path& root, const std::string& state) override {
     return api::memory_list(db_, root, state);
@@ -129,10 +135,12 @@ class DirectBackend final : public Backend {
     return api::memory_inspect(db_, root, id);
   }
   Json memory_update(const std::string& id, const Json& body) override {
-    return api::memory_update(db_, clock_, fs::path(body.at("root").get<std::string>()), id, body);
+    return api::memory_update(db_, clock_, fs::path(body.at("root").get<std::string>()),
+                              id, body);
   }
   Json memory_transition(const std::string& id, const Json& body) override {
-    return api::memory_transition(db_, clock_, fs::path(body.at("root").get<std::string>()), id, body);
+    return api::memory_transition(db_, clock_,
+                                  fs::path(body.at("root").get<std::string>()), id, body);
   }
 
  private:
@@ -158,9 +166,13 @@ class DirectBackend final : public Backend {
 
 class RemoteBackend final : public Backend {
  public:
-  explicit RemoteBackend(const std::string& url) : client_(url) { client_.set_connection_timeout(5); }
+  explicit RemoteBackend(const std::string& url) : client_(url) {
+    client_.set_connection_timeout(5);
+  }
 
-  Json status(const fs::path& root) override { return get("/api/v1/status", {{"root", root.string()}}); }
+  Json status(const fs::path& root) override {
+    return get("/api/v1/status", {{"root", root.string()}});
+  }
   Json index(const fs::path& root) override {
     return post("/api/v1/index", Json{{"root", root.string()}});
   }
@@ -207,25 +219,30 @@ void print_human(const std::string& command, const std::string& sub, const Json&
   if (command == "status") {
     std::cout << "project: " << j.value("project", std::string("(not indexed)"))
               << "  indexed: " << (j.value("indexed", false) ? "yes" : "no")
-              << "  files: " << j.value("files", 0) << "  symbols: " << j.value("symbols", 0)
+              << "  files: " << j.value("files", 0)
+              << "  symbols: " << j.value("symbols", 0)
               << "  memories: " << j.value("memories", 0) << '\n';
   } else if (command == "index") {
-    std::cout << "indexed " << j.value("indexed", 0) << ", unchanged " << j.value("unchanged", 0)
-              << ", removed " << j.value("removed", 0) << ", skipped " << j.value("skipped", 0)
-              << ", unreadable " << j.value("unreadable", 0) << ", partial " << j.value("partial", 0)
+    std::cout << "indexed " << j.value("indexed", 0) << ", unchanged "
+              << j.value("unchanged", 0) << ", removed " << j.value("removed", 0)
+              << ", skipped " << j.value("skipped", 0) << ", unreadable "
+              << j.value("unreadable", 0) << ", partial " << j.value("partial", 0)
               << ", symbols " << j.value("symbols_written", 0) << '\n';
   } else if (command == "search") {
     for (const Json& h : j.at("hits")) {
-      std::cout << h.at("path").get<std::string>() << ':' << h.at("line").get<std::int64_t>()
-                << "  " << h.at("kind").get<std::string>() << "  "
+      std::cout << h.at("path").get<std::string>() << ':'
+                << h.at("line").get<std::int64_t>() << "  "
+                << h.at("kind").get<std::string>() << "  "
                 << h.at("fqn").get<std::string>() << '\n';
     }
   } else if (command == "graph") {
     std::cout << "dependents of " << j.at("name").get<std::string>() << ":\n";
     for (const Json& e : j.at("dependents")) {
-      std::cout << "  " << e.at("kind").get<std::string>() << "  " << e.at("from").get<std::string>()
-                << "  [" << e.at("resolution").get<std::string>() << "]  "
-                << e.at("path").get<std::string>() << ':' << e.at("line").get<std::int64_t>() << '\n';
+      std::cout << "  " << e.at("kind").get<std::string>() << "  "
+                << e.at("from").get<std::string>() << "  ["
+                << e.at("resolution").get<std::string>() << "]  "
+                << e.at("path").get<std::string>() << ':'
+                << e.at("line").get<std::int64_t>() << '\n';
     }
     std::cout << "dependencies of " << j.at("name").get<std::string>() << ":\n";
     for (const Json& e : j.at("dependencies")) {
@@ -238,12 +255,15 @@ void print_human(const std::string& command, const std::string& sub, const Json&
     std::cout << (j.value("ok", false) ? "ok" : "problems found")
               << "  schema: " << j.value("schema_version", 0)
               << "  integrity: " << j.value("integrity", std::string{})
-              << "  foreign key violations: " << j.value("foreign_key_violations", 0) << '\n';
+              << "  foreign key violations: " << j.value("foreign_key_violations", 0)
+              << '\n';
   } else if (command == "memory" && (sub == "list")) {
     for (const Json& m : j) {
-      std::cout << short_id(m.at("id").get<std::string>()) << "  " << m.at("state").get<std::string>()
-                << "  r" << m.at("revision").get<std::int64_t>() << "  "
-                << m.at("type").get<std::string>() << "  " << m.at("content").get<std::string>() << '\n';
+      std::cout << short_id(m.at("id").get<std::string>()) << "  "
+                << m.at("state").get<std::string>() << "  r"
+                << m.at("revision").get<std::int64_t>() << "  "
+                << m.at("type").get<std::string>() << "  "
+                << m.at("content").get<std::string>() << '\n';
     }
   } else if (command == "memory" && sub == "inspect") {
     std::cout << j.at("id").get<std::string>() << "  " << j.at("state").get<std::string>()
@@ -255,9 +275,10 @@ void print_human(const std::string& command, const std::string& sub, const Json&
                 << e.at("symbol").get<std::string>() << '\n';
     }
     for (const Json& h : j.at("history")) {
-      std::cout << "  r" << h.at("revision").get<std::int64_t>() << "  " << h.at("state").get<std::string>()
-                << "  " << h.at("actor").get<std::string>() << "  " << h.at("reason").get<std::string>()
-                << '\n';
+      std::cout << "  r" << h.at("revision").get<std::int64_t>() << "  "
+                << h.at("state").get<std::string>() << "  "
+                << h.at("actor").get<std::string>() << "  "
+                << h.at("reason").get<std::string>() << '\n';
     }
   } else {  // create, update, transition
     std::cout << j.at("id").get<std::string>() << "  " << j.at("state").get<std::string>()
@@ -281,11 +302,13 @@ int run_server(const Args& args, veylqora::Database& db) {
   veylqora::RandomIds ids;
   veylqora::Server server(db, clock, ids);
   const int bound = server.bind(host, port);
-  std::cout << "listening on http://" << host << ':' << bound << " (ctrl-c to stop)" << std::endl;
+  std::cout << "listening on http://" << host << ':' << bound << " (ctrl-c to stop)"
+            << std::endl;
 
   std::signal(SIGINT, on_interrupt);
   std::thread watcher([&] {
-    while (!g_interrupted.load()) std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    while (!g_interrupted.load())
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     server.stop();
   });
   server.serve();
@@ -373,23 +396,28 @@ int run(const Args& args) {
     Json evidence = Json::array();
     for (const std::string& e : args.all("evidence")) {
       const std::size_t colon = e.find(':');
-      if (colon == std::string::npos) throw veylqora::Error("--evidence must be <path>:<fqn>");
-      evidence.push_back({{"rel_path", e.substr(0, colon)}, {"symbol_fqn", e.substr(colon + 1)}});
+      if (colon == std::string::npos)
+        throw veylqora::Error("--evidence must be <path>:<fqn>");
+      evidence.push_back(
+          {{"rel_path", e.substr(0, colon)}, {"symbol_fqn", e.substr(colon + 1)}});
     }
     body["evidence"] = evidence;
     result = backend->memory_create(body);
   } else if (command == "memory" && sub == "list" && !root.empty()) {
     result = backend->memory_list(root, args.flag("state"));
-  } else if (command == "memory" && sub == "inspect" && args.positional.size() == 3 && !root.empty()) {
+  } else if (command == "memory" && sub == "inspect" && args.positional.size() == 3 &&
+             !root.empty()) {
     result = backend->memory_inspect(root, args.positional[2]);
-  } else if (command == "memory" && sub == "update" && args.positional.size() == 3 && !root.empty()) {
+  } else if (command == "memory" && sub == "update" && args.positional.size() == 3 &&
+             !root.empty()) {
     const Json body = {{"root", root.string()},
                        {"expected_revision", std::stoll(args.flag("expected"))},
                        {"content", args.flag("content")},
                        {"actor", args.flag("actor")},
                        {"reason", args.flag("reason")}};
     result = backend->memory_update(args.positional[2], body);
-  } else if (command == "memory" && sub == "transition" && args.positional.size() == 3 && !root.empty()) {
+  } else if (command == "memory" && sub == "transition" && args.positional.size() == 3 &&
+             !root.empty()) {
     const Json body = {{"root", root.string()},
                        {"expected_revision", std::stoll(args.flag("expected"))},
                        {"to_state", args.flag("to")},

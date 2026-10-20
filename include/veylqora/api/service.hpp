@@ -5,9 +5,8 @@
 #include "veylqora/memory/memory.hpp"
 #include "veylqora/storage/database.hpp"
 
-#include <nlohmann/json.hpp>
-
 #include <filesystem>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <string_view>
 
@@ -32,8 +31,9 @@ Json memory_list(Database& db, const std::filesystem::path& root, std::string_vi
 Json memory_inspect(Database& db, const std::filesystem::path& root, std::string_view id);
 Json memory_update(Database& db, const Clock& clock, const std::filesystem::path& root,
                    std::string_view id, const Json& body);
-Json memory_transition(Database& db, const Clock& clock, const std::filesystem::path& root,
-                       std::string_view id, const Json& body);
+Json memory_transition(Database& db, const Clock& clock,
+                       const std::filesystem::path& root, std::string_view id,
+                       const Json& body);
 
 Json doctor(Database& db);
 

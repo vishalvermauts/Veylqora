@@ -16,7 +16,8 @@ std::string text_field(const Json& body, const char* key, bool required = true) 
     if (required) throw Error(std::string("missing field: ") + key);
     return {};
   }
-  if (!body.at(key).is_string()) throw Error(std::string("field must be a string: ") + key);
+  if (!body.at(key).is_string())
+    throw Error(std::string("field must be a string: ") + key);
   return body.at(key).get<std::string>();
 }
 
@@ -71,22 +72,21 @@ Json status(Database& db, const fs::path& root) {
   return out;
 }
 
-Json index(Database& db, const Clock& clock, const fs::path& root, const IndexOptions& options) {
+Json index(Database& db, const Clock& clock, const fs::path& root,
+           const IndexOptions& options) {
   const IndexStats s = index_project(db, clock, root, options);
-  return Json{{"indexed", s.files_indexed},
-              {"unchanged", s.files_unchanged},
-              {"removed", s.files_removed},
-              {"skipped", s.files_skipped},
-              {"unreadable", s.files_unreadable},
-              {"partial", s.files_with_syntax_errors},
-              {"symbols_written", s.symbols_written},
-              {"canceled", s.canceled}};
+  return Json{
+      {"indexed", s.files_indexed},           {"unchanged", s.files_unchanged},
+      {"removed", s.files_removed},           {"skipped", s.files_skipped},
+      {"unreadable", s.files_unreadable},     {"partial", s.files_with_syntax_errors},
+      {"symbols_written", s.symbols_written}, {"canceled", s.canceled}};
 }
 
 Json search(Database& db, const fs::path& root, std::string_view name) {
   Json hits = Json::array();
   for (const SymbolHit& h : find_symbols(db, root, name)) {
-    hits.push_back({{"path", h.path}, {"kind", h.kind}, {"fqn", h.fqn}, {"line", h.start_line}});
+    hits.push_back(
+        {{"path", h.path}, {"kind", h.kind}, {"fqn", h.fqn}, {"line", h.start_line}});
   }
   return Json{{"name", std::string(name)}, {"hits", hits}};
 }
@@ -108,11 +108,13 @@ Json graph(Database& db, const fs::path& root, std::string_view name) {
                             {"resolution", e.resolution},
                             {"line", e.line}});
   }
-  return Json{{"name", std::string(name)}, {"dependents", dependents}, {"dependencies", dependencies}};
+  return Json{{"name", std::string(name)},
+              {"dependents", dependents},
+              {"dependencies", dependencies}};
 }
 
-Json memory_create(Database& db, const Clock& clock, IdGenerator& ids, const fs::path& root,
-                   const Json& body) {
+Json memory_create(Database& db, const Clock& clock, IdGenerator& ids,
+                   const fs::path& root, const Json& body) {
   NewMemory m;
   m.type = text_field(body, "type");
   m.content = text_field(body, "content");
@@ -122,7 +124,8 @@ Json memory_create(Database& db, const Clock& clock, IdGenerator& ids, const fs:
   if (body.contains("evidence")) {
     if (!body.at("evidence").is_array()) throw Error("field must be an array: evidence");
     for (const Json& e : body.at("evidence")) {
-      m.evidence.push_back(EvidenceRef{text_field(e, "rel_path"), text_field(e, "symbol_fqn")});
+      m.evidence.push_back(
+          EvidenceRef{text_field(e, "rel_path"), text_field(e, "symbol_fqn")});
     }
   }
   const std::string id = create_memory(db, clock, ids, root, m);
@@ -131,7 +134,8 @@ Json memory_create(Database& db, const Clock& clock, IdGenerator& ids, const fs:
 
 Json memory_list(Database& db, const fs::path& root, std::string_view state) {
   Json out = Json::array();
-  for (const Memory& m : veylqora::list_memories(db, root, state)) out.push_back(memory_json(m));
+  for (const Memory& m : veylqora::list_memories(db, root, state))
+    out.push_back(memory_json(m));
   return out;
 }
 
@@ -168,15 +172,16 @@ Json memory_inspect(Database& db, const fs::path& root, std::string_view id) {
   return out;
 }
 
-Json memory_update(Database& db, const Clock& clock, const fs::path& root, std::string_view id,
-                   const Json& body) {
+Json memory_update(Database& db, const Clock& clock, const fs::path& root,
+                   std::string_view id, const Json& body) {
   update_memory(db, clock, root, id, int_field(body, "expected_revision"),
-                text_field(body, "content"), text_field(body, "actor"), text_field(body, "reason"));
+                text_field(body, "content"), text_field(body, "actor"),
+                text_field(body, "reason"));
   return memory_json(*get_memory(db, root, id));
 }
 
-Json memory_transition(Database& db, const Clock& clock, const fs::path& root, std::string_view id,
-                       const Json& body) {
+Json memory_transition(Database& db, const Clock& clock, const fs::path& root,
+                       std::string_view id, const Json& body) {
   transition_memory(db, clock, root, id, int_field(body, "expected_revision"),
                     text_field(body, "to_state"), text_field(body, "actor"),
                     text_field(body, "reason"));
