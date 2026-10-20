@@ -20,7 +20,7 @@ describe("App", () => {
   });
 
   it("shows the overview numbers from the status endpoint", async () => {
-    const fetchMock = vi.fn(() =>
+    const fetchMock = vi.fn((_url: string) =>
       respond({ project_root: "/r", indexed: true, project: "r", files: 3, symbols: 7, memories: 2 }),
     );
     vi.stubGlobal("fetch", fetchMock);
