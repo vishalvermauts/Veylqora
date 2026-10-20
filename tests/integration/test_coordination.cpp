@@ -60,8 +60,8 @@ TEST_CASE("40 agents on one shared memory: no lost updates, every write in the h
       veylqora::Database& db = *connections[a];
       const std::string who = "agent-" + std::to_string(a);
       while (successes[a] < kUpdatesEach) {
-        const auto current = veylqora::get_memory(db, kRoot, id, who);
         try {
+          const auto current = veylqora::get_memory(db, kRoot, id, who);
           veylqora::update_memory(db, clock, kRoot, id, current->revision_no,
                                   who + " update " + std::to_string(successes[a]), who,
                                   "coordinate");
@@ -69,8 +69,8 @@ TEST_CASE("40 agents on one shared memory: no lost updates, every write in the h
         } catch (const veylqora::ConflictError&) {
           // Another agent wrote first; read again and retry.
         } catch (const veylqora::Error& e) {
-          // SQLite reports a busy database when it cannot get the write lock in time.
-          // That is transient: retry, as any client of a shared database must.
+          // SQLite reports a busy database when it cannot get a lock in time (on the
+          // read or the write). That is transient: retry, as any client must.
           if (std::string(e.what()).find("locked") == std::string::npos) throw;
         }
       }
