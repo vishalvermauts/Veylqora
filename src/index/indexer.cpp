@@ -202,8 +202,8 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
 }
 
 // Decides what one candidate becomes in the database. Caller holds the transaction.
-void process_candidate(Database& db, const std::string& pid, const fs::path& base, bool force,
-                       const std::string& rel, IndexStats& stats) {
+void process_candidate(Database& db, const std::string& pid, const fs::path& base,
+                       bool force, const std::string& rel, IndexStats& stats) {
   if (!is_python(rel)) return;
 
   const Source src = read_source(base / rel);
@@ -343,12 +343,15 @@ Consistency check_consistency(Database& db, const fs::path& root) {
     q.step();
     return static_cast<std::size_t>(q.integer(0));
   };
-  out.symbols = count("SELECT COUNT(*) FROM symbol WHERE project_id = ? AND kind != 'module'");
+  out.symbols =
+      count("SELECT COUNT(*) FROM symbol WHERE project_id = ? AND kind != 'module'");
   out.symbols_without_tokens = count(
-      "SELECT COUNT(*) FROM symbol s WHERE s.project_id = ? AND s.kind != 'module' AND NOT EXISTS "
+      "SELECT COUNT(*) FROM symbol s WHERE s.project_id = ? AND s.kind != 'module' AND "
+      "NOT EXISTS "
       "(SELECT 1 FROM token t WHERE t.symbol_id = s.id)");
   out.symbols_without_vectors = count(
-      "SELECT COUNT(*) FROM symbol s WHERE s.project_id = ? AND s.kind != 'module' AND NOT EXISTS "
+      "SELECT COUNT(*) FROM symbol s WHERE s.project_id = ? AND s.kind != 'module' AND "
+      "NOT EXISTS "
       "(SELECT 1 FROM symbol_vec v WHERE v.symbol_id = s.id)");
   out.orphan_vectors = count(
       "SELECT COUNT(*) FROM symbol_vec v WHERE v.project_id = ? AND NOT EXISTS "

@@ -58,8 +58,8 @@ struct Consistency {
   std::size_t orphan_vectors = 0;  // vectors whose symbol is gone
   std::size_t orphan_tokens = 0;   // token rows whose symbol is gone
   bool ok() const {
-    return symbols_without_tokens == 0 && symbols_without_vectors == 0 && orphan_vectors == 0 &&
-           orphan_tokens == 0;
+    return symbols_without_tokens == 0 && symbols_without_vectors == 0 &&
+           orphan_vectors == 0 && orphan_tokens == 0;
   }
 };
 

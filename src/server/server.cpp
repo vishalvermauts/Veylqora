@@ -129,10 +129,11 @@ void Server::add_routes() {
   });
   route("GET", "/api/v1/retrieve", [this](const httplib::Request& req) {
     const std::string k = param(req, "k");
-    return api::retrieve(db_, root_param(req), param(req, "query"),
-                         param(req, "mode").empty() ? std::string("hybrid") : param(req, "mode"),
-                         k.empty() ? 10 : static_cast<std::size_t>(std::stoul(k)), param(req, "kind"),
-                         param(req, "path_prefix"));
+    return api::retrieve(
+        db_, root_param(req), param(req, "query"),
+        param(req, "mode").empty() ? std::string("hybrid") : param(req, "mode"),
+        k.empty() ? 10 : static_cast<std::size_t>(std::stoul(k)), param(req, "kind"),
+        param(req, "path_prefix"));
   });
   route("GET", "/api/v1/doctor",
         [this](const httplib::Request&) { return api::doctor(db_); });

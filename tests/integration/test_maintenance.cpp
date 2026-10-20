@@ -6,15 +6,15 @@
 #include "veylqora/index/indexer.hpp"
 #include "veylqora/retrieval/search.hpp"
 #include "veylqora/storage/database.hpp"
-#include "support/temp_dir.hpp"
-
-#include <catch2/catch_test_macros.hpp>
 
 #include <atomic>
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
+
+#include "support/temp_dir.hpp"
+#include <catch2/catch_test_macros.hpp>
 
 namespace fs = std::filesystem;
 using veylqora::test::TempDir;
@@ -34,8 +34,8 @@ void write(const fs::path& p, const std::string& text) {
 // retrieval state that two indexes must agree on exactly.
 std::vector<std::string> snapshot(veylqora::Database& db, const fs::path& root) {
   std::vector<std::string> out;
-  for (const char* q : {"token verification", "password hashing", "format money", "tax rate",
-                        "health route", "slugify text", "measure timing"}) {
+  for (const char* q : {"token verification", "password hashing", "format money",
+                        "tax rate", "health route", "slugify text", "measure timing"}) {
     for (const veylqora::Mode mode :
          {veylqora::Mode::lexical, veylqora::Mode::vector, veylqora::Mode::hybrid}) {
       veylqora::RetrievalOptions o;
@@ -66,13 +66,16 @@ TEST_CASE("consistency holds after edits and deletions") {
   veylqora::Database db(tmp.path() / "v.db");
   veylqora::index_project(db, kClock, src);
 
-  write(src / "util" / "text.py", "def slugify(value):\n    return value\n\n\ndef brand_new():\n    return 1\n");
+  write(src / "util" / "text.py",
+        "def slugify(value):\n    return value\n\n\ndef brand_new():\n    return 1\n");
   fs::remove(src / "billing" / "tax.py");
   veylqora::index_project(db, kClock, src);
 
   CHECK(veylqora::check_consistency(db, src).ok());
-  for (const auto& h : veylqora::retrieve(db, src, "tax rate")) CHECK(h.path != "billing/tax.py");
-  CHECK(veylqora::retrieve(db, src, "brand new", {veylqora::Mode::lexical, 10, "", ""}).size() >= 1);
+  for (const auto& h : veylqora::retrieve(db, src, "tax rate"))
+    CHECK(h.path != "billing/tax.py");
+  CHECK(veylqora::retrieve(db, src, "brand new", {veylqora::Mode::lexical, 10, "", ""})
+            .size() >= 1);
 }
 
 TEST_CASE("an incremental update gives the same retrieval as a full rebuild") {
@@ -105,9 +108,10 @@ TEST_CASE("an interrupted update leaves a consistent index that a re-run complet
   const auto before = snapshot(db, src);
 
   // Every file changes, so the interrupted run has work to commit in batches.
-  for (const char* f : {"auth/tokens.py", "auth/passwords.py", "billing/invoice.py", "billing/tax.py",
-                        "users/models.py", "users/service.py", "api/routes.py", "api/middleware.py",
-                        "util/text.py", "util/timing.py"}) {
+  for (const char* f :
+       {"auth/tokens.py", "auth/passwords.py", "billing/invoice.py", "billing/tax.py",
+        "users/models.py", "users/service.py", "api/routes.py", "api/middleware.py",
+        "util/text.py", "util/timing.py"}) {
     std::ofstream out(src / f, std::ios::app);
     out << "\n\n# touched\n";
   }
