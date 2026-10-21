@@ -5,8 +5,8 @@
 #include "veylqora/graph/query.hpp"
 #include "veylqora/memory/transfer.hpp"
 #include "veylqora/observability/observability.hpp"
-#include "veylqora/storage/backup.hpp"
 #include "veylqora/server/server.hpp"
+#include "veylqora/storage/backup.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -371,7 +371,8 @@ int run(const Args& args) {
 
   if (command == "backup" || command == "restore") {
     if (db_path.empty() || args.positional.size() != 2) return usage(), kExitUsage;
-    veylqora::FileLock lock(db_path + ".lock");  // no daemon may write meanwhile (ADR-0004)
+    veylqora::FileLock lock(db_path +
+                            ".lock");  // no daemon may write meanwhile (ADR-0004)
     if (command == "backup") {
       veylqora::Database db(db_path);
       veylqora::backup_database(db, args.positional[1]);

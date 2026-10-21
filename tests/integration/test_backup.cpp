@@ -23,10 +23,12 @@ namespace {
 
 const fs::path kRoot = VEYLQORA_FIXTURE_DIR "/python";
 
-Json remember(veylqora::Database& db, const veylqora::Clock& clock, veylqora::IdGenerator& ids,
-              const std::string& content) {
-  const Json body = {{"type", "decision"}, {"content", content},
-                     {"author", "backup-test"}, {"scope", "shared"}};
+Json remember(veylqora::Database& db, const veylqora::Clock& clock,
+              veylqora::IdGenerator& ids, const std::string& content) {
+  const Json body = {{"type", "decision"},
+                     {"content", content},
+                     {"author", "backup-test"},
+                     {"scope", "shared"}};
   return api::memory_create(db, clock, ids, kRoot, body);
 }
 
@@ -77,7 +79,10 @@ TEST_CASE("backup refuses to overwrite an existing file") {
   TempDir tmp;
   veylqora::Database db(tmp.path() / "live.db");
   const fs::path dest = tmp.path() / "existing.db";
-  { std::ofstream out(dest); out << "keep me"; }
+  {
+    std::ofstream out(dest);
+    out << "keep me";
+  }
   CHECK_THROWS_AS(veylqora::backup_database(db, dest), veylqora::Error);
   std::ifstream in(dest);
   std::string text;
@@ -95,7 +100,10 @@ TEST_CASE("a damaged backup is refused and the target database is left unchanged
     remember(db, clock, ids, "keep this memory");
   }
   const fs::path damaged = tmp.path() / "damaged.db";
-  { std::ofstream out(damaged, std::ios::binary); out << "this is not a database"; }
+  {
+    std::ofstream out(damaged, std::ios::binary);
+    out << "this is not a database";
+  }
 
   CHECK_THROWS_AS(veylqora::restore_database(damaged, target), veylqora::Error);
   veylqora::Database still(target);

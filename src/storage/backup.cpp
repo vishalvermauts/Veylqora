@@ -93,13 +93,17 @@ void restore_database(const fs::path& backup, const fs::path& target) {
   }
   // Open the target through the Database class so it is migrated like any other
   // database, then replace its pages with the backup's.
-  { Database opened(target); }
+  {
+    Database opened(target);
+  }
   copy_pages(backup, target, SQLITE_OPEN_READWRITE);
   if (!passes_integrity_check(target)) {
     throw Error("restored database failed its integrity check");
   }
   // A backup from an older release is migrated to this build's schema here.
-  { Database migrated(target); }
+  {
+    Database migrated(target);
+  }
 }
 
 }  // namespace veylqora
