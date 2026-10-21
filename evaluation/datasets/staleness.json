@@ -1,0 +1,56 @@
+{
+  "dataset": "staleness",
+  "fixture": "tests/fixtures/python",
+  "provenance": "Two memories cite fixture definitions: 'verify' cites auth.tokens.verify_token and 'slugify' cites util.text.slugify. Each scenario changes the code in steps; after each step the project is re-indexed. A memory is expected to be flagged (suspected_stale or evidence_missing) only when its cited code really changed in a way that matters, as ADR-0014 defines it. The expectations were written before the first run.",
+  "memories": {
+    "verify": {"content": "verify_token checks the tok- prefix", "evidence": {"rel_path": "auth/tokens.py", "symbol_fqn": "auth.tokens.verify_token"}},
+    "slugify": {"content": "slugify joins words with dashes", "evidence": {"rel_path": "util/text.py", "symbol_fqn": "util.text.slugify"}}
+  },
+  "scenarios": [
+    {"name": "cited body edited", "steps": [
+      [{"op": "replace", "path": "auth/tokens.py", "old": "    return token.startswith(\"tok-\")\n", "new": "    return token.startswith(\"tok-\") and len(token) > 4\n"}]
+    ], "expect_flagged": ["verify"]},
+
+    {"name": "unrelated function edited", "steps": [
+      [{"op": "replace", "path": "auth/tokens.py", "old": "return \"tok-\" + str(user_id)", "new": "return \"tok-\" + str(user_id).strip()"}]
+    ], "expect_flagged": []},
+
+    {"name": "comment added inside cited body", "steps": [
+      [{"op": "replace", "path": "auth/tokens.py", "old": "def verify_token(token):\n", "new": "def verify_token(token):\n    # the prefix is fixed\n"}]
+    ], "expect_flagged": []},
+
+    {"name": "trailing whitespace only", "steps": [
+      [{"op": "replace", "path": "auth/tokens.py", "old": "    return token.startswith(\"tok-\")\n", "new": "    return token.startswith(\"tok-\")   \n"}]
+    ], "expect_flagged": []},
+
+    {"name": "renamed, body unchanged", "steps": [
+      [{"op": "replace", "path": "auth/tokens.py", "old": "def verify_token(token):", "new": "def check_token(token):"}]
+    ], "expect_flagged": []},
+
+    {"name": "moved to another file, body unchanged", "steps": [
+      [{"op": "replace", "path": "auth/tokens.py", "old": "def verify_token(token):\n    return token.startswith(\"tok-\")\n\n\n", "new": ""},
+       {"op": "append", "path": "util/text.py", "content": "\n\ndef verify_token(token):\n    return token.startswith(\"tok-\")\n"}]
+    ], "expect_flagged": []},
+
+    {"name": "signature changed", "steps": [
+      [{"op": "replace", "path": "auth/tokens.py", "old": "def verify_token(token):", "new": "def verify_token(token, strict=False):"}]
+    ], "expect_flagged": ["verify"]},
+
+    {"name": "edited, then reverted", "steps": [
+      [{"op": "replace", "path": "auth/tokens.py", "old": "    return token.startswith(\"tok-\")\n", "new": "    return token.startswith(\"tok-\") and len(token) > 4\n"}],
+      [{"op": "replace", "path": "auth/tokens.py", "old": "    return token.startswith(\"tok-\") and len(token) > 4\n", "new": "    return token.startswith(\"tok-\")\n"}]
+    ], "expect_flagged": []},
+
+    {"name": "cited symbol deleted", "steps": [
+      [{"op": "replace", "path": "auth/tokens.py", "old": "def verify_token(token):\n    return token.startswith(\"tok-\")\n\n\n", "new": ""}]
+    ], "expect_flagged": ["verify"]},
+
+    {"name": "unrelated file added", "steps": [
+      [{"op": "write", "path": "util/extra.py", "content": "def extra():\n    return 1\n"}]
+    ], "expect_flagged": []},
+
+    {"name": "other memory's cited body edited", "steps": [
+      [{"op": "replace", "path": "util/text.py", "old": "return \"-\".join(value.lower().split())", "new": "return \"_\".join(value.lower().split())"}]
+    ], "expect_flagged": ["slugify"]}
+  ]
+}

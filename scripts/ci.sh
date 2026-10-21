@@ -28,8 +28,8 @@ REPO_URL="${VEYLQORA_REPO:-https://github.com/vishalvermauts/Veylqora.git}"
 CHECKOUT=/home/agent/ci
 CPUS="${CPUS:-4}"
 MEMORY="${MEMORY:-8g}"
-TTL="${TTL:-30m}"
-ALL_JOBS=(format gcc clang san certs mcp fuzz)
+TTL="${TTL:-2h}"  # long enough for a one-hour fuzz run (see run_remote)
+ALL_JOBS=(format gcc clang san certs mcp fuzz eval)
 
 ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com'
 
@@ -91,6 +91,14 @@ job_mcp() {
   job_gcc >/dev/null || return 1
   VEYLQORA_BIN="$WORK/build-gcc/src/veylqora" VEYLQORA_FIXTURES="$SRC/tests/fixtures/python" \
     "$venv/bin/python" -m pytest -q "$SRC/mcp/tests"
+}
+
+# Offline evaluation (M3.6a): retrieval and stale-detection gates against the
+# committed datasets. The result is printed so it is kept in the job log.
+job_eval() {
+  job_gcc >/dev/null || return 1
+  VEYLQORA_BIN="$WORK/build-gcc/src/veylqora" python3 "$SRC/scripts/evaluate.py"     --out "$WORK/results.json" || { cat "$WORK/results.json" 2>/dev/null; return 1; }
+  cat "$WORK/results.json"
 }
 
 job_tidy() {
@@ -178,7 +186,10 @@ run_remote() {
   # run is longer than the default 30 minutes, so extend the TTL first (the
   # server ceiling is 24 hours from creation). Failure here is not fatal.
   if [[ " $* " == *" fuzz "* ]]; then
-    sbx --cloud ttl "+$(( FUZZ_SECONDS * ${#FUZZ_TARGETS[@]} / 60 + 60 ))m" "$SBX" >/dev/null 2>&1 || true
+    if ! sbx --cloud ttl "+$(( FUZZ_SECONDS * ${#FUZZ_TARGETS[@]} / 60 + 60 ))m" "$SBX" >/dev/null 2>&1; then
+      echo "error: could not extend the TTL of $SBX for the fuzz run; not starting it" >&2
+      return 1
+    fi
   fi
   [ "$keep" = 1 ] || trap sbx_stop EXIT
 

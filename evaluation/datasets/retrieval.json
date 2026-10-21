@@ -1,0 +1,15 @@
+{
+  "dataset": "retrieval",
+  "fixture": "tests/fixtures/python",
+  "provenance": "Relevant names were written from reading the fixture source before any ranking was run (M2.1). Each query names the definitions a developer would expect to see for it.",
+  "queries": [
+    {"query": "token verification", "relevant": ["auth.tokens.verify_token", "auth.tokens.issue_token", "auth.tokens.TokenStore"]},
+    {"query": "password hashing", "relevant": ["auth.passwords.hash_password", "auth.passwords.check_password", "auth.passwords.check_password_async"]},
+    {"query": "format money cents", "relevant": ["billing.invoice.format_money"]},
+    {"query": "tax rate lookup", "relevant": ["billing.tax.tax_for", "billing.tax.TaxTable.lookup"]},
+    {"query": "health status route", "relevant": ["api.routes.health"]},
+    {"query": "log request middleware", "relevant": ["api.middleware.log_request", "api.middleware.RequestLogger.__call__"]},
+    {"query": "slugify text", "relevant": ["util.text.slugify"]},
+    {"query": "measure timing wrapper", "relevant": ["util.timing.measure"]}
+  ]
+}
