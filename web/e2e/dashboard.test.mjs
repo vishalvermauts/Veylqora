@@ -118,6 +118,18 @@ describe("dashboard in a real browser", () => {
     assert.ok((await timeline.getByRole("listitem").count()) >= 1, "timeline has entries");
   });
 
+  it("draws the code graph of a symbol and keeps the text list beside it", async () => {
+    // check_password calls hash_password in the fixture, so the graph has an edge.
+    await page.getByRole("tab", { name: "Graph" }).click();
+    await page.getByLabel("Symbol name").fill("check_password");
+    await page.getByRole("button", { name: "Show" }).click();
+    await page.getByRole("img", { name: /Graph of check_password/ }).waitFor();
+    const dependencies = page.getByRole("region", { name: "dependencies" });
+    await dependencies.getByText("auth.passwords.hash_password").waitFor();
+    const canvas = await page.locator(".graph-canvas canvas").count();
+    assert.ok(canvas >= 1, "the graph is drawn on a canvas");
+  });
+
   it("logs no console errors while using the dashboard", () => {
     assert.deepEqual(consoleErrors, []);
   });

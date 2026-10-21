@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getJson } from "../api";
 import { ResourceView, useResource } from "../useResource";
+import { GraphCanvas } from "./GraphCanvas";
 import type { GraphResult } from "../types";
 
 // A list view of the code graph: what depends on a symbol, and what it depends
@@ -31,8 +32,14 @@ export function Graph({ root }: { root: string | null }) {
       </form>
       <ResourceView resource={resource} empty={(d) => d.dependents.length + d.dependencies.length === 0}>
         {(d) => (
-          <div className="graph-columns">
-            <section aria-label="dependents">
+          <>
+            <GraphCanvas graph={d} />
+            <p>
+              Solid lines are resolved, dashed are heuristic guesses, dotted are unresolved. The
+              lists below say the same in text.
+            </p>
+            <div className="graph-columns">
+              <section aria-label="dependents">
               <h3>Depends on {d.name}</h3>
               <ul>
                 {d.dependents.map((e, i) => (
@@ -52,7 +59,8 @@ export function Graph({ root }: { root: string | null }) {
                 ))}
               </ul>
             </section>
-          </div>
+            </div>
+          </>
         )}
       </ResourceView>
     </section>

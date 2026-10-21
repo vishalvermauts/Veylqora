@@ -8,6 +8,7 @@
     "test": "vitest run src"
   },
   "dependencies": {
+    "cytoscape": "3.34.3",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
