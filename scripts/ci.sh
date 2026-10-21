@@ -29,9 +29,10 @@ CHECKOUT=/home/agent/ci
 CPUS="${CPUS:-4}"
 MEMORY="${MEMORY:-8g}"
 TTL="${TTL:-2h}"  # long enough for a one-hour fuzz run (see run_remote)
-ALL_JOBS=(format gcc clang san certs mcp fuzz eval e2e)
+ALL_JOBS=(format gcc clang san certs mcp fuzz eval e2e web)
 
-ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com'
+# Hosts the jobs reach. The sandbox's own proxy enforces this list when it is created.
+ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com,pypi.org,files.pythonhosted.org,registry.npmjs.org,**.npmjs.org'
 
 say() { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 ok()  { printf '\033[32m   PASS\033[0m  %s\n' "$*"; }
@@ -128,6 +129,26 @@ job_bench() {
   echo "BENCH-RESULTS-END"
 }
 
+# Web dashboard tests and production build (M3.1). Node comes from a pinned
+# PyPI wheel, because the Ubuntu package is older than the Vite toolchain needs.
+job_web() {
+  local venv="$WORK/node-venv"
+  mkdir -p "$WORK"
+  if [ ! -x "$venv/bin/pip" ]; then
+    rm -rf "$venv"
+    python3 -m venv "$venv" || return 1
+  fi
+  "$venv/bin/python" -m pip install -q "nodejs-wheel-binaries==22.20.0" || return 1
+  local node_dir
+  node_dir="$("$venv/bin/python" -c 'import nodejs_wheel, os; print(os.path.join(os.path.dirname(nodejs_wheel.__file__), "bin"))' 2>/dev/null)"
+  export PATH="$venv/bin:${node_dir}:$PATH"
+  node --version >/dev/null || return 1
+  cd "$SRC/web" || return 1
+  npm ci --no-audit --no-fund >"$WORK/npm-ci.log" 2>&1 || { tail -30 "$WORK/npm-ci.log"; return 1; }
+  npm run build || return 1
+  npm test
+}
+
 job_tidy() {
   [ -f "$WORK/build-clang/compile_commands.json" ] || job_clang >/dev/null || return 1
   find "$SRC/src" -name '*.cpp' -print0 \
@@ -203,10 +224,26 @@ sbx_provision() {
     gcc --version | head -1; clang --version | head -1; cmake --version | head -1'
 }
 
+# A sandbox that is still stopping refuses exec ("is stopping"). Wait until it
+# has settled into running or stopped before using it.
+sbx_settle() {
+  local state i
+  for i in $(seq 1 120); do
+    state=$(sbx --cloud ls 2>/dev/null | grep "[[:space:]]${SBX#shell/}[[:space:]]" | awk '{print $(NF-1)}')
+    case "$state" in
+      stopping|"") sleep 5 ;;
+      *) return 0 ;;
+    esac
+  done
+  echo "error: $SBX did not settle (last state: ${state:-unknown})" >&2
+  return 1
+}
+
 sbx_stop() { say "stopping $SBX"; sbx --cloud stop "$SBX" >/dev/null 2>&1 || true; }
 
 run_remote() {
   local ref="$1" clean="$2" keep="$3"; shift 3
+  sbx_settle   || return 1
   sbx_ensure   || return 1
   sbx_provision || return 1
   # The sandbox stops when its TTL runs out, even in the middle of a run. A fuzz
