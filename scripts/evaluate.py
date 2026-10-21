@@ -143,6 +143,25 @@ def evaluate_staleness(url, work, dataset, fixtures):
     return results, counts, precision, recall
 
 
+def negative_results(summary, scenarios):
+    notes = []
+    modes = {m: summary[f"{m}_recall_at_10"] for m in ("hybrid", "lexical", "vector")}
+    if all(value >= 1.0 for value in modes.values()):
+        notes.append("all three retrieval modes reach mean recall@10 of 1.0 on this set, so "
+                     "it cannot separate them; a harder set is needed before comparing modes")
+    else:
+        for name, value in modes.items():
+            if value < 1.0:
+                notes.append(f"{name} mean recall@10 is {value:.3f}")
+    if summary["hybrid_reciprocal_rank"] < 1.0:
+        notes.append(f"hybrid mean reciprocal rank is {summary['hybrid_reciprocal_rank']:.3f}: "
+                     "some relevant definitions are not ranked first")
+    for scenario in scenarios:
+        if not scenario["correct"]:
+            notes.append(f"stale scenario not as expected: {scenario['name']}")
+    return notes
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bin", default=os.environ.get("VEYLQORA_BIN"))
@@ -183,12 +202,10 @@ def main():
         "retrieval": {"summary": retrieval_summary, "queries": retrieval_rows},
         "stale_detection": {"counts": counts, "precision": precision, "recall": recall,
                             "scenarios": scenarios},
-        # Negative results are recorded even when they are not gated.
-        "negative_results": [
-            f"vector-only mean recall@10 is {retrieval_summary['vector_recall_at_10']:.3f}; "
-            "it is a hashed-token vector, not a semantic one (ADR-0015)",
-            f"lexical-only mean recall@10 is {retrieval_summary['lexical_recall_at_10']:.3f}",
-        ] + [f"stale scenario not as expected: {s['name']}" for s in scenarios if not s["correct"]],
+        # Negative results are recorded even when they are not gated. Each note is
+        # written only when the numbers show it, so the report cannot claim a gap
+        # that is not there.
+        "negative_results": negative_results(retrieval_summary, scenarios),
     }
     out = pathlib.Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
