@@ -146,6 +146,16 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
         },
     },
+    "3.5a": {
+        "title": "Outbound bridge: product-neutral contract, shared-only sharing, https-only remotes",
+        "sources": [
+            "adapters/*", "adapters/contracts/*", "adapters/tests/*", "scripts/ci.sh",
+            "scripts/certify.py", "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "adapters", "certs"],
+        },
+    },
     "3.1": {
         "title": "Web interface: retrieval inspector, memory timeline, visual code graph; browser tests",
         "sources": [

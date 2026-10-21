@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://veylqora.local/contracts/outbound-v1.schema.json",
+  "title": "Veylqora outbound batch, contract veylqora.outbound.v1",
+  "description": "What the outbound bridge may send to any receiver. Snapshots of shared memories only: no private memories, no memory content, no code. The receiver is any system that accepts this shape; nothing here is specific to one product.",
+  "type": "object",
+  "required": ["contract", "project", "events"],
+  "additionalProperties": false,
+  "properties": {
+    "contract": { "const": "veylqora.outbound.v1" },
+    "project": { "type": "string", "minLength": 1 },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "revision", "state", "scope", "at"],
+        "additionalProperties": false,
+        "properties": {
+          "type": { "const": "memory.snapshot" },
+          "id": { "type": "string", "minLength": 1 },
+          "revision": { "type": "integer", "minimum": 1 },
+          "state": {
+            "enum": [
+              "active", "suspected_stale", "superseded", "invalidated", "evidence_missing", "archived"
+            ]
+          },
+          "scope": { "enum": ["shared", "approved"] },
+          "at": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

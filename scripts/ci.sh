@@ -29,7 +29,7 @@ CHECKOUT=/home/agent/ci
 CPUS="${CPUS:-4}"
 MEMORY="${MEMORY:-8g}"
 TTL="${TTL:-2h}"  # long enough for a one-hour fuzz run (see run_remote)
-ALL_JOBS=(format gcc clang san certs mcp fuzz eval e2e web)
+ALL_JOBS=(format gcc clang san certs mcp fuzz eval e2e web adapters)
 
 # Hosts the jobs reach. The sandbox's own proxy enforces this list when it is created.
 ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com,pypi.org,files.pythonhosted.org,registry.npmjs.org,**.npmjs.org,registry-1.docker.io,auth.docker.io,production.cloudflare.docker.com,production.cloudfront.docker.com'
@@ -183,6 +183,19 @@ job_container() {
   docker exec -e VEYLQORA_FIXTURES=/workspace "$name" python3 /opt/veylqora/scripts/e2e_mcp.py     || { echo "MCP check in the container failed"; rc=1; }
   docker rm -f "$name" >/dev/null 2>&1
   return "$rc"
+}
+
+# Outbound bridge contract tests (M3.5a): the bridge against a fake receiver on
+# loopback, and the contract schema. No product's service is involved.
+job_adapters() {
+  local venv="$WORK/adapters-venv"
+  mkdir -p "$WORK"
+  if [ ! -x "$venv/bin/pip" ]; then
+    rm -rf "$venv"
+    python3 -m venv "$venv" || return 1
+  fi
+  "$venv/bin/python" -m pip install -q -r "$SRC/adapters/requirements.txt" || return 1
+  "$venv/bin/python" -m pytest -q "$SRC/adapters/tests"
 }
 
 job_tidy() {
