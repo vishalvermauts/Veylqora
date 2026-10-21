@@ -1,0 +1,277 @@
+{
+  "gates": {
+    "retrieval_hybrid_recall_at_10": {
+      "threshold": 0.9,
+      "value": 1.0,
+      "passed": true
+    },
+    "stale_precision": {
+      "threshold": 0.8,
+      "value": 1.0,
+      "passed": true
+    },
+    "stale_recall": {
+      "threshold": 0.7,
+      "value": 1.0,
+      "passed": true
+    }
+  },
+  "passed": true,
+  "retrieval": {
+    "summary": {
+      "hybrid_recall_at_10": 1.0,
+      "lexical_recall_at_10": 1.0,
+      "vector_recall_at_10": 1.0,
+      "hybrid_reciprocal_rank": 0.875
+    },
+    "queries": [
+      {
+        "query": "token verification",
+        "relevant": [
+          "auth.tokens.TokenStore",
+          "auth.tokens.issue_token",
+          "auth.tokens.verify_token"
+        ],
+        "hybrid_recall_at_10": 1.0,
+        "hybrid_reciprocal_rank": 1.0,
+        "hybrid_top_3": [
+          "auth.tokens.verify_token",
+          "auth.tokens.TokenStore",
+          "auth.tokens.issue_token"
+        ],
+        "lexical_recall_at_10": 1.0,
+        "vector_recall_at_10": 1.0
+      },
+      {
+        "query": "password hashing",
+        "relevant": [
+          "auth.passwords.check_password",
+          "auth.passwords.check_password_async",
+          "auth.passwords.hash_password"
+        ],
+        "hybrid_recall_at_10": 1.0,
+        "hybrid_reciprocal_rank": 1.0,
+        "hybrid_top_3": [
+          "auth.passwords.check_password",
+          "auth.passwords.hash_password",
+          "auth.passwords.check_password_async"
+        ],
+        "lexical_recall_at_10": 1.0,
+        "vector_recall_at_10": 1.0
+      },
+      {
+        "query": "format money cents",
+        "relevant": [
+          "billing.invoice.format_money"
+        ],
+        "hybrid_recall_at_10": 1.0,
+        "hybrid_reciprocal_rank": 1.0,
+        "hybrid_top_3": [
+          "billing.invoice.format_money",
+          "billing.invoice.Invoice.add_line",
+          "billing.tax.tax_for"
+        ],
+        "lexical_recall_at_10": 1.0,
+        "vector_recall_at_10": 1.0
+      },
+      {
+        "query": "tax rate lookup",
+        "relevant": [
+          "billing.tax.TaxTable.lookup",
+          "billing.tax.tax_for"
+        ],
+        "hybrid_recall_at_10": 1.0,
+        "hybrid_reciprocal_rank": 0.5,
+        "hybrid_top_3": [
+          "billing.tax.TaxTable",
+          "billing.tax.TaxTable.lookup",
+          "billing.tax.tax_for"
+        ],
+        "lexical_recall_at_10": 1.0,
+        "vector_recall_at_10": 1.0
+      },
+      {
+        "query": "health status route",
+        "relevant": [
+          "api.routes.health"
+        ],
+        "hybrid_recall_at_10": 1.0,
+        "hybrid_reciprocal_rank": 1.0,
+        "hybrid_top_3": [
+          "api.routes.health"
+        ],
+        "lexical_recall_at_10": 1.0,
+        "vector_recall_at_10": 1.0
+      },
+      {
+        "query": "log request middleware",
+        "relevant": [
+          "api.middleware.RequestLogger.__call__",
+          "api.middleware.log_request"
+        ],
+        "hybrid_recall_at_10": 1.0,
+        "hybrid_reciprocal_rank": 1.0,
+        "hybrid_top_3": [
+          "api.middleware.log_request",
+          "api.middleware.RequestLogger",
+          "api.middleware.RequestLogger.__init__"
+        ],
+        "lexical_recall_at_10": 1.0,
+        "vector_recall_at_10": 1.0
+      },
+      {
+        "query": "slugify text",
+        "relevant": [
+          "util.text.slugify"
+        ],
+        "hybrid_recall_at_10": 1.0,
+        "hybrid_reciprocal_rank": 1.0,
+        "hybrid_top_3": [
+          "util.text.slugify",
+          "util.text.truncate",
+          "billing.invoice.Invoice.compute_total"
+        ],
+        "lexical_recall_at_10": 1.0,
+        "vector_recall_at_10": 1.0
+      },
+      {
+        "query": "measure timing wrapper",
+        "relevant": [
+          "util.timing.measure"
+        ],
+        "hybrid_recall_at_10": 1.0,
+        "hybrid_reciprocal_rank": 0.5,
+        "hybrid_top_3": [
+          "util.timing.measure.wrapper",
+          "util.timing.measure",
+          "auth.passwords.hash_password"
+        ],
+        "lexical_recall_at_10": 1.0,
+        "vector_recall_at_10": 1.0
+      }
+    ]
+  },
+  "stale_detection": {
+    "counts": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 18
+    },
+    "precision": 1.0,
+    "recall": 1.0,
+    "scenarios": [
+      {
+        "name": "cited body edited",
+        "expected_flagged": [
+          "verify"
+        ],
+        "states": {
+          "verify": "suspected_stale",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "unrelated function edited",
+        "expected_flagged": [],
+        "states": {
+          "verify": "active",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "comment added inside cited body",
+        "expected_flagged": [],
+        "states": {
+          "verify": "active",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "trailing whitespace only",
+        "expected_flagged": [],
+        "states": {
+          "verify": "active",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "renamed, body unchanged",
+        "expected_flagged": [],
+        "states": {
+          "verify": "active",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "moved to another file, body unchanged",
+        "expected_flagged": [],
+        "states": {
+          "verify": "active",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "signature changed",
+        "expected_flagged": [
+          "verify"
+        ],
+        "states": {
+          "verify": "suspected_stale",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "edited, then reverted",
+        "expected_flagged": [],
+        "states": {
+          "verify": "active",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "cited symbol deleted",
+        "expected_flagged": [
+          "verify"
+        ],
+        "states": {
+          "verify": "evidence_missing",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "unrelated file added",
+        "expected_flagged": [],
+        "states": {
+          "verify": "active",
+          "slugify": "active"
+        },
+        "correct": true
+      },
+      {
+        "name": "other memory's cited body edited",
+        "expected_flagged": [
+          "slugify"
+        ],
+        "states": {
+          "verify": "active",
+          "slugify": "suspected_stale"
+        },
+        "correct": true
+      }
+    ]
+  },
+  "negative_results": [
+    "all three retrieval modes reach mean recall@10 of 1.0 on this set, so it cannot separate them; a harder set is needed before comparing modes",
+    "hybrid mean reciprocal rank is 0.875: some relevant definitions are not ranked first"
+  ]
+}

@@ -146,6 +146,16 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
         },
     },
+    "3.6a": {
+        "title": "Offline evaluation: labelled retrieval and stale-detection gates, no LLM",
+        "sources": [
+            "CMakeLists.txt", "cmake/*", "include/*", "src/*", "evaluation/*",
+            "scripts/evaluate.py", "scripts/ci.sh", "scripts/certify.py", "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "eval", "certs"],
+        },
+    },
     "3.3": {
         "title": "Security: traversal and isolation tests, fuzzing with sanitizers, history scan",
         "sources": [
