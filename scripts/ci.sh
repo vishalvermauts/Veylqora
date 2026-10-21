@@ -216,8 +216,10 @@ sbx_provision() {
   sbx --cloud exec "$SBX" -- bash -lc '
     set -e
     sudo -n mv /etc/apt/sources.list.d/docker.* /tmp/ 2>/dev/null || true
-    sudo -n apt-get update -qq
-    DEBIAN_FRONTEND=noninteractive sudo -n apt-get install -y -qq --no-install-recommends \
+    # A new sandbox can hold the apt lock while its first-boot updates run: retry.
+    apt_retry() { for n in 1 2 3 4 5 6 7 8 9 10 11 12; do "$@" && return 0; sleep 15; done; return 1; }
+    apt_retry sudo -n apt-get update -qq
+    DEBIAN_FRONTEND=noninteractive apt_retry sudo -n apt-get install -y -qq --no-install-recommends \
       build-essential cmake ninja-build pkg-config ccache \
       clang clang-tidy clang-format lld llvm libsqlite3-dev sqlite3 \
       libclang-rt-dev python3-venv python3-pip
