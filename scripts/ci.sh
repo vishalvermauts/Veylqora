@@ -232,13 +232,18 @@ sbx_provision() {
 # A sandbox that is still stopping refuses exec ("is stopping"). Wait until it
 # has settled into running or stopped before using it.
 sbx_settle() {
-  local state i
-  for i in $(seq 1 120); do
+  # A shutdown from an earlier run can still be in progress after its state reads
+  # "stopped", so require three settled readings in a row.
+  local state i settled=0
+  for i in $(seq 1 240); do
     state=$(sbx --cloud ls 2>/dev/null | grep "[[:space:]]${SBX#shell/}[[:space:]]" | awk '{print $(NF-1)}')
-    case "$state" in
-      stopping) sleep 5 ;;
-      *) return 0 ;;  # running, stopped, or absent (sbx_ensure creates it)
-    esac
+    if [ "$state" = "stopping" ]; then
+      settled=0
+    else
+      settled=$((settled + 1))
+      [ "$settled" -ge 3 ] && return 0  # running, stopped, or absent (sbx_ensure creates it)
+    fi
+    sleep 10
   done
   echo "error: $SBX did not settle (last state: ${state:-unknown})" >&2
   return 1
