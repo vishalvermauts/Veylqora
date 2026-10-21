@@ -231,8 +231,8 @@ sbx_settle() {
   for i in $(seq 1 120); do
     state=$(sbx --cloud ls 2>/dev/null | grep "[[:space:]]${SBX#shell/}[[:space:]]" | awk '{print $(NF-1)}')
     case "$state" in
-      stopping|"") sleep 5 ;;
-      *) return 0 ;;
+      stopping) sleep 5 ;;
+      *) return 0 ;;  # running, stopped, or absent (sbx_ensure creates it)
     esac
   done
   echo "error: $SBX did not settle (last state: ${state:-unknown})" >&2
