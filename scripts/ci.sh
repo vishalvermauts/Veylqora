@@ -258,7 +258,7 @@ sbx_provision() {
     DEBIAN_FRONTEND=noninteractive apt_retry sudo -n apt-get install -y -qq --no-install-recommends \
       build-essential cmake ninja-build pkg-config ccache \
       clang clang-tidy clang-format lld llvm libsqlite3-dev sqlite3 \
-      libclang-rt-dev python3-venv python3-pip
+      libclang-rt-dev python3-venv python3-pip fontconfig fonts-liberation
     gcc --version | head -1; clang --version | head -1; cmake --version | head -1'
 }
 
