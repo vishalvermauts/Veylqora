@@ -29,7 +29,7 @@ CHECKOUT=/home/agent/ci
 CPUS="${CPUS:-4}"
 MEMORY="${MEMORY:-8g}"
 TTL="${TTL:-2h}"  # long enough for a one-hour fuzz run (see run_remote)
-ALL_JOBS=(format gcc clang san certs mcp fuzz eval)
+ALL_JOBS=(format gcc clang san certs mcp fuzz eval e2e)
 
 ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com'
 
@@ -99,6 +99,20 @@ job_eval() {
   job_gcc >/dev/null || return 1
   VEYLQORA_BIN="$WORK/build-gcc/src/veylqora" python3 "$SRC/scripts/evaluate.py"     --out "$WORK/results.json" || { cat "$WORK/results.json" 2>/dev/null; return 1; }
   cat "$WORK/results.json"
+}
+
+# End-to-end packaging check (M3.4): install, start, index, CLI search, MCP
+# connect, restart, backup and restore, in a clean directory. Uses the MCP venv.
+job_e2e() {
+  local venv="$WORK/mcp-venv"
+  mkdir -p "$WORK"
+  if [ ! -x "$venv/bin/pip" ]; then
+    rm -rf "$venv"
+    python3 -m venv "$venv" || return 1
+  fi
+  "$venv/bin/python" -m pip install -q -r "$SRC/mcp/requirements.txt" || return 1
+  job_gcc >/dev/null || return 1
+  bash "$SRC/scripts/e2e.sh" "$WORK/build-gcc/src/veylqora" "$SRC/tests/fixtures/python"     "$venv/bin/python"
 }
 
 job_tidy() {
