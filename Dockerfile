@@ -24,6 +24,7 @@ COPY mcp/requirements.txt /opt/veylqora/mcp/requirements.txt
 RUN python3 -m venv /opt/venv \
  && /opt/venv/bin/pip install --no-cache-dir -r /opt/veylqora/mcp/requirements.txt
 COPY mcp /opt/veylqora/mcp
+COPY scripts/e2e_mcp.py /opt/veylqora/scripts/e2e_mcp.py
 ENV PATH="/opt/venv/bin:${PATH}" \
     VEYLQORA_URL="http://127.0.0.1:8765"
 USER veylqora

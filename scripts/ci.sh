@@ -152,6 +152,32 @@ job_web() {
   node "$npm_cli" test
 }
 
+# Container image (M3.4): build it, start it, wait for its health check, then run
+# the CLI and the MCP check inside the container against a read-only fixture.
+job_container() {
+  local image="veylqora:ci" name="veylqora-ci-test" rc=0
+  docker build -t "$image" "$SRC" >"$WORK/docker-build.log" 2>&1     || { tail -40 "$WORK/docker-build.log"; return 1; }
+  docker rm -f "$name" >/dev/null 2>&1 || true
+  docker run -d --name "$name" -v "$SRC/tests/fixtures/python:/workspace:ro" "$image" >/dev/null     || return 1
+  local health="" i
+  for i in $(seq 1 60); do
+    health=$(docker inspect -f '{{.State.Health.Status}}' "$name" 2>/dev/null)
+    [ "$health" = healthy ] && break
+    sleep 2
+  done
+  if [ "$health" != healthy ]; then
+    echo "container did not become healthy (status: ${health:-unknown})"
+    docker logs "$name" 2>&1 | tail -40
+    docker rm -f "$name" >/dev/null 2>&1
+    return 1
+  fi
+  docker exec "$name" veylqora index /workspace --server http://127.0.0.1:8765 || rc=1
+  docker exec "$name" veylqora search verify_token --root /workspace --server http://127.0.0.1:8765     | grep -q "auth.tokens.verify_token" || { echo "search in the container missed verify_token"; rc=1; }
+  docker exec -e VEYLQORA_FIXTURES=/workspace "$name" python3 /opt/veylqora/scripts/e2e_mcp.py     || { echo "MCP check in the container failed"; rc=1; }
+  docker rm -f "$name" >/dev/null 2>&1
+  return "$rc"
+}
+
 job_tidy() {
   [ -f "$WORK/build-clang/compile_commands.json" ] || job_clang >/dev/null || return 1
   find "$SRC/src" -name '*.cpp' -print0 \
