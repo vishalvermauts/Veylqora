@@ -187,7 +187,7 @@ run_remote() {
     git -C $CHECKOUT reset --hard --quiet $ref
     git -C $CHECKOUT clean -xfdq
     echo \"testing \$(git -C $CHECKOUT log --oneline -1)\"
-    bash $CHECKOUT/scripts/ci.sh --native $*"
+    FUZZ_SECONDS=$FUZZ_SECONDS bash $CHECKOUT/scripts/ci.sh --native $*"
 }
 
 # ================================== dispatch ================================
