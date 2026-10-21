@@ -143,10 +143,13 @@ job_web() {
   node_dir="$("$venv/bin/python" -c 'import nodejs_wheel, os; print(os.path.join(os.path.dirname(nodejs_wheel.__file__), "bin"))' 2>/dev/null)"
   export PATH="$venv/bin:${node_dir}:$PATH"
   node --version >/dev/null || return 1
+  # The wheel's own `npm` launcher is broken; run npm's entry point through its node.
+  local npm_cli="${node_dir%/bin}/lib/node_modules/npm/bin/npm-cli.js"
+  [ -f "$npm_cli" ] || { echo "error: npm not found in the Node wheel" >&2; return 1; }
   cd "$SRC/web" || return 1
-  npm ci --no-audit --no-fund >"$WORK/npm-ci.log" 2>&1 || { tail -30 "$WORK/npm-ci.log"; return 1; }
-  npm run build || return 1
-  npm test
+  node "$npm_cli" ci --no-audit --no-fund >"$WORK/npm-ci.log" 2>&1     || { tail -30 "$WORK/npm-ci.log"; return 1; }
+  node "$npm_cli" run build || return 1
+  node "$npm_cli" test
 }
 
 job_tidy() {
