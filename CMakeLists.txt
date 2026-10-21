@@ -29,3 +29,12 @@ if(VEYLQORA_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
+
+# Fuzz targets need Clang's libFuzzer (M3.3). They are off by default.
+option(VEYLQORA_FUZZ "Build the libFuzzer targets (Clang only)" OFF)
+if(VEYLQORA_FUZZ)
+  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    message(FATAL_ERROR "VEYLQORA_FUZZ needs Clang: libFuzzer is not available with ${CMAKE_CXX_COMPILER_ID}")
+  endif()
+  add_subdirectory(tests/fuzz)
+endif()

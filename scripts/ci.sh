@@ -29,7 +29,7 @@ CHECKOUT=/home/agent/ci
 CPUS="${CPUS:-4}"
 MEMORY="${MEMORY:-8g}"
 TTL="${TTL:-30m}"
-ALL_JOBS=(format gcc clang san certs mcp)
+ALL_JOBS=(format gcc clang san certs mcp fuzz)
 
 ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com'
 
@@ -97,6 +97,38 @@ job_tidy() {
   [ -f "$WORK/build-clang/compile_commands.json" ] || job_clang >/dev/null || return 1
   find "$SRC/src" -name '*.cpp' -print0 \
     | xargs -0 -r clang-tidy -p "$WORK/build-clang" --quiet
+}
+
+# Fuzz smoke run (M3.3): each target runs for FUZZ_SECONDS from a corpus seeded
+# with the fixtures, under ASan and UBSan. A crash fails the job, and the input
+# that caused it is kept in $WORK/fuzz-artifacts for inspection.
+FUZZ_SECONDS="${FUZZ_SECONDS:-60}"
+FUZZ_TARGETS=(fuzz_python_parser fuzz_javascript_parser fuzz_retrieval_query fuzz_memory_json)
+
+job_fuzz() {
+  local dir="$WORK/build-fuzz" failed=0 t corpus artifacts
+  CC=clang CXX=clang++ cmake -S "$SRC" -B "$dir" -G Ninja \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVEYLQORA_FUZZ=ON -DVEYLQORA_BUILD_TESTS=OFF \
+    -DVEYLQORA_SANITIZER=address+undefined \
+    >"$dir.configure.log" 2>&1 || { tail -30 "$dir.configure.log"; return 1; }
+  cmake --build "$dir" -j "$JOBS" --target "${FUZZ_TARGETS[@]}" \
+    >"$dir.build.log" 2>&1 || { tail -40 "$dir.build.log"; return 1; }
+  for t in "${FUZZ_TARGETS[@]}"; do
+    corpus="$WORK/corpus-$t"
+    artifacts="$WORK/fuzz-artifacts/$t"
+    rm -rf "$corpus" "$artifacts"
+    mkdir -p "$corpus" "$artifacts"
+    cp -r "$SRC/tests/fixtures/." "$corpus/"
+    say "fuzz $t ($FUZZ_SECONDS s)"
+    if "$dir/tests/fuzz/$t" "$corpus" -max_total_time="$FUZZ_SECONDS" \
+         -artifact_prefix="$artifacts/" -print_final_stats=1 >"$WORK/$t.fuzz.log" 2>&1; then
+      tail -2 "$WORK/$t.fuzz.log"
+    else
+      tail -40 "$WORK/$t.fuzz.log"
+      failed=$((failed + 1))
+    fi
+  done
+  return "$failed"
 }
 
 run_native() {
