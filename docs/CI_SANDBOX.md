@@ -47,6 +47,18 @@ why runs failed, and the settings in use. Update it when a setting changes.
   `npm run build` and `npm test`.
 - The account-level cloud policy allows `registry.npmjs.org` and `*.npmjs.org`.
 
+## Found while enabling it
+
+- A sandbox listing can read "stopped" while a shutdown is still finishing. Exec
+  is refused until it does, so the script now probes with a real exec before a run.
+- A new sandbox can hold the apt lock during its first-boot updates. Provisioning
+  retries apt for up to three minutes.
+- The Node wheel's own `npm` launcher is broken. The web job runs npm's entry
+  point through the wheel's Node instead.
+
+Verified: the full default suite (format, gcc, clang, san, certs, mcp, fuzz,
+eval, e2e, web) passes on the recreated sandbox.
+
 ## Standing limits
 
 - A sandbox is recreated when it is older than about 20 hours, since the
