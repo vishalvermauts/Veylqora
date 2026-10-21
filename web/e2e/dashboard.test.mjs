@@ -102,7 +102,9 @@ describe("dashboard in a real browser", () => {
   });
 
   it("moves between tabs with the arrow keys", async () => {
+    // Arrow keys move from the selected tab, so select Overview first.
     const overview = page.getByRole("tab", { name: "Overview" });
+    await overview.click();
     await overview.focus();
     await page.keyboard.press("ArrowRight");
     assert.equal(await page.getByRole("tab", { name: "Search" }).getAttribute("aria-selected"), "true");
