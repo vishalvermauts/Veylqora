@@ -146,6 +146,17 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
         },
     },
+    "3.2": {
+        "title": "Performance: benchmark matrix at three corpus sizes, variance across runs, manifest",
+        "sources": [
+            "CMakeLists.txt", "cmake/*", "include/*", "src/*", "scripts/bench.py",
+            "scripts/ci.sh", "scripts/certify.py", "scripts/verify_certs.py",
+            "docs/benchmarks/*",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "bench", "certs"],
+        },
+    },
     "3.4": {
         "title": "Packaging: container files, checked backup and restore, end-to-end install-to-restore",
         "sources": [
