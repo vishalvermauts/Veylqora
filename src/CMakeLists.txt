@@ -18,7 +18,8 @@ add_library(veylqora_core
   retrieval/search.cpp
   memory/transfer.cpp
   observability/observability.cpp
-  storage/database.cpp)
+  storage/database.cpp
+  storage/backup.cpp)
 
 target_include_directories(veylqora_core
   PUBLIC ${CMAKE_SOURCE_DIR}/include)

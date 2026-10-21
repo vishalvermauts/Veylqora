@@ -5,6 +5,7 @@
 #include "veylqora/graph/query.hpp"
 #include "veylqora/memory/transfer.hpp"
 #include "veylqora/observability/observability.hpp"
+#include "veylqora/storage/backup.hpp"
 #include "veylqora/server/server.hpp"
 
 #include <atomic>
@@ -364,6 +365,20 @@ int run(const Args& args) {
     } else {
       const std::size_t n = veylqora::import_memories(db, args.positional[2]);
       std::cout << "imported " << n << " memories from " << args.positional[2] << '\n';
+    }
+    return kExitOk;
+  }
+
+  if (command == "backup" || command == "restore") {
+    if (db_path.empty() || args.positional.size() != 2) return usage(), kExitUsage;
+    veylqora::FileLock lock(db_path + ".lock");  // no daemon may write meanwhile (ADR-0004)
+    if (command == "backup") {
+      veylqora::Database db(db_path);
+      veylqora::backup_database(db, args.positional[1]);
+      std::cout << "backed up " << db_path << " to " << args.positional[1] << '\n';
+    } else {
+      veylqora::restore_database(args.positional[1], db_path);
+      std::cout << "restored " << db_path << " from " << args.positional[1] << '\n';
     }
     return kExitOk;
   }
