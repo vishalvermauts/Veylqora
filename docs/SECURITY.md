@@ -25,6 +25,20 @@ Status: threat model for M1.1 (the vertical slice). It is refreshed in M3.3.
 | Projects read each other's symbols | Every row carries `project_id`; queries filter on it | `src/index/indexer.cpp` | `projects sharing one database` integration test |
 | Instructions inside source files are obeyed | Source text is stored and returned as data; nothing interprets it | whole indexer | by construction; LLM-assisted paths in M2 are gated (plan §10.4) |
 
+## Controls added in M3.3
+
+| Threat | Control | Where | Tested by |
+|---|---|---|---|
+| Static web mount serves a file outside its directory | Encoded and double-encoded `../` requests never return a file outside the mounted directory | `src/server/server.cpp` (cpp-httplib mount) | `static web mount: traversal to a file outside the root is never served` (11 variants) |
+| Hostile path-like API inputs cause a server error or echo file content | Such inputs return a 4xx or an empty result, and file content is never echoed | `src/api/service.cpp`, `src/server/server.cpp` | `API path inputs that look like traversal fail cleanly` |
+| Crash on malformed Python, JavaScript or TypeScript source | Parsers return partial results or a reported error | `src/index/python_parser.cpp`, `src/index/javascript_parser.cpp` | `fuzz_python_parser`, `fuzz_javascript_parser` (libFuzzer, ASan and UBSan) |
+| Crash or hang on hostile search queries | Queries are bounded and malformed ones return a 4xx | `src/retrieval/search.cpp` | `fuzz_retrieval_query` |
+| Crash on malformed or hostile JSON request bodies | Bodies are parsed and validated; failures are 400s | `src/api/service.cpp` | `fuzz_memory_json` |
+| Credentials committed to the repository | History scanned for provider token patterns and credential-like file names | repository | pattern scan of 169 commits and 245 paths; no match |
+
+The fuzz targets are a pattern-based check, not a substitute for a dedicated
+secret scanner, and the history scan covers token formats only.
+
 ## Known gaps (accepted for M1.1, tracked)
 
 - **No secret redaction yet.** Indexed source, including any secrets it

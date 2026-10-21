@@ -146,6 +146,17 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
         },
     },
+    "3.3": {
+        "title": "Security: traversal and isolation tests, fuzzing with sanitizers, history scan",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*",
+            "tests/*", "mcp/*", "docs/SECURITY.md", "scripts/ci.sh", "scripts/certify.py",
+            "scripts/verify_certs.py",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs", "mcp", "fuzz"],
+        },
+    },
     "1.3b": {
         "title": "Code graph (JavaScript, TypeScript): per-language labelled precision and recall",
         "sources": [
