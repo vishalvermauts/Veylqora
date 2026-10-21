@@ -174,6 +174,12 @@ run_remote() {
   local ref="$1" clean="$2" keep="$3"; shift 3
   sbx_ensure   || return 1
   sbx_provision || return 1
+  # The sandbox stops when its TTL runs out, even in the middle of a run. A fuzz
+  # run is longer than the default 30 minutes, so extend the TTL first (the
+  # server ceiling is 24 hours from creation). Failure here is not fatal.
+  if [[ " $* " == *" fuzz "* ]]; then
+    sbx --cloud ttl "+$(( FUZZ_SECONDS * ${#FUZZ_TARGETS[@]} / 60 + 60 ))m" "$SBX" >/dev/null 2>&1 || true
+  fi
   [ "$keep" = 1 ] || trap sbx_stop EXIT
 
   sbx --cloud exec "$SBX" -- bash -lc "
