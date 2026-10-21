@@ -8,7 +8,7 @@
 FROM ubuntu:24.04 AS build
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      build-essential cmake ninja-build pkg-config libsqlite3-dev ca-certificates \
+      build-essential cmake ninja-build pkg-config libsqlite3-dev ca-certificates git \
  && rm -rf /var/lib/apt/lists/*
 COPY . /src
 RUN cmake -S /src -B /build -G Ninja -DCMAKE_BUILD_TYPE=Release -DVEYLQORA_BUILD_TESTS=OFF \
