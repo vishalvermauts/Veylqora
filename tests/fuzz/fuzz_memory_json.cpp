@@ -43,7 +43,8 @@ State& state() {
 extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
   State& st = state();
   try {
-    const auto body = nlohmann::json::parse(std::string(reinterpret_cast<const char*>(data), size));
+    const auto body =
+        nlohmann::json::parse(std::string(reinterpret_cast<const char*>(data), size));
     (void)veylqora::api::memory_create(*st.db, st.clock, st.ids, kFixtures, body);
   } catch (const veylqora::Error&) {
     // A rejected body is the documented 400 path.

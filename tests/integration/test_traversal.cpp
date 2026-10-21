@@ -31,8 +31,8 @@ void write(const fs::path& p, const std::string& text) {
 // Serves with a mounted web directory for the lifetime of the object.
 class WebServer {
  public:
-  WebServer(veylqora::Database& db, const veylqora::Clock& clock, veylqora::IdGenerator& ids,
-            const fs::path& web)
+  WebServer(veylqora::Database& db, const veylqora::Clock& clock,
+            veylqora::IdGenerator& ids, const fs::path& web)
       : server_(db, clock, ids) {
     server_.mount_web(web.string());
     port_ = server_.bind("127.0.0.1", 0);
@@ -75,10 +75,17 @@ TEST_CASE("static web mount: traversal to a file outside the root is never serve
   CHECK(served->body.find("ok") != std::string::npos);
 
   const char* attacks[] = {
-      "/../secret.txt",          "/..%2fsecret.txt",       "/%2e%2e/secret.txt",
-      "/%2e%2e%2fsecret.txt",    "/..%5csecret.txt",       "/%2e%2e%5csecret.txt",
-      "/%252e%252e/secret.txt",  "/..//secret.txt",        "/....//secret.txt",
-      "/./../secret.txt",        "/index.html/../../secret.txt",
+      "/../secret.txt",
+      "/..%2fsecret.txt",
+      "/%2e%2e/secret.txt",
+      "/%2e%2e%2fsecret.txt",
+      "/..%5csecret.txt",
+      "/%2e%2e%5csecret.txt",
+      "/%252e%252e/secret.txt",
+      "/..//secret.txt",
+      "/....//secret.txt",
+      "/./../secret.txt",
+      "/index.html/../../secret.txt",
   };
   for (const char* path : attacks) {
     INFO("path: " << path);
@@ -88,7 +95,8 @@ TEST_CASE("static web mount: traversal to a file outside the root is never serve
   }
 }
 
-TEST_CASE("API path inputs that look like traversal fail cleanly, never with a server error") {
+TEST_CASE(
+    "API path inputs that look like traversal fail cleanly, never with a server error") {
   TempDir tmp;
   const fs::path web = tmp.path() / "web";
   write(web / "index.html", "ok");

@@ -11,8 +11,8 @@
 
 extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
   if (size == 0) return 0;
-  const auto dialect =
-      (data[0] & 1) != 0 ? veylqora::JsDialect::typescript : veylqora::JsDialect::javascript;
+  const auto dialect = (data[0] & 1) != 0 ? veylqora::JsDialect::typescript
+                                          : veylqora::JsDialect::javascript;
   const std::string_view source(reinterpret_cast<const char*>(data + 1), size - 1);
   try {
     (void)veylqora::parse_javascript("app.fuzz", "app", source, dialect);
