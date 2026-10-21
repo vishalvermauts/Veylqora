@@ -165,7 +165,7 @@ MODULES = {
             "docs/OPERATIONS.md",
         ],
         "mandatory": {
-            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "certs", "mcp", "e2e"],
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "certs", "mcp", "e2e", "container"],
         },
     },
     "3.6a": {
