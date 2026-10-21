@@ -232,20 +232,18 @@ sbx_provision() {
 # A sandbox that is still stopping refuses exec ("is stopping"). Wait until it
 # has settled into running or stopped before using it.
 sbx_settle() {
-  # A shutdown from an earlier run can still be in progress after its state reads
-  # "stopped", so require three settled readings in a row.
-  local state i settled=0
-  for i in $(seq 1 240); do
-    state=$(sbx --cloud ls 2>/dev/null | grep "[[:space:]]${SBX#shell/}[[:space:]]" | awk '{print $(NF-1)}')
-    if [ "$state" = "stopping" ]; then
-      settled=0
-    else
-      settled=$((settled + 1))
-      [ "$settled" -ge 3 ] && return 0  # running, stopped, or absent (sbx_ensure creates it)
+  # The listing can show "stopped" while a shutdown is still finishing, and exec
+  # is refused until it does. So probe with a real exec until one is accepted.
+  sbx_exists || return 0  # absent: sbx_ensure creates it
+  local i
+  for i in $(seq 1 60); do
+    if sbx --cloud exec "$SBX" -- true >/dev/null 2>&1; then
+      sleep 5  # one more pause: an accepted probe can still be followed by a shutdown
+      sbx --cloud exec "$SBX" -- true >/dev/null 2>&1 && return 0
     fi
-    sleep 10
+    sleep 15
   done
-  echo "error: $SBX did not settle (last state: ${state:-unknown})" >&2
+  echo "error: $SBX would not accept commands (is it stopping?)" >&2
   return 1
 }
 
