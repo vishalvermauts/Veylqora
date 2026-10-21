@@ -149,7 +149,14 @@ job_web() {
   cd "$SRC/web" || return 1
   node "$npm_cli" ci --no-audit --no-fund >"$WORK/npm-ci.log" 2>&1     || { tail -30 "$WORK/npm-ci.log"; return 1; }
   node "$npm_cli" run build || return 1
-  node "$npm_cli" test
+  node "$npm_cli" test || return 1
+  # Browser tests (M3.1): a real daemon serves the built app and a real Chromium
+  # uses it. The binary comes from the gcc job's build.
+  job_gcc >/dev/null || return 1
+  VEYLQORA_BIN="$WORK/build-gcc/src/veylqora" \
+    VEYLQORA_FIXTURES="$SRC/tests/fixtures/python" \
+    WEB_DIST="$SRC/web/dist" \
+    node --test e2e/dashboard.test.mjs
 }
 
 # Container image (M3.4): build it, start it, wait for its health check, then run
