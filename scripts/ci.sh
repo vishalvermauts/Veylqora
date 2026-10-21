@@ -115,6 +115,19 @@ job_e2e() {
   bash "$SRC/scripts/e2e.sh" "$WORK/build-gcc/src/veylqora" "$SRC/tests/fixtures/python"     "$venv/bin/python"
 }
 
+# Performance benchmarks (M3.2). A Release build, because a debug or instrumented
+# build measures the wrong thing. Not in the default set: it takes minutes.
+job_bench() {
+  local dir="$WORK/build-bench"
+  mkdir -p "$WORK"
+  cmake -S "$SRC" -B "$dir" -G Ninja -DCMAKE_BUILD_TYPE=Release -DVEYLQORA_BUILD_TESTS=OFF     >"$dir.configure.log" 2>&1 || { tail -30 "$dir.configure.log"; return 1; }
+  cmake --build "$dir" --target veylqora -j "$JOBS" >"$dir.build.log" 2>&1     || { tail -40 "$dir.build.log"; return 1; }
+  VEYLQORA_BIN="$dir/src/veylqora" python3 "$SRC/scripts/bench.py" --out "$WORK/bench-out"     || return 1
+  echo "BENCH-RESULTS-BEGIN"
+  cat "$WORK/bench-out/results.json"
+  echo "BENCH-RESULTS-END"
+}
+
 job_tidy() {
   [ -f "$WORK/build-clang/compile_commands.json" ] || job_clang >/dev/null || return 1
   find "$SRC/src" -name '*.cpp' -print0 \
