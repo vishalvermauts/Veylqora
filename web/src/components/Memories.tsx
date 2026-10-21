@@ -5,6 +5,14 @@ import type { MemoryDetail, MemorySummary } from "../types";
 
 const STATES = ["", "active", "suspected_stale", "superseded", "invalidated", "evidence_missing", "archived"];
 
+// Revisions and state changes merged into one list, oldest first. Timestamps are
+// fixed-width UTC strings, so sorting them as text sorts them by time.
+function timelineOf(m: MemoryDetail): { at: string; text: string }[] {
+  const revisions = m.history.map((h) => ({ at: h.at, text: `revision ${h.revision}: ${h.state}, by ${h.actor}: ${h.reason}` }));
+  const changes = m.transitions.map((t) => ({ at: t.at, text: `${t.from} → ${t.to} by ${t.actor}: ${t.reason}` }));
+  return [...revisions, ...changes].sort((a, b) => a.at.localeCompare(b.at));
+}
+
 // Memories are listed with their state; selecting one shows its evidence,
 // revision history and state transitions. Nothing here writes.
 export function Memories({ root }: { root: string | null }) {
@@ -69,6 +77,22 @@ export function Memories({ root }: { root: string | null }) {
                     ))}
                   </ul>
                 )}
+                {m.superseded_by && (
+                  <p>
+                    Superseded by{" "}
+                    <button type="button" onClick={() => setSelected(m.superseded_by ?? null)}>
+                      {m.superseded_by}
+                    </button>
+                  </p>
+                )}
+                <h4>Timeline</h4>
+                <ol aria-label="timeline">
+                  {timelineOf(m).map((entry, i) => (
+                    <li key={i}>
+                      <time dateTime={entry.at}>{entry.at}</time> — {entry.text}
+                    </li>
+                  ))}
+                </ol>
                 <h4>Revisions</h4>
                 <ol>
                   {m.history.map((h) => (

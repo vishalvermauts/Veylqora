@@ -2,11 +2,13 @@ import { useState, type KeyboardEvent } from "react";
 import { Graph } from "./components/Graph";
 import { Memories } from "./components/Memories";
 import { Overview } from "./components/Overview";
+import { Retrieval } from "./components/Retrieval";
 import { Search } from "./components/Search";
 
 const VIEWS = [
   { id: "overview", label: "Overview", render: (root: string | null) => <Overview root={root} /> },
   { id: "search", label: "Search", render: (root: string | null) => <Search root={root} /> },
+  { id: "retrieval", label: "Retrieval", render: (root: string | null) => <Retrieval root={root} /> },
   { id: "graph", label: "Graph", render: (root: string | null) => <Graph root={root} /> },
   { id: "memories", label: "Memories", render: (root: string | null) => <Memories root={root} /> },
 ] as const;

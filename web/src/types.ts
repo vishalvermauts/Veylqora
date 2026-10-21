@@ -56,3 +56,16 @@ export interface MemoryDetail extends MemorySummary {
   history: { revision: number; content: string; state: string; actor: string; reason: string; at: string }[];
   transitions: { from: string; to: string; actor: string; reason: string; at: string }[];
 }
+
+export interface RetrieveHit {
+  fqn: string;
+  path: string;
+  kind: string;
+  line: number;
+  score: number;
+}
+
+export interface RetrieveResponse {
+  query: string;
+  hits: RetrieveHit[];
+}
