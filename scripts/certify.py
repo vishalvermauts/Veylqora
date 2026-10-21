@@ -146,6 +146,17 @@ MODULES = {
             "ci": ["bash", "scripts/ci.sh", "format", "gcc", "clang", "san", "certs"],
         },
     },
+    "3.4": {
+        "title": "Packaging: container files, checked backup and restore, end-to-end install-to-restore",
+        "sources": [
+            "CMakeLists.txt", ".clang-format", "cmake/*", "include/*", "src/*", "tests/*",
+            "mcp/*", "scripts/*", "Dockerfile", "docker-compose.yml", ".dockerignore",
+            "docs/OPERATIONS.md",
+        ],
+        "mandatory": {
+            "ci": ["bash", "scripts/ci.sh", "format", "gcc", "certs", "mcp", "e2e"],
+        },
+    },
     "3.6a": {
         "title": "Offline evaluation: labelled retrieval and stale-detection gates, no LLM",
         "sources": [
