@@ -11,7 +11,11 @@ RUN apt-get update \
       build-essential cmake ninja-build pkg-config libsqlite3-dev ca-certificates git \
  && rm -rf /var/lib/apt/lists/*
 COPY . /src
+# Warnings are not errors in this image build: Ubuntu 24.04's GCC 13 reports a
+# false positive in picosha2 that the CI compilers (GCC 15, Clang) do not. The
+# warnings-as-errors gate still runs in the gcc and clang CI jobs.
 RUN cmake -S /src -B /build -G Ninja -DCMAKE_BUILD_TYPE=Release -DVEYLQORA_BUILD_TESTS=OFF \
+ -DVEYLQORA_WERROR=OFF \
  && cmake --build /build --target veylqora
 
 FROM ubuntu:24.04
