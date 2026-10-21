@@ -32,7 +32,7 @@ TTL="${TTL:-2h}"  # long enough for a one-hour fuzz run (see run_remote)
 ALL_JOBS=(format gcc clang san certs mcp fuzz eval e2e web)
 
 # Hosts the jobs reach. The sandbox's own proxy enforces this list when it is created.
-ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com,pypi.org,files.pythonhosted.org,registry.npmjs.org,**.npmjs.org'
+ALLOW_NET='**.debian.org,**.ubuntu.com,github.com,**.github.com,**.githubusercontent.com,codeload.github.com,pypi.org,files.pythonhosted.org,registry.npmjs.org,**.npmjs.org,registry-1.docker.io,auth.docker.io,production.cloudflare.docker.com'
 
 say() { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 ok()  { printf '\033[32m   PASS\033[0m  %s\n' "$*"; }
