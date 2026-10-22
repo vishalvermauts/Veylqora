@@ -51,7 +51,7 @@ PY = STUDY / "venv" / "bin" / "python"
 CLAUDE = HOME / ".local" / "node_modules" / "@anthropic-ai" / "claude-code-linux-x64" / "claude"
 VEYLQORA = HOME / "ci-work" / "build-gcc" / "src" / "veylqora"
 MCP_SERVER = HOME / "ci" / "mcp" / "veylqora_mcp" / "server.py"
-KEY_FILE = HOME / ".veylqora-test.key"
+KEY_FILE = pathlib.Path("/opt/study-private/veylqora-test.key")  # root-only, read through sudo
 PRISTINE = pathlib.Path("/opt/study-pristine/click")  # root-only; the agent cannot read it
 FP_SCRIPT = STUDY / "fp.py"
 RESULTS = STUDY / "results-v2.jsonl"
@@ -202,7 +202,8 @@ def failing_tests(work):
 # ---------- Veylqora daemon and gateway ----------
 
 def key_value():
-    return KEY_FILE.read_text(encoding="utf-8").strip()
+    return subprocess.run(["sudo", "-n", "cat", str(KEY_FILE)], check=True,
+                          capture_output=True, text=True).stdout.strip()
 
 
 def start_daemon(db, log_path):
