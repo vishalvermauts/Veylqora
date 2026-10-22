@@ -68,12 +68,12 @@ RUN_TIMEOUT_S = 900
 SHOWN_FAILURES = 5
 
 PROMPT = (
-    "Some tests in this repository fail. The failing tests are listed below. "
+    "Some tests in this repository fail. The test files that fail are listed below. "
     "Find the bug in the source under src/click and fix it so that the full test suite passes. "
     "You can read and edit files, but you cannot run commands or tests. "
     "Do not modify anything outside src/click: tests, configuration and other files are checked, "
     "and any change to them counts as a failure.\n\n"
-    "Failing tests ({count}):\n{names}"
+    "Failing test files ({count}):\n{names}"
 )
 
 # Generic repository notes for setups C and D. Evidence points at a definition in each
@@ -100,6 +100,15 @@ TOOLS = {
     "B": BASE_TOOLS + VEYLQORA_SEARCH,
     "C": BASE_TOOLS + VEYLQORA_SEARCH + VEYLQORA_MEMORY,
     "D": BASE_TOOLS + VEYLQORA_SEARCH + VEYLQORA_MEMORY + VEYLQORA_CONTEXT,
+}
+# Routes that can run a command or reach the web. Blocking Bash alone is not enough:
+# the agent can ask a subagent (Agent or Task) to run it. Verified with a no-model test.
+COMMAND_ROUTES = ["Bash", "Agent", "Task", "WebFetch", "WebSearch", "NotebookEdit"]
+DISALLOWED = {
+    "A": COMMAND_ROUTES + VEYLQORA_SEARCH + VEYLQORA_MEMORY + VEYLQORA_CONTEXT,
+    "B": COMMAND_ROUTES + VEYLQORA_MEMORY + VEYLQORA_CONTEXT,
+    "C": COMMAND_ROUTES + VEYLQORA_CONTEXT,
+    "D": COMMAND_ROUTES,
 }
 
 
@@ -372,11 +381,13 @@ def run_one(batch, task, setup, claude_version):
         mcp_config = run_dir / "mcp.json"
         mcp_config.write_text(json.dumps({"mcpServers": servers}), encoding="utf-8")
 
-        names = failing[:SHOWN_FAILURES] + (["..."] if len(failing) > SHOWN_FAILURES else [])
-        prompt = PROMPT.format(count=len(failing), names="\n".join(names))
+        files = sorted({test_id.split("::")[0] for test_id in failing})
+        names = files[:SHOWN_FAILURES] + (["..."] if len(files) > SHOWN_FAILURES else [])
+        prompt = PROMPT.format(count=len(files), names="\n".join(names))
         command = [str(CLAUDE), "-p", prompt, "--model", MODEL, "--output-format", "stream-json", "--verbose",
                    "--dangerously-skip-permissions", "--mcp-config", str(mcp_config),
-                   "--strict-mcp-config", "--allowedTools", *TOOLS[setup]]
+                   "--strict-mcp-config", "--allowedTools", *TOOLS[setup],
+                   "--disallowedTools", *DISALLOWED[setup]]
         claude, stdout, stderr, wall = run_agent(work, command, claude_env(run_dir))
         private_write(RAW_DIR / f"{run_id}.stdout.txt", stdout)
         private_write(RAW_DIR / f"{run_id}.stderr.txt", stderr)
