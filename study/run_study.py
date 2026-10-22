@@ -42,8 +42,10 @@ import time
 import urllib.request
 import uuid
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from candidates import CANDIDATES  # noqa: E402
+# The bug list is root-only (the agent's user cannot read it). Loaded through sudo.
+CANDIDATES = [tuple(item) for item in json.loads(subprocess.run(
+    ["sudo", "-n", "cat", "/opt/study-private/candidates.json"],
+    check=True, capture_output=True, text=True).stdout)]
 
 HOME = pathlib.Path.home()
 STUDY = HOME / "study"
@@ -54,9 +56,9 @@ MCP_SERVER = HOME / "ci" / "mcp" / "veylqora_mcp" / "server.py"
 KEY_FILE = pathlib.Path("/opt/study-private/veylqora-test.key")  # root-only, read through sudo
 PRISTINE = pathlib.Path("/opt/study-pristine/click")  # root-only; the agent cannot read it
 FP_SCRIPT = STUDY / "fp.py"
-RESULTS = STUDY / "results-v2.jsonl"
-RAW_DIR = STUDY / "raw-v2"
-RAW_DIR.mkdir(parents=True, exist_ok=True)
+PRIVATE = pathlib.Path("/opt/study-private")  # root-only: answers and earlier results live here
+RESULTS = PRIVATE / "results-v2.jsonl"
+RAW_DIR = PRIVATE / "raw-v2"
 
 GATEWAY = "https://router.helixengine.app"
 MODEL = "gemini-2.5-flash"  # gemini-3.8-flash timed out through the gateway during the study
@@ -120,6 +122,12 @@ def fingerprint(root, as_root=False):
     if as_root:
         cmd = ["sudo", "-n", *cmd]
     return subprocess.run(cmd, check=True, capture_output=True, text=True).stdout.strip()
+
+
+def private_write(path, text, append=False):
+    """Writes a file in the root-only folder through sudo."""
+    args = ["sudo", "-n", "tee"] + (["-a"] if append else []) + [str(path)]
+    subprocess.run(args, input=text, check=True, capture_output=True, text=True)
 
 
 def owner():
@@ -322,7 +330,7 @@ def run_one(batch, task, setup, claude_version):
 
         servers = {}
         if setup != "A":
-            daemon, log, url = start_daemon(run_dir / "v.db", RAW_DIR / f"{run_id}.daemon.log")
+            daemon, log, url = start_daemon(run_dir / "v.db", run_dir / "daemon.log")
             indexed = post(url, "/api/v1/index", {"root": str(work)})
             if indexed.get("indexed", 0) <= 0:
                 raise StudyAbort(f"index returned no files: {indexed}")
@@ -346,8 +354,8 @@ def run_one(batch, task, setup, claude_version):
                    "--dangerously-skip-permissions", "--mcp-config", str(mcp_config),
                    "--strict-mcp-config", "--allowedTools", *TOOLS[setup]]
         claude, stdout, stderr, wall = run_agent(work, command, claude_env(run_dir))
-        (RAW_DIR / f"{run_id}.stdout.txt").write_text(stdout, encoding="utf-8")
-        (RAW_DIR / f"{run_id}.stderr.txt").write_text(stderr, encoding="utf-8")
+        private_write(RAW_DIR / f"{run_id}.stdout.txt", stdout)
+        private_write(RAW_DIR / f"{run_id}.stderr.txt", stderr)
     finally:
         stop_daemon(daemon, log)
 
@@ -375,8 +383,7 @@ def run_one(batch, task, setup, claude_version):
         "claude_version": claude_version,
         "venv_clean_after_run": venv_is_clean(),
     }
-    with RESULTS.open("a", encoding="utf-8") as out:
-        out.write(json.dumps(record) + "\n")
+    private_write(RESULTS, json.dumps(record) + "\n", append=True)
     shutil.rmtree(run_dir, ignore_errors=True)
     return record
 
@@ -396,11 +403,11 @@ def main(argv):
     batch = utc_now().strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:6]
     pairs = [(t, s) for t in tasks for s in SETUPS]
     random.Random(batch).shuffle(pairs)
-    (RAW_DIR / f"{batch}-manifest.json").write_text(json.dumps({
+    private_write(RAW_DIR / f"{batch}-manifest.json", json.dumps({
         "batch_id": batch, "started_at": utc_now().isoformat(), "model": MODEL,
         "gateway": GATEWAY, "claude_version": version, "pristine_fingerprint": pristine_fp,
         "order": pairs, "run_timeout_s": RUN_TIMEOUT_S,
-    }, indent=2), encoding="utf-8")
+    }, indent=2))
 
     for task, setup in pairs:
         if fingerprint(PRISTINE, as_root=True) != pristine_fp:
