@@ -393,7 +393,7 @@ def main(argv):
     for task in tasks:
         if task not in TASK_INDEXES:
             raise SystemExit(f"task {task} is not in TASK_INDEXES {TASK_INDEXES}")
-    if not PRISTINE.exists():
+    if subprocess.run(["sudo", "-n", "test", "-d", str(PRISTINE)]).returncode != 0:
         raise SystemExit(f"pristine copy missing: {PRISTINE}")
     if not venv_is_clean():
         raise SystemExit("click is importable from the study environment; remove it first")
