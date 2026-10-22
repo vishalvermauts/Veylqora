@@ -185,6 +185,15 @@ def verify_import(work):
         raise StudyAbort(f"click imports from {out!r}, not from the working copy {work}")
 
 
+def imports_from_copy(work):
+    """True if click imports from the working copy. Used after the agent, where a broken
+    import is a failed run, not a reason to stop the batch."""
+    env = {**os.environ, "PYTHONPATH": str(work / "src")}
+    proc = subprocess.run([str(PY), "-c", "import click, sys; sys.stdout.write(click.__file__)"],
+                          cwd=work, env=env, capture_output=True, text=True, timeout=60)
+    return proc.returncode == 0 and proc.stdout.startswith(str(work))
+
+
 def venv_is_clean():
     """True when click cannot be imported from the study environment at all."""
     proc = subprocess.run([str(PY), "-c", "import click"], cwd="/tmp", capture_output=True, text=True)
@@ -362,8 +371,8 @@ def run_one(batch, task, setup, claude_version):
     # After the agent: detect and undo changes outside src/click, then grade the clean harness.
     changed_outside = fingerprint(work) != fingerprint(PRISTINE, as_root=True)
     restore_non_src(work)
-    verify_import(work)
-    passed, summary, _ = failing_tests(work)
+    import_ok = imports_from_copy(work)
+    passed, summary, _ = failing_tests(work) if import_ok else (False, "IMPORT FAILED after agent", [])
     record = {
         "run_id": run_id,
         "batch_id": batch,
@@ -382,6 +391,7 @@ def run_one(batch, task, setup, claude_version):
         "model_requested": MODEL,
         "claude_version": claude_version,
         "venv_clean_after_run": venv_is_clean(),
+        "import_ok_after_agent": import_ok,
     }
     private_write(RESULTS, json.dumps(record) + "\n", append=True)
     shutil.rmtree(run_dir, ignore_errors=True)
