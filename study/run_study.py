@@ -280,26 +280,41 @@ def claude_env(run_dir):
 
 
 def parse_claude(stdout):
+    """Reads Claude Code's stream-json output: one JSON event per line. Returns the result
+    event's fields plus every tool the agent called, by name."""
     if not stdout or not stdout.strip():
         return {"parse_error": True, "reason": "no output"}
-    try:
-        data = json.loads(stdout)
-    except ValueError:
-        return {"parse_error": True, "reason": "not JSON", "raw_tail": stdout[-400:]}
-    if isinstance(data, list):
-        item = next((x for x in reversed(data) if x.get("type") == "result"), None)
-        if item is None:
-            return {"parse_error": True, "reason": "no result event", "raw_tail": stdout[-400:]}
-        data = item
+    events = []
+    for line in stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            events.append(json.loads(line))
+        except ValueError:
+            continue
+    result = next((e for e in reversed(events) if e.get("type") == "result"), None)
+    if result is None:
+        return {"parse_error": True, "reason": "no result event", "raw_tail": stdout[-400:]}
+    tools = {}
+    for event in events:
+        if event.get("type") != "assistant":
+            continue
+        for block in (event.get("message") or {}).get("content", []) or []:
+            if isinstance(block, dict) and block.get("type") == "tool_use":
+                name = block.get("name", "?")
+                tools[name] = tools.get(name, 0) + 1
     return {
-        "is_error": bool(data.get("is_error")),
-        "subtype": data.get("subtype"),
-        "errors": data.get("errors"),
-        "num_turns": data.get("num_turns"),
-        "duration_ms": data.get("duration_ms"),
-        "usage": data.get("usage"),
-        "reported_cost_usd": data.get("total_cost_usd"),  # Claude-rate estimate, not real spend
-        "result_tail": str(data.get("result", ""))[-300:],
+        "is_error": bool(result.get("is_error")),
+        "subtype": result.get("subtype"),
+        "errors": result.get("errors"),
+        "num_turns": result.get("num_turns"),
+        "duration_ms": result.get("duration_ms"),
+        "usage": result.get("usage"),
+        "reported_cost_usd": result.get("total_cost_usd"),  # Claude-rate estimate, not real spend
+        "result_tail": str(result.get("result", ""))[-300:],
+        "tool_calls": tools,
+        "veylqora_tool_calls": sum(n for name, n in tools.items() if name.startswith("mcp__veylqora__")),
     }
 
 
@@ -359,7 +374,7 @@ def run_one(batch, task, setup, claude_version):
 
         names = failing[:SHOWN_FAILURES] + (["..."] if len(failing) > SHOWN_FAILURES else [])
         prompt = PROMPT.format(count=len(failing), names="\n".join(names))
-        command = [str(CLAUDE), "-p", prompt, "--model", MODEL, "--output-format", "json",
+        command = [str(CLAUDE), "-p", prompt, "--model", MODEL, "--output-format", "stream-json", "--verbose",
                    "--dangerously-skip-permissions", "--mcp-config", str(mcp_config),
                    "--strict-mcp-config", "--allowedTools", *TOOLS[setup]]
         claude, stdout, stderr, wall = run_agent(work, command, claude_env(run_dir))
