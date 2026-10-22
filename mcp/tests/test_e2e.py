@@ -142,3 +142,21 @@ def test_one_agent_cannot_read_another_agents_private_memory(daemon):
     assert not own.is_error
     assert other.is_error
     assert not any("private note" in m["content"] for m in data(found)["memories"])
+
+
+def test_root_and_agent_fall_back_to_environment_defaults(daemon):
+    """With VEYLQORA_DEFAULT_ROOT set, a tool call may omit root; with no default it is refused."""
+    async def scenario(session):
+        return await session.call_tool("search_code", {"query": "parse", "k": 3})
+    params = StdioServerParameters(
+        command=sys.executable, args=[str(SERVER)],
+        env={**os.environ, "VEYLQORA_URL": daemon, "VEYLQORA_DEFAULT_ROOT": str(FIXTURES)})
+
+    async def main():
+        async with stdio_client(params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                return await scenario(session)
+    result = asyncio.run(main())
+    assert not result.isError
+    assert data(result)["hits"] is not None
