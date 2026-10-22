@@ -9,7 +9,7 @@ memories that depend on it are the ones in question. The design goal is to tell
 an agent *which* stored knowledge may be stale, instead of having it trust the
 notes blindly or ignore them.
 
-Status: **Phase 1 (v0.1) is largely built and certified module by module; Phases 2 and 3 are not started.** See [Current implementation](#current-implementation).
+**Status (October 2026): Phases 1 and 2 are certified, and the core system works end to end.** Phase 3 is partly done. In a controlled study on 10 seeded bugs, an AI coding agent connected to Veylqora, used its tools in 30 runs (49 calls), and every run completed cleanly with no timeouts or edited tests. The study did not yet show that the tools raise the agent's pass rate: 5/10 without the tools, 6/10 with search and memory, 4/10 with search alone and 3/10 with the context package. Ten bugs with one run each is too small to tell these apart, so a larger study is planned. See [Current implementation](#current-implementation) and the [agent study notes](study/README.md).
 
 ---
 
@@ -134,9 +134,9 @@ records the result under `docs/certification/`.
 | M1.6 | Read-only React dashboard served by the daemon | PASS (`19f50cf`) |
 | M1.3b | JavaScript and TypeScript graph: tree-sitter JS and TS, per-language labelled gate (ADR-0019) | PASS (`25d3a7f`) |
 | Phase 2 | Hybrid retrieval, incremental index maintenance, evidence invalidation, MCP server (two named clients), context packaging, multi-agent coordination, observability | PASS: M2.1–M2.7 certified (M2.5 at `dc6628e`, M2.7 at `903a267`) |
-| Phase 3 | Hardening, benchmarks, packaging and Docker, offline evaluation | Not started |
-| M3.5 | PolyFabric and StructZero adapters | Blocked: needs their contract documents |
-| M3.6b | Paid agent comparison study | Blocked: needs an approved spending budget |
+| Phase 3 | Hardening, benchmarks, packaging and Docker, offline evaluation | Partly done: M3.1, M3.2, M3.3, M3.4, M3.5a and M3.6a certified |
+| M3.5 | PolyFabric and StructZero adapters | M3.5a (generic outbound bridge) certified; product adapters blocked: need their contract documents |
+| M3.6b | Agent comparison study | Full study run (40 runs); results in [study/README.md](study/README.md); a larger study is planned |
 
 ### Command line
 
@@ -204,10 +204,10 @@ results are in `docs/research/`.
 
 ## Known limitations
 
-- **Python only.** JavaScript and TypeScript are not indexed yet.
+- **Languages.** Python, JavaScript and TypeScript are indexed (M1.3b). Other languages are not.
 - **Name-based, not type-based.** Calls on objects of unknown type are heuristic.
   Dynamic dispatch, `getattr`, and runtime imports are not modelled.
-- **No semantic search yet.** Retrieval is exact-name and graph-based until Phase 2.
+- **Semantic search.** Phase 2 adds hybrid retrieval. Vector (semantic) search is still planned (ADR-0002).
 - **Nothing acts on staleness yet.** Memories can be marked suspected-stale by
   hand; automatic detection after code changes is Phase 2 (M2.3).
 - **No secret redaction yet.** Indexed source and memory content are stored as

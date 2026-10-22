@@ -30,6 +30,7 @@ def fake_agent(work, command, env):
 
 
 study.run_agent = fake_agent
+study.RESULTS = study.PRIVATE / "results-dry-v3.jsonl"
 SETUP = sys.argv[2] if len(sys.argv) > 2 else "A"
 record = study.run_one("dry", TASK, SETUP, "dry-test")
 print(json.dumps({k: record[k] for k in ("passed", "tests_modified", "failing_before", "test_summary")}, indent=1))
