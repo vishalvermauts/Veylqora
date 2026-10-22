@@ -56,6 +56,20 @@ def call(method: str, path: str, query: dict[str, Any] | None = None, body: Any 
         raise ToolError(f"cannot reach the daemon at {daemon_url()}: {error.reason}") from None
 
 
+def resolve_root(root: str) -> str:
+    """The project root: the argument if given, else VEYLQORA_DEFAULT_ROOT. Agents often
+    cannot know the exact path, so the default lets them omit it."""
+    value = root or os.environ.get("VEYLQORA_DEFAULT_ROOT", "")
+    if not value:
+        raise ToolError("root is required: pass the project root, or set VEYLQORA_DEFAULT_ROOT")
+    return value
+
+
+def resolve_agent(agent: str) -> str:
+    """The agent identity for memory tools: the argument if given, else VEYLQORA_AGENT, else 'agent'."""
+    return agent or os.environ.get("VEYLQORA_AGENT", "agent")
+
+
 def require_text(name: str, value: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ToolError(f"{name} must be a non-empty string")
@@ -66,15 +80,15 @@ mcp = MCPServer("veylqora")
 
 
 @mcp.tool()
-def get_project_status(root: str) -> dict:
+def get_project_status(root: str = "") -> dict:
     """Index and memory counts for a project root."""
-    return call("GET", "/api/v1/status", {"root": require_text("root", root)})
+    return call("GET", "/api/v1/status", {"root": resolve_root(root)})
 
 
 @mcp.tool()
 def search_code(
-    root: str,
-    query: str,
+    root: str = "",
+    query: str = "",
     k: int = 10,
     mode: str = "hybrid",
     kind: str = "",
@@ -86,65 +100,65 @@ def search_code(
     return call(
         "GET",
         "/api/v1/retrieve",
-        {"root": require_text("root", root), "query": require_text("query", query), "k": k,
+        {"root": resolve_root(root), "query": require_text("query", query), "k": k,
          "mode": mode, "kind": kind, "path_prefix": path_prefix},
     )
 
 
 @mcp.tool()
-def inspect_symbol(root: str, name: str) -> dict:
+def inspect_symbol(root: str = "", name: str = "") -> dict:
     """Where a named definition is, and what it depends on and what depends on it."""
     name = require_text("name", name)
-    found = call("GET", "/api/v1/search", {"root": require_text("root", root), "name": name})
-    graph = call("GET", "/api/v1/graph", {"root": root, "name": name})
+    found = call("GET", "/api/v1/search", {"root": resolve_root(root), "name": name})
+    graph = call("GET", "/api/v1/graph", {"root": resolve_root(root), "name": name})
     return {"definitions": found["hits"], "dependents": graph["dependents"],
             "dependencies": graph["dependencies"]}
 
 
 @mcp.tool()
-def find_dependencies(root: str, name: str) -> dict:
+def find_dependencies(root: str = "", name: str = "") -> dict:
     """Calls, imports and inheritance around a name, each with its resolution level."""
-    return call("GET", "/api/v1/graph", {"root": require_text("root", root), "name": require_text("name", name)})
+    return call("GET", "/api/v1/graph", {"root": resolve_root(root), "name": require_text("name", name)})
 
 
 @mcp.tool()
-def search_memories(root: str, agent: str, text: str = "", state: str = "") -> dict:
+def search_memories(root: str = "", agent: str = "", text: str = "", state: str = "") -> dict:
     """Memories this agent may see whose content contains the text, optionally in one state."""
     memories = call("GET", "/api/v1/memories",
-                    {"root": require_text("root", root), "state": state, "viewer": require_text("agent", agent)})
-    needle = text.lower()
-    matches = [m for m in memories if not needle or needle in m["content"].lower()]
+                    {"root": resolve_root(root), "state": state, "viewer": resolve_agent(agent)})
+    words = text.lower().split()
+    matches = [m for m in memories if not words or any(w in m["content"].lower() for w in words)]
     return {"memories": matches}
 
 
 @mcp.tool()
 def record_memory(
-    root: str,
-    type: str,
-    content: str,
-    agent: str,
+    root: str = "",
+    type: str = "",
+    content: str = "",
+    agent: str = "",
     evidence: list[dict] | None = None,
     scope: str = "",
 ) -> dict:
     """Store a memory. Evidence entries are {"rel_path": ..., "symbol_fqn": ...} and must name indexed symbols."""
-    body = {"root": require_text("root", root), "type": require_text("type", type),
-            "content": require_text("content", content), "author": require_text("agent", agent),
+    body = {"root": resolve_root(root), "type": require_text("type", type),
+            "content": require_text("content", content), "author": resolve_agent(agent),
             "evidence": evidence or [], "scope": scope}
     return call("POST", "/api/v1/memories", body=body)
 
 
 @mcp.tool()
-def inspect_evidence(root: str, memory_id: str, agent: str) -> dict:
+def inspect_evidence(memory_id: str = "", root: str = "", agent: str = "") -> dict:
     """A memory this agent may see, with its evidence, history and transitions."""
     return call("GET", "/api/v1/memories/" + require_text("memory_id", memory_id),
-                {"root": root, "viewer": require_text("agent", agent)})
+                {"root": resolve_root(root), "viewer": resolve_agent(agent)})
 
 
 @mcp.tool()
-def check_memory_validity(root: str, memory_id: str, agent: str) -> dict:
+def check_memory_validity(memory_id: str = "", root: str = "", agent: str = "") -> dict:
     """Whether a memory this agent may see still matches the code it cites."""
     memory = call("GET", "/api/v1/memories/" + require_text("memory_id", memory_id),
-                  {"root": root, "viewer": require_text("agent", agent)})
+                  {"root": resolve_root(root), "viewer": resolve_agent(agent)})
     flagged = memory["state"] in ("suspected_stale", "evidence_missing")
     warning = None
     if flagged:
@@ -154,7 +168,7 @@ def check_memory_validity(root: str, memory_id: str, agent: str) -> dict:
 
 
 @mcp.tool()
-def get_task_context(root: str, task: str, agent: str, budget_tokens: int = 2000) -> dict:
+def get_task_context(task: str = "", root: str = "", agent: str = "", budget_tokens: int = 2000) -> dict:
     """A bounded, evidence-linked context package for a task (ADR-0016).
 
     Sections fill in order: warnings, then memories, then code. Each item is added
@@ -182,7 +196,7 @@ def get_task_context(root: str, task: str, agent: str, budget_tokens: int = 2000
         return True
 
     needle = task.lower().split()
-    memories = call("GET", "/api/v1/memories", {"root": root, "viewer": require_text("agent", agent)})
+    memories = call("GET", "/api/v1/memories", {"root": resolve_root(root), "viewer": resolve_agent(agent)})
     matching = [m for m in memories if any(w in m["content"].lower() for w in needle)]
 
     flagged = [m for m in matching if m["state"] in ("suspected_stale", "evidence_missing")]
@@ -192,7 +206,7 @@ def get_task_context(root: str, task: str, agent: str, budget_tokens: int = 2000
         if m["id"] in seen_memories:
             continue
         seen_memories.add(m["id"])
-        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": root, "viewer": agent})
+        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": resolve_root(root), "viewer": resolve_agent(agent)})
         take("warnings", {"id": m["id"], "state": m["state"], "content": m["content"],
                           "warning": "the code this memory cites changed or disappeared; review it",
                           "evidence": detail["evidence"]})
@@ -201,10 +215,10 @@ def get_task_context(root: str, task: str, agent: str, budget_tokens: int = 2000
         if m["id"] in seen_memories:
             continue
         seen_memories.add(m["id"])
-        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": root, "viewer": agent})
+        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": resolve_root(root), "viewer": resolve_agent(agent)})
         take("memories", {"id": m["id"], "content": m["content"], "evidence": detail["evidence"]})
 
-    for h in call("GET", "/api/v1/retrieve", {"root": root, "query": task, "k": 50})["hits"]:
+    for h in call("GET", "/api/v1/retrieve", {"root": resolve_root(root), "query": task, "k": 50})["hits"]:
         if h["fqn"] in seen_code:
             continue
         seen_code.add(h["fqn"])
