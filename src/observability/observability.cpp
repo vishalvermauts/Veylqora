@@ -27,6 +27,11 @@ void log_query(Database& db, const Clock& clock, const ObservabilityOptions& opt
                std::string_view query, std::int64_t result_count, double latency_ms) {
   const std::string hash = content_fingerprint(query);
   if (!query_sampled(hash, options.query_log_every)) return;
+  // A query against a project that was never indexed has no project row to attach to.
+  // Logging it would fail the foreign key, so there is nothing to record: skip it.
+  Statement known(db, "SELECT 1 FROM project WHERE id = ?");
+  known.bind(1, project_id);
+  if (!known.step()) return;
   Statement insert(
       db,
       "INSERT INTO query_log (project_id, method, query_sha256, result_count, "
