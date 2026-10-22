@@ -75,6 +75,7 @@ PROMPT = (
     "do not keep re-checking the code. "
     "Do not modify anything outside src/click: tests, configuration and other files are checked, "
     "and any change to them counts as a failure.\n\n"
+    "The project root is {root}. Pass exactly this path as the root argument of any Veylqora tool.\n"
     "Failing test files ({count}):\n{names}"
 )
 
@@ -385,7 +386,7 @@ def run_one(batch, task, setup, claude_version):
 
         files = sorted({test_id.split("::")[0] for test_id in failing})
         names = files[:SHOWN_FAILURES] + (["..."] if len(files) > SHOWN_FAILURES else [])
-        prompt = PROMPT.format(count=len(files), names="\n".join(names))
+        prompt = PROMPT.format(root=work, count=len(files), names="\n".join(names))
         command = [str(CLAUDE), "-p", prompt, "--model", MODEL, "--output-format", "stream-json", "--verbose",
                    "--dangerously-skip-permissions", "--mcp-config", str(mcp_config),
                    "--strict-mcp-config", "--allowedTools", *TOOLS[setup],
