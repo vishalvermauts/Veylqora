@@ -3,5 +3,4 @@ build
 build-*
 docs/certification
 evaluation/results.json
-.claude
 **/__pycache__

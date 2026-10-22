@@ -328,7 +328,6 @@ def agent_env(attempt_dir):
     env = {k: v for k, v in os.environ.items() if not k.startswith("ANTHROPIC_")}
     env.update({
         "HOME": str(home),
-        "CLAUDE_CONFIG_DIR": str(config),
         "ANTHROPIC_BASE_URL": GATEWAY,
         "CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT": "1",
         "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000",
