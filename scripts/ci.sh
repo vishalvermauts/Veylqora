@@ -256,7 +256,7 @@ sbx_ensure() {
     say "creating $SBX ($CPUS vCPU / $MEMORY)"
     sbx --cloud create shell --name "${SBX#shell/}" \
       --cpus "$CPUS" --memory "$MEMORY" --platform linux/amd64 \
-      --ttl "$TTL" --on-timeout stop --allow-network "$ALLOW_NET" -q || return 1
+      --ttl "$TTL" --on-timeout stop --allow-network "$ALLOW_NET" || return 1
   fi
 }
 
