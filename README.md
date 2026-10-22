@@ -98,6 +98,51 @@ stateDiagram-v2
     archived --> [*]
 ```
 
+## Test results
+
+Last full CI run on the code in this repository (cloud sandbox, Ubuntu 26.04,
+gcc 15.2 and clang 21.1):
+
+| Job | Result |
+|---|---|
+| clang-format check | PASS |
+| gcc 15 build, `-Werror`, all tests | PASS — 71 / 71 |
+| clang 21 build, `-Werror`, all tests | PASS — 71 / 71 |
+| AddressSanitizer + UndefinedBehaviorSanitizer, all tests | PASS — 71 / 71 |
+| Certification records verify | PASS (records for older commits are reported as stale warnings) |
+
+The 71 tests cover: identity and fingerprints; the Python parser; repository
+ingestion (empty, large, binary, invalid UTF-8, symlinks, renames, deletions,
+`.gitignore`, interrupted runs, unreadable files); the code graph against a
+hand-labelled fixture (precision and recall both 1.0 on that fixture, a gate of 0.95); memory
+rules (revision conflicts, transitions, evidence rollback, restart, isolation,
+retention, byte-identical export and import); the HTTP API on a live port with
+its error codes; the single-writer lock; and a CLI integration script.
+
+**Measured on public repositories** (shallow clones, cloud sandbox):
+
+| Project | Python files | Symbols | First index | Re-index |
+|---|---|---|---|---|
+| psf/requests | 37 | 844 | 0.3 s | 0.0 s |
+| pallets/flask | 83 | 1,705 | 0.3 s | 0.0 s |
+| django/django | 2,933 | 46,906 | 24 s | 0.3 s |
+
+Graph lookups on django take 5–40 ms, including opening the database. The
+results are in `docs/research/`.
+
+## Agent study results
+
+A controlled study on 10 seeded bugs in click (40 runs, one per task and setup), with an AI coding agent. The agent connected to Veylqora and used its tools in 30 runs (49 calls), and every run completed cleanly.
+
+| Setup | Passed |
+|---|---|
+| A (no Veylqora tools) | 5/10 |
+| B (code search) | 4/10 |
+| C (search + memory) | 6/10 |
+| D (context package) | 3/10 |
+
+The study does not yet show that the tools raise the pass rate. Ten bugs with one run each is too small. Details and how to run it: [study/README.md](study/README.md).
+
 ## Tech stack
 
 | Area | Choice | Why |
@@ -169,38 +214,6 @@ Add `--json` to any command for machine-readable output. Exit codes: `0` ok,
 
 Errors are returned as `{"error":{"code":"…","message":"…"}}` with a status of
 400 (invalid), 404 (not found) or 409 (revision conflict).
-
-## Test results
-
-Last full CI run on the code in this repository (cloud sandbox, Ubuntu 26.04,
-gcc 15.2 and clang 21.1):
-
-| Job | Result |
-|---|---|
-| clang-format check | PASS |
-| gcc 15 build, `-Werror`, all tests | PASS — 71 / 71 |
-| clang 21 build, `-Werror`, all tests | PASS — 71 / 71 |
-| AddressSanitizer + UndefinedBehaviorSanitizer, all tests | PASS — 71 / 71 |
-| Certification records verify | PASS (records for older commits are reported as stale warnings) |
-
-The 71 tests cover: identity and fingerprints; the Python parser; repository
-ingestion (empty, large, binary, invalid UTF-8, symlinks, renames, deletions,
-`.gitignore`, interrupted runs, unreadable files); the code graph against a
-hand-labelled fixture (precision and recall both 1.0 on that fixture, a gate of 0.95); memory
-rules (revision conflicts, transitions, evidence rollback, restart, isolation,
-retention, byte-identical export and import); the HTTP API on a live port with
-its error codes; the single-writer lock; and a CLI integration script.
-
-**Measured on public repositories** (shallow clones, cloud sandbox):
-
-| Project | Python files | Symbols | First index | Re-index |
-|---|---|---|---|---|
-| psf/requests | 37 | 844 | 0.3 s | 0.0 s |
-| pallets/flask | 83 | 1,705 | 0.3 s | 0.0 s |
-| django/django | 2,933 | 46,906 | 24 s | 0.3 s |
-
-Graph lookups on django take 5–40 ms, including opening the database. The
-results are in `docs/research/`.
 
 ## Known limitations
 
