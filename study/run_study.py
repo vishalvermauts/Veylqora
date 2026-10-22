@@ -71,6 +71,8 @@ PROMPT = (
     "Some tests in this repository fail. The test files that fail are listed below. "
     "Find the bug in the source under src/click and fix it so that the full test suite passes. "
     "You can read and edit files, but you cannot run commands or tests. "
+    "When you believe the fix is complete, stop and reply with a short summary; "
+    "do not keep re-checking the code. "
     "Do not modify anything outside src/click: tests, configuration and other files are checked, "
     "and any change to them counts as a failure.\n\n"
     "Failing test files ({count}):\n{names}"
@@ -409,7 +411,9 @@ def run_one(batch, task, setup, claude_version):
         "setup": setup,
         "failing_before": len(failing),
         "failing_before_examples": failing[:SHOWN_FAILURES],
-        "passed": passed,
+        "passed": passed and not claude.get("timeout"),
+        "raw_tests_passed_after_run": passed,
+        "timed_out": bool(claude.get("timeout")),
         "test_summary": summary,
         "tests_modified": changed_outside,
         "wall_seconds": wall,
@@ -424,6 +428,23 @@ def run_one(batch, task, setup, claude_version):
     return record
 
 
+def stop_leftover_daemons():
+    """Stops veylqora daemons left running by earlier runs (a run that was killed by hand
+    never reaches its cleanup step). Called once at the start of a batch."""
+    stopped = []
+    for proc in pathlib.Path("/proc").iterdir():
+        if not proc.name.isdigit():
+            continue
+        try:
+            cmd = (proc / "cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")
+        except OSError:
+            continue
+        if "/build-gcc/src/veylqora serve" in cmd:
+            os.kill(int(proc.name), signal.SIGTERM)
+            stopped.append(proc.name)
+    return stopped
+
+
 def main(argv):
     tasks = [int(x) for x in argv[1:]] if len(argv) > 1 else TASK_INDEXES
     for task in tasks:
@@ -433,6 +454,9 @@ def main(argv):
         raise SystemExit(f"pristine copy missing: {PRISTINE}")
     if not venv_is_clean():
         raise SystemExit("click is importable from the study environment; remove it first")
+    leftovers = stop_leftover_daemons()
+    if leftovers:
+        print(f"stopped {len(leftovers)} leftover daemon(s): {leftovers}", flush=True)
     pristine_fp = fingerprint(PRISTINE, as_root=True)
     version = subprocess.run([str(CLAUDE), "--version"], capture_output=True, text=True).stdout.strip()
 
