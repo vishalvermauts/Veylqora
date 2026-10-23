@@ -233,3 +233,44 @@ TEST_CASE("accepting a flagged memory returns it to active and keeps it there") 
   CHECK(again.flagged == 0);
   CHECK(veylqora::get_memory(db, src, id)->state == "active");
 }
+
+TEST_CASE("decorated Python definition survives rename and triggers on decorator edit") {
+  TempDir tmp;
+  const fs::path src = tmp.path() / "src";
+  write(src / "cli.py",
+        "@click.command()\n"
+        "def run_cmd(name):\n"
+        "    return name.strip()\n");
+  veylqora::Database db(tmp.path() / "v.db");
+  const veylqora::SystemClock clock;
+  veylqora::RandomIds ids;
+  api::index(db, clock, src);
+
+  veylqora::NewMemory m;
+  m.type = "decision";
+  m.content = "run_cmd is a click command";
+  m.author = "dataset";
+  m.scope = "shared";
+  m.evidence = {{"cli.py", "cli.run_cmd"}};
+  const std::string id = veylqora::create_memory(db, clock, ids, src, m);
+
+  // Rename run_cmd -> execute_cmd without changing decorator or body: re-anchored, still
+  // active.
+  write(src / "cli.py",
+        "@click.command()\n"
+        "def execute_cmd(name):\n"
+        "    return name.strip()\n");
+  api::index(db, clock, src);
+  CHECK(veylqora::get_memory(db, src, id)->state == "active");
+  const auto ev = veylqora::evidence_of(db, src, id);
+  REQUIRE(ev.size() == 1);
+  CHECK(ev[0].symbol_fqn == "cli.execute_cmd");
+
+  // Changing the decorator invalidates the memory.
+  write(src / "cli.py",
+        "@click.group()\n"
+        "def execute_cmd(name):\n"
+        "    return name.strip()\n");
+  api::index(db, clock, src);
+  CHECK(veylqora::get_memory(db, src, id)->state == "suspected_stale");
+}

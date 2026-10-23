@@ -110,3 +110,14 @@ def test_labelled_tasks_reach_the_recall_gate(daemon):
         recalls.append(len(found & relevant) / len(relevant))
     mean = sum(recalls) / len(recalls)
     assert mean >= MIN_RECALL, recalls
+
+
+def test_unrelated_stopwords_do_not_match_unrelated_memories(daemon):
+    unrelated = post_json(daemon, "/api/v1/memories", {
+        "root": str(FIXTURES_ROOT), "type": "observation",
+        "content": "the invoice formatter uses integer cents in all calculations",
+        "author": "ctx-test",
+        "evidence": [{"rel_path": "billing/invoice.py", "symbol_fqn": "billing.invoice.format_money"}]})
+    package = call_context(daemon, "in the health status route", 2000)
+    offered_ids = {m["id"] for s in ("warnings", "memories") for m in package["sections"][s]}
+    assert unrelated["id"] not in offered_ids

@@ -6,10 +6,19 @@
 namespace veylqora {
 
 std::string RandomIds::next() {
-  std::random_device rd;
+  thread_local std::mt19937_64 rng{[] {
+    std::random_device rd;
+    std::seed_seq seq{rd(), rd(), rd(), rd()};
+    return std::mt19937_64(seq);
+  }()};
   std::string out(32, '0');
   constexpr char kHex[] = "0123456789abcdef";
-  for (std::size_t i = 0; i < 32; ++i) out[i] = kHex[rd() & 0xF];
+  const std::uint64_t hi = rng();
+  const std::uint64_t lo = rng();
+  for (std::size_t i = 0; i < 16; ++i) {
+    out[i] = kHex[(hi >> (i * 4)) & 0xF];
+    out[16 + i] = kHex[(lo >> (i * 4)) & 0xF];
+  }
   return out;
 }
 

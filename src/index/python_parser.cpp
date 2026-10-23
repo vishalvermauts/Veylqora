@@ -55,17 +55,26 @@ class Walker {
       return;
     }
     const std::string_view type = ts_node_type(node);
-    if (type == "function_definition") return define(node, false, depth);
-    if (type == "class_definition") return define(node, true, depth);
+    if (type == "decorated_definition") {
+      const TSNode def = field(node, "definition");
+      if (!ts_node_is_null(def)) {
+        const std::string_view def_type = ts_node_type(def);
+        if (def_type == "function_definition") return define(def, node, false, depth);
+        if (def_type == "class_definition") return define(def, node, true, depth);
+      }
+      return visit_children(node, depth);
+    }
+    if (type == "function_definition") return define(node, node, false, depth);
+    if (type == "class_definition") return define(node, node, true, depth);
     if (type == "call") record_call(node);
     if (type == "import_statement") record_import(node);
     if (type == "import_from_statement") record_from_import(node);
     visit_children(node, depth);
   }
 
-  void define(TSNode node, bool is_class, int depth) {
-    const TSNode name_node = field(node, "name");
-    if (ts_node_is_null(name_node)) return visit_children(node, depth);
+  void define(TSNode def_node, TSNode span_node, bool is_class, int depth) {
+    const TSNode name_node = field(def_node, "name");
+    if (ts_node_is_null(name_node)) return visit_children(span_node, depth);
 
     const std::string_view name = text_of(source_, name_node);
     const bool parent_is_class = stack_.back().is_class;
@@ -73,10 +82,10 @@ class Walker {
     const SymbolKind kind = is_class          ? SymbolKind::klass
                             : parent_is_class ? SymbolKind::method
                                               : SymbolKind::function;
-    const std::size_t idx = add_symbol(kind, name, fqn, node);
-    if (is_class) record_bases(node, idx, line_of(node));
+    const std::size_t idx = add_symbol(kind, name, fqn, span_node);
+    if (is_class) record_bases(def_node, idx, line_of(def_node));
     stack_.push_back(Scope{idx, is_class, fqn});
-    visit_children(node, depth);
+    visit_children(span_node, depth);
     stack_.pop_back();
   }
 

@@ -1,13 +1,13 @@
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 
 namespace veylqora {
 
 /// Exclusive, non-blocking lock on a file, held for the object's lifetime.
 /// The daemon holds `<db>.lock` so that a CLI in direct mode cannot write the
-/// same database alongside it (ADR-0004). On platforms without flock the lock
-/// is not enforced; that limitation is recorded in ADR-0012.
+/// same database alongside it (ADR-0004).
 class FileLock {
  public:
   /// Throws Error if another process holds the lock.
@@ -17,7 +17,7 @@ class FileLock {
   FileLock& operator=(const FileLock&) = delete;
 
  private:
-  int fd_ = -1;
+  std::intptr_t fd_ = -1;
 };
 
 }  // namespace veylqora

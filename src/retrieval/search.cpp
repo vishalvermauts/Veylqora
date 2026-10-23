@@ -5,16 +5,19 @@
 #include "veylqora/retrieval/text.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 namespace veylqora {
 namespace {
 
-constexpr double kRrfK = 60.0;        // reciprocal rank fusion constant (ADR-0015)
-constexpr double kGraphWeight = 0.5;  // graph neighbours count half as much
-constexpr std::size_t kSeeds = 10;    // top results whose neighbours are explored
+constexpr double kRrfK = 60.0;          // reciprocal rank fusion constant (ADR-0015)
+constexpr double kGraphWeight = 0.5;    // graph neighbours count half as much
+constexpr std::size_t kSeeds = 10;      // top results whose neighbours are explored
+constexpr std::size_t kMaxPerFile = 8;  // prevent single-file crowding in candidate pool
 
 struct Cand {
   std::string id;
@@ -22,6 +25,7 @@ struct Cand {
   std::string path;
   std::string kind;
   std::int64_t line;
+  std::string name;
 };
 
 // A ranked list of symbol ids: best first, ties broken by id so order is fixed.
@@ -40,11 +44,11 @@ std::unordered_map<std::string, Cand> candidates(Database& db, const std::string
   std::unordered_map<std::string, Cand> out;
   Statement q(
       db,
-      "SELECT s.id, s.fqn, f.rel_path, s.kind, s.start_line FROM symbol s "
+      "SELECT s.id, s.fqn, f.rel_path, s.kind, s.start_line, s.name FROM symbol s "
       "JOIN file f ON f.id = s.file_id WHERE s.project_id = ? AND s.kind != 'module'");
   q.bind(1, pid);
   while (q.step()) {
-    Cand c{q.text(0), q.text(1), q.text(2), q.text(3), q.integer(4)};
+    Cand c{q.text(0), q.text(1), q.text(2), q.text(3), q.integer(4), q.text(5)};
     if (!options.kind.empty() && c.kind != options.kind) continue;
     if (!options.path_prefix.empty() &&
         c.path.compare(0, options.path_prefix.size(), options.path_prefix) != 0) {
@@ -57,16 +61,65 @@ std::unordered_map<std::string, Cand> candidates(Database& db, const std::string
 
 Ranking lexical_ranking(Database& db, const std::string& pid,
                         const std::vector<std::string>& tokens,
-                        const std::unordered_map<std::string, Cand>& cands) {
+                        const std::unordered_map<std::string, Cand>& cands,
+                        bool query_mentions_test) {
+  std::int64_t total_syms = static_cast<std::int64_t>(cands.size());
+  if (total_syms < 1) total_syms = 1;
+
   std::unordered_map<std::string, double> hits;
+  Statement df_q(db,
+                 "SELECT COUNT(DISTINCT symbol_id) FROM token WHERE project_id = ? AND "
+                 "token = ?");
+  Statement hit_q(db, "SELECT symbol_id FROM token WHERE project_id = ? AND token = ?");
+
   for (const std::string& t : tokens) {
-    Statement q(db, "SELECT symbol_id FROM token WHERE project_id = ? AND token = ?");
-    q.bind(1, pid);
-    q.bind(2, t);
-    while (q.step()) {
-      if (cands.count(q.text(0)) != 0) hits[q.text(0)] += 1.0;
+    df_q.reset();
+    df_q.bind(1, pid);
+    df_q.bind(2, t);
+    std::int64_t df = 0;
+    if (df_q.step()) df = df_q.integer(0);
+    if (df < 1) continue;
+
+    const double idf = std::log(1.0 + (static_cast<double>(total_syms - df) + 0.5) /
+                                          (static_cast<double>(df) + 0.5));
+    if (idf <= 0.0) continue;
+
+    hit_q.reset();
+    hit_q.bind(1, pid);
+    hit_q.bind(2, t);
+    while (hit_q.step()) {
+      const std::string sid = hit_q.text(0);
+      const auto it = cands.find(sid);
+      if (it == cands.end()) continue;
+      const Cand& c = it->second;
+
+      double weight = 1.0;
+      if (c.name.find(t) != std::string::npos) {
+        weight = 8.0;
+      } else if (c.fqn.find(t) != std::string::npos) {
+        weight = 5.0;
+      } else if (c.path.find(t) != std::string::npos) {
+        weight = 3.0;
+      }
+
+      hits[sid] += idf * weight;
     }
   }
+
+  // De-boost test files if query doesn't explicitly mention test/tests.
+  if (!query_mentions_test) {
+    for (auto& [sid, s] : hits) {
+      const auto it = cands.find(sid);
+      if (it != cands.end()) {
+        const std::string& p = it->second.path;
+        if (p.find("test") != std::string::npos ||
+            p.find("conftest") != std::string::npos) {
+          s *= 0.5;
+        }
+      }
+    }
+  }
+
   std::vector<std::pair<std::string, double>> scored(hits.begin(), hits.end());
   sort_by_score(scored);
   Ranking out;
@@ -141,6 +194,14 @@ std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root,
   const std::vector<std::string> tokens = tokenize(query);
   if (tokens.empty()) throw Error("query has no searchable terms");
 
+  bool mentions_test = false;
+  for (const std::string& t : tokens) {
+    if (t == "test" || t == "tests" || t == "testing") {
+      mentions_test = true;
+      break;
+    }
+  }
+
   const std::string pid = project_id_for(root);
   const auto cands = candidates(db, pid, options);
   const std::size_t k = std::min(options.top_k, kMaxResults);
@@ -148,7 +209,9 @@ std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root,
   std::unordered_map<std::string, double> score;
   Ranking lexical;
   Ranking vec;
-  if (options.mode != Mode::vector) lexical = lexical_ranking(db, pid, tokens, cands);
+  if (options.mode != Mode::vector) {
+    lexical = lexical_ranking(db, pid, tokens, cands, mentions_test);
+  }
   if (options.mode != Mode::lexical) vec = vector_ranking(db, pid, tokens, cands);
 
   if (options.mode == Mode::hybrid) {
@@ -169,12 +232,33 @@ std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root,
 
   std::vector<std::pair<std::string, double>> ranked(score.begin(), score.end());
   sort_by_score(ranked);
+
+  // Per-file diversification pass: allow at most kMaxPerFile symbols from any
+  // single file unless we run out of diverse candidates. This prevents single-file
+  // crowding from pushing other relevant files past kMaxResults.
   std::vector<Hit> out;
+  std::unordered_map<std::string, std::size_t> file_counts;
+  std::vector<std::pair<std::string, double>> overflow;
+
   for (const auto& [id, s] : ranked) {
-    if (out.size() >= k) break;
     const Cand& c = cands.at(id);
-    out.push_back(Hit{c.fqn, c.path, c.kind, c.line, s});
+    if (file_counts[c.path] < kMaxPerFile) {
+      file_counts[c.path]++;
+      out.push_back(Hit{c.fqn, c.path, c.kind, c.line, s});
+      if (out.size() >= k) break;
+    } else {
+      overflow.emplace_back(id, s);
+    }
   }
+
+  if (out.size() < k) {
+    for (const auto& [id, s] : overflow) {
+      if (out.size() >= k) break;
+      const Cand& c = cands.at(id);
+      out.push_back(Hit{c.fqn, c.path, c.kind, c.line, s});
+    }
+  }
+
   return out;
 }
 

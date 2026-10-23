@@ -176,6 +176,11 @@ CREATE TABLE audit_log (
 );
 CREATE INDEX audit_log_by_at ON audit_log (at);
 )sql"},
+    // v7: index evidence by (project_id, rel_path, symbol_fqn) for fast revalidation
+    // and symbol-anchored memory lookup.
+    std::string_view{R"sql(
+CREATE INDEX idx_evidence_lookup ON evidence (project_id, rel_path, symbol_fqn);
+)sql"},
 };
 
 }  // namespace
@@ -288,6 +293,12 @@ void Statement::reset() {
 
 void Statement::bind(int index, std::int64_t value) {
   if (sqlite3_bind_int64(stmt_, index, value) != SQLITE_OK) {
+    throw Error(std::string("bind failed: ") + sqlite3_errmsg(db_));
+  }
+}
+
+void Statement::bind(int index, double value) {
+  if (sqlite3_bind_double(stmt_, index, value) != SQLITE_OK) {
     throw Error(std::string("bind failed: ") + sqlite3_errmsg(db_));
   }
 }

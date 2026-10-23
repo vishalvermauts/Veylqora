@@ -22,7 +22,7 @@
       "hybrid_recall_at_10": 1.0,
       "lexical_recall_at_10": 1.0,
       "vector_recall_at_10": 1.0,
-      "hybrid_reciprocal_rank": 0.875
+      "hybrid_reciprocal_rank": 0.9375
     },
     "queries": [
       {
@@ -36,8 +36,8 @@
         "hybrid_reciprocal_rank": 1.0,
         "hybrid_top_3": [
           "auth.tokens.verify_token",
-          "auth.tokens.TokenStore",
-          "auth.tokens.issue_token"
+          "auth.tokens.issue_token",
+          "auth.tokens.TokenStore.load"
         ],
         "lexical_recall_at_10": 1.0,
         "vector_recall_at_10": 1.0
@@ -68,8 +68,8 @@
         "hybrid_reciprocal_rank": 1.0,
         "hybrid_top_3": [
           "billing.invoice.format_money",
-          "billing.invoice.Invoice.add_line",
-          "billing.tax.tax_for"
+          "billing.tax.tax_for",
+          "billing.invoice.Invoice.add_line"
         ],
         "lexical_recall_at_10": 1.0,
         "vector_recall_at_10": 1.0
@@ -81,11 +81,11 @@
           "billing.tax.tax_for"
         ],
         "hybrid_recall_at_10": 1.0,
-        "hybrid_reciprocal_rank": 0.5,
+        "hybrid_reciprocal_rank": 1.0,
         "hybrid_top_3": [
-          "billing.tax.TaxTable",
           "billing.tax.TaxTable.lookup",
-          "billing.tax.tax_for"
+          "billing.tax.tax_for",
+          "billing.tax.TaxTable"
         ],
         "lexical_recall_at_10": 1.0,
         "vector_recall_at_10": 1.0
@@ -144,7 +144,7 @@
         "hybrid_top_3": [
           "util.timing.measure.wrapper",
           "util.timing.measure",
-          "auth.passwords.hash_password"
+          "billing.invoice.Invoice.__init__"
         ],
         "lexical_recall_at_10": 1.0,
         "vector_recall_at_10": 1.0
@@ -272,6 +272,6 @@
   },
   "negative_results": [
     "all three retrieval modes reach mean recall@10 of 1.0 on this set, so it cannot separate them; a harder set is needed before comparing modes",
-    "hybrid mean reciprocal rank is 0.875: some relevant definitions are not ranked first"
+    "hybrid mean reciprocal rank is 0.938: some relevant definitions are not ranked first"
   ]
 }

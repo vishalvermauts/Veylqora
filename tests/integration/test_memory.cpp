@@ -298,8 +298,11 @@ TEST_CASE("export, import into an empty database, and export again: byte-identic
     const std::string id = veylqora::create_memory(db, clock, ids, kFixtures, m);
     veylqora::update_memory(db, clock, kFixtures, id, 1, "revised", "agent-b",
                             "second look");
+    veylqora::NewMemory second_mem = decision("second");
+    second_mem.scope = "approved";
     const std::string other =
-        veylqora::create_memory(db, clock, ids, kFixtures, decision("second"));
+        veylqora::create_memory(db, clock, ids, kFixtures, second_mem);
+    veylqora::approve_memory(db, clock, kFixtures, other, 1, "lead-reviewer", "lgtm");
     veylqora::supersede_memory(db, clock, kFixtures, id, 2, other, "agent-b", "replaced");
     CHECK(veylqora::export_memories(db, kFixtures, out1) == 2);
   }
@@ -307,6 +310,12 @@ TEST_CASE("export, import into an empty database, and export again: byte-identic
     veylqora::Database db(second);
     CHECK(veylqora::import_memories(db, out1) == 2);
     CHECK(veylqora::export_memories(db, kFixtures, out2) == 2);
+    const auto all = veylqora::list_memories(db, kFixtures, "", "anyone");
+    bool saw_approved = false;
+    for (const auto& m : all) {
+      if (m.content == "second" && m.approved_by == "lead-reviewer") saw_approved = true;
+    }
+    CHECK(saw_approved);
   }
   CHECK(read_all(out1) == read_all(out2));
 }

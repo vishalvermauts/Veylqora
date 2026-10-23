@@ -40,7 +40,7 @@ void log_query(Database& db, const Clock& clock, const ObservabilityOptions& opt
   insert.bind(2, method);
   insert.bind(3, hash);
   insert.bind(4, result_count);
-  insert.bind(5, std::to_string(latency_ms));
+  insert.bind(5, latency_ms);
   insert.bind(6, to_iso8601(clock.now()));
   insert.step();
 }

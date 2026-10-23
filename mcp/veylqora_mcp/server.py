@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -21,6 +22,61 @@ LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 # A rough token estimate for context budgeting: about four characters per token.
 CHARS_PER_TOKEN = 4
+
+STOPWORDS = {
+    "a", "about", "above", "after", "again", "all", "also", "always", "am", "an",
+    "and", "any", "are", "as", "at", "be", "because", "been", "before", "being",
+    "below", "between", "both", "but", "by", "can", "cannot", "could", "def", "did",
+    "do", "does", "doing", "done", "down", "during", "each", "else", "even", "every",
+    "false", "for", "from", "further", "get", "gets", "got", "had", "has", "have",
+    "having", "he", "her", "here", "hers", "him", "his", "how", "however", "if",
+    "in", "into", "is", "it", "its", "itself", "just", "let", "like", "make", "many",
+    "may", "me", "might", "more", "most", "much", "must", "my", "need", "new", "no",
+    "none", "nor", "not", "now", "null", "of", "off", "on", "once", "one", "only",
+    "or", "other", "our", "out", "over", "own", "pass", "return", "returns", "same",
+    "see", "self", "set", "she", "should", "since", "so", "some", "such", "take",
+    "than", "that", "the", "their", "them", "then", "there", "these", "they", "this",
+    "those", "through", "to", "too", "true", "under", "until", "up", "use", "used",
+    "using", "var", "very", "via", "want", "was", "way", "we", "well", "were",
+    "what", "when", "where", "which", "while", "who", "whom", "why", "will", "with",
+    "without", "work", "works", "would", "yes", "yet", "you", "your",
+}
+
+
+def tokenize_text(text: str) -> list[str]:
+    """Extract normalized non-stopword tokens and compound identifiers."""
+    out: list[str] = []
+    seen: set[str] = set()
+    for word in re.findall(r"[A-Za-z0-9_]+", text):
+        low = word.lower().strip("_")
+        if len(low) >= 2 and low not in STOPWORDS and low not in seen:
+            seen.add(low)
+            out.append(low)
+        spaced = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", word)
+        spaced = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", spaced)
+        for part in re.split(r"[^A-Za-z0-9]+", spaced):
+            p = part.lower()
+            if len(p) >= 2 and p not in STOPWORDS and p not in seen:
+                seen.add(p)
+                out.append(p)
+    return out
+
+
+def memory_score(query_tokens: list[str], content: str, evidence: list[dict] | None = None) -> int:
+    """Count meaningful token overlaps against memory content and cited evidence."""
+    if not query_tokens:
+        return 1
+    doc_tokens = set(tokenize_text(content))
+    for ev in evidence or []:
+        doc_tokens.update(tokenize_text(ev.get("symbol", "")))
+        doc_tokens.update(tokenize_text(ev.get("path", "")))
+    score = 0
+    for qt in query_tokens:
+        if qt in doc_tokens:
+            score += 2
+        elif len(qt) >= 4 and any(dt.startswith(qt) or qt.startswith(dt) for dt in doc_tokens if len(dt) >= 4):
+            score += 1
+    return score
 
 
 class ToolError(SdkToolError):
@@ -124,11 +180,23 @@ def find_dependencies(root: str = "", name: str = "") -> dict:
 @mcp.tool()
 def search_memories(root: str = "", agent: str = "", text: str = "", state: str = "") -> dict:
     """Memories this agent may see whose content contains the text, optionally in one state."""
+    resolved_root = resolve_root(root)
+    viewer = resolve_agent(agent)
     memories = call("GET", "/api/v1/memories",
-                    {"root": resolve_root(root), "state": state, "viewer": resolve_agent(agent)})
-    words = text.lower().split()
-    matches = [m for m in memories if not words or any(w in m["content"].lower() for w in words)]
-    return {"memories": matches}
+                    {"root": resolved_root, "state": state, "viewer": viewer})
+    if not text.strip():
+        return {"memories": memories}
+    qtokens = tokenize_text(text)
+    scored: list[tuple[int, dict]] = []
+    for m in memories:
+        s = memory_score(qtokens, m["content"])
+        if s == 0:
+            detail = call("GET", "/api/v1/memories/" + m["id"], {"root": resolved_root, "viewer": viewer})
+            s = memory_score(qtokens, m["content"], detail.get("evidence", []))
+        if s > 0:
+            scored.append((s, m))
+    scored.sort(key=lambda item: (-item[0], item[1]["id"]))
+    return {"memories": [m for _, m in scored]}
 
 
 @mcp.tool()
@@ -195,30 +263,50 @@ def get_task_context(task: str = "", root: str = "", agent: str = "", budget_tok
         used += cost
         return True
 
-    needle = task.lower().split()
-    memories = call("GET", "/api/v1/memories", {"root": resolve_root(root), "viewer": resolve_agent(agent)})
-    matching = [m for m in memories if any(w in m["content"].lower() for w in needle)]
+    resolved_root = resolve_root(root)
+    viewer = resolve_agent(agent)
+    qtokens = tokenize_text(task)
+    memories = call("GET", "/api/v1/memories", {"root": resolved_root, "viewer": viewer})
+    code_hits = call("GET", "/api/v1/retrieve", {"root": resolved_root, "query": task, "k": 50})["hits"]
+    top_symbols = {h["fqn"] for h in code_hits[:10]}
+    top_paths = {h["path"] for h in code_hits[:5]}
 
-    flagged = [m for m in matching if m["state"] in ("suspected_stale", "evidence_missing")]
-    active = [m for m in matching if m["state"] == "active"]
+    scored_memories: list[tuple[int, dict, list[dict]]] = []
+    for m in memories:
+        if m["state"] not in ("active", "suspected_stale", "evidence_missing"):
+            continue
+        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": resolved_root, "viewer": viewer})
+        evidence = detail.get("evidence", [])
+        s = memory_score(qtokens, m["content"], evidence)
+        for ev in evidence:
+            if ev.get("symbol") in top_symbols:
+                s += 3
+            elif ev.get("path") in top_paths:
+                s += 1
+        if s > 0:
+            scored_memories.append((s, m, evidence))
 
-    for m in flagged:
+    scored_memories.sort(key=lambda item: (-item[0], item[1]["id"]))
+
+    for _, m, evidence in scored_memories:
+        if m["state"] not in ("suspected_stale", "evidence_missing"):
+            continue
         if m["id"] in seen_memories:
             continue
         seen_memories.add(m["id"])
-        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": resolve_root(root), "viewer": resolve_agent(agent)})
         take("warnings", {"id": m["id"], "state": m["state"], "content": m["content"],
                           "warning": "the code this memory cites changed or disappeared; review it",
-                          "evidence": detail["evidence"]})
+                          "evidence": evidence})
 
-    for m in active:
+    for _, m, evidence in scored_memories:
+        if m["state"] != "active":
+            continue
         if m["id"] in seen_memories:
             continue
         seen_memories.add(m["id"])
-        detail = call("GET", "/api/v1/memories/" + m["id"], {"root": resolve_root(root), "viewer": resolve_agent(agent)})
-        take("memories", {"id": m["id"], "content": m["content"], "evidence": detail["evidence"]})
+        take("memories", {"id": m["id"], "content": m["content"], "evidence": evidence})
 
-    for h in call("GET", "/api/v1/retrieve", {"root": resolve_root(root), "query": task, "k": 50})["hits"]:
+    for h in code_hits:
         if h["fqn"] in seen_code:
             continue
         seen_code.add(h["fqn"])

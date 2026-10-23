@@ -178,7 +178,8 @@ TEST_CASE("metrics values are counts of rows that exist") {
         api::status(db, kRoot).at("symbols").get<std::int64_t>());
 }
 
-TEST_CASE("a query for a project that was never indexed is not logged and does not fail") {
+TEST_CASE(
+    "a query for a project that was never indexed is not logged and does not fail") {
   TempDir tmp;
   veylqora::Database db(tmp.path() / "v.db");
   const veylqora::SystemClock clock;

@@ -51,34 +51,43 @@ std::string project_id(const fs::path& canonical) {
 // still counts.
 std::string definition_fingerprint(const SourceSymbol& s, std::string_view language) {
   std::string text = s.body;
-  if (language != "python") {
-    // JavaScript and TypeScript: the first whole-word occurrence of the name is
-    // the name in the declaration ("function f", "class A", "const f =", "m(").
-    const auto is_word = [](char c) {
-      return std::isalnum(static_cast<unsigned char>(c)) != 0 || c == '_' || c == '$';
-    };
-    for (std::size_t at = text.find(s.name); at != std::string::npos;
-         at = text.find(s.name, at + 1)) {
-      const bool before = at == 0 || !is_word(text[at - 1]);
-      const std::size_t end = at + s.name.size();
-      const bool after = end >= text.size() || !is_word(text[end]);
-      if (before && after) {
-        text.erase(at, s.name.size());
-        break;
+  const auto is_word = [](char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) != 0 || c == '_' || c == '$';
+  };
+  if (language == "python") {
+    for (std::size_t kw = 0; kw < text.size(); ++kw) {
+      std::size_t after_kw = std::string::npos;
+      const bool boundary = kw == 0 || !is_word(text[kw - 1]);
+      if (boundary && text.compare(kw, 4, "def ") == 0) {
+        after_kw = kw + 4;
+      } else if (boundary && text.compare(kw, 6, "class ") == 0) {
+        after_kw = kw + 6;
+      }
+      if (after_kw == std::string::npos) continue;
+      while (after_kw < text.size() &&
+             (text[after_kw] == ' ' || text[after_kw] == '\t')) {
+        ++after_kw;
+      }
+      if (text.compare(after_kw, s.name.size(), s.name) == 0 &&
+          (after_kw + s.name.size() >= text.size() ||
+           !is_word(text[after_kw + s.name.size()]))) {
+        text.erase(after_kw, s.name.size());
+        return body_fingerprint(text);
       }
     }
-    return body_fingerprint(text);
   }
-  std::size_t at = 0;
-  if (text.starts_with("async ")) at = 6;
-  if (text.compare(at, 4, "def ") == 0) {
-    at += 4;
-  } else if (text.compare(at, 6, "class ") == 0) {
-    at += 6;
-  } else {
-    return body_fingerprint(text);
+  // JavaScript, TypeScript, and fallback: the first whole-word occurrence of
+  // the name is the name in the declaration ("function f", "class A", "const f =", "m(").
+  for (std::size_t at = text.find(s.name); at != std::string::npos;
+       at = text.find(s.name, at + 1)) {
+    const bool before = at == 0 || !is_word(text[at - 1]);
+    const std::size_t end = at + s.name.size();
+    const bool after = end >= text.size() || !is_word(text[end]);
+    if (before && after) {
+      text.erase(at, s.name.size());
+      break;
+    }
   }
-  if (text.compare(at, s.name.size(), s.name) == 0) text.erase(at, s.name.size());
   return body_fingerprint(text);
 }
 
@@ -128,8 +137,9 @@ void drop_file(Database& db, const std::string& pid, const std::string& rel) {
 
 // Lexical tokens and the hashed vector of one symbol: its name, qualified name
 // and body (ADR-0015). Tokens are stored per project so lookups stay in-project.
-void store_retrieval_rows(Database& db, const std::string& pid, const std::string& sid,
-                          const SourceSymbol& s) {
+void store_retrieval_rows(const std::string& pid, const std::string& sid,
+                          const SourceSymbol& s, Statement& ins_token,
+                          Statement& ins_vec) {
   const auto name_tokens = tokenize(s.name);
   const auto fqn_tokens = tokenize(s.fqn);
   const auto body_tokens = tokenize(s.body);
@@ -138,13 +148,11 @@ void store_retrieval_rows(Database& db, const std::string& pid, const std::strin
   all.insert(fqn_tokens.begin(), fqn_tokens.end());
   all.insert(body_tokens.begin(), body_tokens.end());
   for (const std::string& token : all) {
-    Statement ins(
-        db,
-        "INSERT OR IGNORE INTO token (project_id, token, symbol_id) VALUES (?, ?, ?)");
-    ins.bind(1, pid);
-    ins.bind(2, token);
-    ins.bind(3, sid);
-    ins.step();
+    ins_token.reset();
+    ins_token.bind(1, pid);
+    ins_token.bind(2, token);
+    ins_token.bind(3, sid);
+    ins_token.step();
   }
 
   std::array<float, kVectorDims> v = embed(name_tokens, 3.0F);
@@ -153,12 +161,11 @@ void store_retrieval_rows(Database& db, const std::string& pid, const std::strin
   normalise(v);
   std::string blob(sizeof(v), '\0');
   std::memcpy(blob.data(), v.data(), sizeof(v));
-  Statement vec(db,
-                "INSERT INTO symbol_vec (symbol_id, project_id, vec) VALUES (?, ?, ?)");
-  vec.bind(1, sid);
-  vec.bind(2, pid);
-  vec.bind_blob(3, blob);
-  vec.step();
+  ins_vec.reset();
+  ins_vec.bind(1, sid);
+  ins_vec.bind(2, pid);
+  ins_vec.bind_blob(3, blob);
+  ins_vec.step();
 }
 
 // Writes or refreshes the rows for one file. Caller holds the transaction.
@@ -202,55 +209,62 @@ void index_one(Database& db, const std::string& pid, const std::string& rel,
 
   std::vector<std::string> sids;
   sids.reserve(parsed.symbols.size());
+  Statement ins_sym(
+      db,
+      "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "
+      "body_fingerprint, start_line, end_line) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  Statement ins_token(
+      db, "INSERT OR IGNORE INTO token (project_id, token, symbol_id) VALUES (?, ?, ?)");
+  Statement ins_vec(
+      db, "INSERT INTO symbol_vec (symbol_id, project_id, vec) VALUES (?, ?, ?)");
   for (const SourceSymbol& s : parsed.symbols) {
     const std::string sid =
         symbol_id(SymbolKey{pid, std::string(language), rel, s.fqn, s.kind, s.overload});
-    Statement ins(
-        db,
-        "INSERT INTO symbol (id, project_id, file_id, kind, name, fqn, overload, "
-        "body_fingerprint, start_line, end_line) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    ins.bind(1, sid);
-    ins.bind(2, pid);
-    ins.bind(3, fid);
-    ins.bind(4, to_string(s.kind));
-    ins.bind(5, s.name);
-    ins.bind(6, s.fqn);
-    ins.bind(7, static_cast<std::int64_t>(s.overload));
-    ins.bind(8, definition_fingerprint(s, language));
-    ins.bind(9, static_cast<std::int64_t>(s.start_line));
-    ins.bind(10, static_cast<std::int64_t>(s.end_line));
-    ins.step();
-    store_retrieval_rows(db, pid, sid, s);
+    ins_sym.reset();
+    ins_sym.bind(1, sid);
+    ins_sym.bind(2, pid);
+    ins_sym.bind(3, fid);
+    ins_sym.bind(4, to_string(s.kind));
+    ins_sym.bind(5, s.name);
+    ins_sym.bind(6, s.fqn);
+    ins_sym.bind(7, static_cast<std::int64_t>(s.overload));
+    ins_sym.bind(8, definition_fingerprint(s, language));
+    ins_sym.bind(9, static_cast<std::int64_t>(s.start_line));
+    ins_sym.bind(10, static_cast<std::int64_t>(s.end_line));
+    ins_sym.step();
+    store_retrieval_rows(pid, sid, s, ins_token, ins_vec);
     sids.push_back(sid);
     ++stats.symbols_written;
   }
 
+  Statement ins_fact(
+      db,
+      "INSERT INTO fact (file_id, src_symbol_id, kind, name, qualifier, scope, line) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?)");
   for (const SourceFact& f : parsed.facts) {
     std::string_view kind = "import";
     if (f.kind == FactKind::call) kind = "call";
     if (f.kind == FactKind::inherits) kind = "inherits";
-    Statement ins(
-        db,
-        "INSERT INTO fact (file_id, src_symbol_id, kind, name, qualifier, scope, line) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)");
-    ins.bind(1, fid);
-    ins.bind(2, sids[f.src]);
-    ins.bind(3, kind);
-    ins.bind(4, f.name);
-    ins.bind(5, f.qualifier);
-    ins.bind(6, f.scope);
-    ins.bind(7, static_cast<std::int64_t>(f.line));
-    ins.step();
+    ins_fact.reset();
+    ins_fact.bind(1, fid);
+    ins_fact.bind(2, sids[f.src]);
+    ins_fact.bind(3, kind);
+    ins_fact.bind(4, f.name);
+    ins_fact.bind(5, f.qualifier);
+    ins_fact.bind(6, f.scope);
+    ins_fact.bind(7, static_cast<std::int64_t>(f.line));
+    ins_fact.step();
   }
 
+  Statement ins_bind(db,
+                     "INSERT OR REPLACE INTO binding (file_id, local_name, target_fqn) "
+                     "VALUES (?, ?, ?)");
   for (const SourceBinding& b : parsed.bindings) {
-    Statement ins(db,
-                  "INSERT OR REPLACE INTO binding (file_id, local_name, target_fqn) "
-                  "VALUES (?, ?, ?)");
-    ins.bind(1, fid);
-    ins.bind(2, b.local);
-    ins.bind(3, b.target);
-    ins.step();
+    ins_bind.reset();
+    ins_bind.bind(1, fid);
+    ins_bind.bind(2, b.local);
+    ins_bind.bind(3, b.target);
+    ins_bind.step();
   }
   ++stats.files_indexed;
 }

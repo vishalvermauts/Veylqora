@@ -151,7 +151,8 @@ std::size_t export_memories(Database& db, const fs::path& root,
     Statement m(
         db,
         "SELECT id, project_id, type, content, state, scope, author, revision_no, "
-        "COALESCE(superseded_by, ''), created_at, updated_at FROM memory WHERE id = ?");
+        "COALESCE(superseded_by, ''), created_at, updated_at, approved_by FROM memory "
+        "WHERE id = ?");
     m.bind(1, id);
     m.step();
     out << to_line("memory", {{"id", m.text(0)},
@@ -164,7 +165,8 @@ std::size_t export_memories(Database& db, const fs::path& root,
                               {"revision_no", std::to_string(m.integer(7))},
                               {"superseded_by", m.text(8)},
                               {"created_at", m.text(9)},
-                              {"updated_at", m.text(10)}})
+                              {"updated_at", m.text(10)},
+                              {"approved_by", m.text(11)}})
         << '\n';
 
     Statement r(db,
@@ -249,8 +251,8 @@ std::size_t import_memories(Database& db, const fs::path& in_file) {
       Statement m(
           db,
           "INSERT INTO memory (id, project_id, type, content, state, scope, author, "
-          "revision_no, superseded_by, created_at, updated_at) "
-          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), ?, ?)");
+          "revision_no, superseded_by, created_at, updated_at, approved_by) "
+          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), ?, ?, ?)");
       m.bind(1, r.at("id"));
       m.bind(2, r.at("project_id"));
       m.bind(3, r.at("type"));
@@ -262,6 +264,8 @@ std::size_t import_memories(Database& db, const fs::path& in_file) {
       m.bind(9, r.at("superseded_by"));
       m.bind(10, r.at("created_at"));
       m.bind(11, r.at("updated_at"));
+      const auto approved_it = r.find("approved_by");
+      m.bind(12, approved_it != r.end() ? approved_it->second : "");
       m.step();
       ++memories;
     } else if (kind == "revision") {
