@@ -17,7 +17,7 @@ namespace {
 constexpr double kRrfK = 60.0;          // reciprocal rank fusion constant (ADR-0015)
 constexpr double kGraphWeight = 0.5;    // graph neighbours count half as much
 constexpr std::size_t kSeeds = 10;      // top results whose neighbours are explored
-constexpr std::size_t kMaxPerFile = 8;  // prevent single-file crowding in candidate pool
+constexpr std::size_t kMaxPerFile = 4;  // prevent single-file crowding in candidate pool
 
 struct Cand {
   std::string id;
@@ -66,7 +66,16 @@ Ranking lexical_ranking(Database& db, const std::string& pid,
   std::int64_t total_syms = static_cast<std::int64_t>(cands.size());
   if (total_syms < 1) total_syms = 1;
 
+  std::unordered_map<std::string, std::size_t> file_sym_count;
+  for (const auto& [sid, c] : cands) ++file_sym_count[c.path];
+  const double total_files =
+      std::max<double>(1.0, static_cast<double>(file_sym_count.size()));
+  const double avg_syms_per_file = static_cast<double>(total_syms) / total_files;
+
   std::unordered_map<std::string, double> hits;
+  std::unordered_map<std::string, std::unordered_map<std::string, std::size_t>> file_tf;
+  std::unordered_map<std::string, double> token_file_idf;
+
   Statement df_q(db,
                  "SELECT COUNT(DISTINCT symbol_id) FROM token WHERE project_id = ? AND "
                  "token = ?");
@@ -84,6 +93,7 @@ Ranking lexical_ranking(Database& db, const std::string& pid,
                                           (static_cast<double>(df) + 0.5));
     if (idf <= 0.0) continue;
 
+    std::unordered_set<std::string_view> files_with_t;
     hit_q.reset();
     hit_q.bind(1, pid);
     hit_q.bind(2, t);
@@ -92,6 +102,8 @@ Ranking lexical_ranking(Database& db, const std::string& pid,
       const auto it = cands.find(sid);
       if (it == cands.end()) continue;
       const Cand& c = it->second;
+      files_with_t.insert(c.path);
+      ++file_tf[c.path][t];
 
       double weight = 1.0;
       if (c.name.find(t) != std::string::npos) {
@@ -104,14 +116,36 @@ Ranking lexical_ranking(Database& db, const std::string& pid,
 
       hits[sid] += idf * weight;
     }
+
+    const double fdf = static_cast<double>(files_with_t.size());
+    token_file_idf[t] = std::log(1.0 + (total_files - fdf + 0.5) / (fdf + 0.5));
   }
 
-  // De-boost test files if query doesn't explicitly mention test/tests.
-  if (!query_mentions_test) {
-    for (auto& [sid, s] : hits) {
-      const auto it = cands.find(sid);
-      if (it != cands.end()) {
-        const std::string& p = it->second.path;
+  // Compute BM25-style file-level score over the symbols in each file.
+  std::unordered_map<std::string, double> file_bm25;
+  constexpr double k1 = 1.5;
+  constexpr double b = 0.75;
+  for (const auto& [path, tfs] : file_tf) {
+    const double dl = static_cast<double>(file_sym_count[path]);
+    double fs = 0.0;
+    for (const auto& [t, tf_cnt] : tfs) {
+      const double tf = static_cast<double>(tf_cnt);
+      const double idf = token_file_idf[t];
+      if (idf > 0.0) {
+        fs += idf * (tf * (k1 + 1.0)) /
+              (tf + k1 * (1.0 - b + b * (dl / avg_syms_per_file)));
+      }
+    }
+    if (path.find(tokens.front()) != std::string::npos) fs *= 1.1;
+    file_bm25[path] = fs;
+  }
+
+  for (auto& [sid, s] : hits) {
+    const auto it = cands.find(sid);
+    if (it != cands.end()) {
+      const std::string& p = it->second.path;
+      s += 2.0 * file_bm25[p];
+      if (!query_mentions_test) {
         if (p.find("test") != std::string::npos ||
             p.find("conftest") != std::string::npos) {
           s *= 0.5;
@@ -129,19 +163,30 @@ Ranking lexical_ranking(Database& db, const std::string& pid,
 
 Ranking vector_ranking(Database& db, const std::string& pid,
                        const std::vector<std::string>& tokens,
-                       const std::unordered_map<std::string, Cand>& cands) {
+                       const std::unordered_map<std::string, Cand>& cands,
+                       bool query_mentions_test) {
   const auto query = embed(tokens, 1.0F);
   std::vector<std::pair<std::string, double>> scored;
   Statement q(db, "SELECT symbol_id, vec FROM symbol_vec WHERE project_id = ?");
   q.bind(1, pid);
   while (q.step()) {
-    if (cands.count(q.text(0)) == 0) continue;
+    const auto it = cands.find(q.text(0));
+    if (it == cands.end()) continue;
     const std::string blob = q.blob(1);
     if (blob.size() != sizeof(float) * kVectorDims) continue;
     std::array<float, kVectorDims> v{};
     std::memcpy(v.data(), blob.data(), blob.size());
-    const double score = static_cast<double>(dot(query, v));
-    if (score > 0.0) scored.emplace_back(q.text(0), score);
+    double score = static_cast<double>(dot(query, v));
+    if (score > 0.0) {
+      if (!query_mentions_test) {
+        const std::string& p = it->second.path;
+        if (p.find("test") != std::string::npos ||
+            p.find("conftest") != std::string::npos) {
+          score *= 0.5;
+        }
+      }
+      scored.emplace_back(q.text(0), score);
+    }
   }
   sort_by_score(scored);
   Ranking out;
@@ -149,8 +194,6 @@ Ranking vector_ranking(Database& db, const std::string& pid,
   return out;
 }
 
-// Symbols one step away from the seeds over resolved and heuristic edges, ranked
-// by how many seeds reach them.
 Ranking graph_ranking(Database& db, const Ranking& seeds,
                       const std::unordered_map<std::string, Cand>& cands) {
   std::unordered_map<std::string, double> reached;
@@ -212,11 +255,13 @@ std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root,
   if (options.mode != Mode::vector) {
     lexical = lexical_ranking(db, pid, tokens, cands, mentions_test);
   }
-  if (options.mode != Mode::lexical) vec = vector_ranking(db, pid, tokens, cands);
+  if (options.mode != Mode::lexical) {
+    vec = vector_ranking(db, pid, tokens, cands, mentions_test);
+  }
 
   if (options.mode == Mode::hybrid) {
     fuse(score, lexical, 1.0);
-    fuse(score, vec, 1.0);
+    fuse(score, vec, 0.5);
     Ranking seeds;
     std::unordered_map<std::string, bool> seen;
     for (const Ranking* list : {&lexical, &vec}) {
@@ -233,9 +278,6 @@ std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root,
   std::vector<std::pair<std::string, double>> ranked(score.begin(), score.end());
   sort_by_score(ranked);
 
-  // Per-file diversification pass: allow at most kMaxPerFile symbols from any
-  // single file unless we run out of diverse candidates. This prevents single-file
-  // crowding from pushing other relevant files past kMaxResults.
   std::vector<Hit> out;
   std::unordered_map<std::string, std::size_t> file_counts;
   std::vector<std::pair<std::string, double>> overflow;
