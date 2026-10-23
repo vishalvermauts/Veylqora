@@ -163,19 +163,30 @@ Ranking lexical_ranking(Database& db, const std::string& pid,
 
 Ranking vector_ranking(Database& db, const std::string& pid,
                        const std::vector<std::string>& tokens,
-                       const std::unordered_map<std::string, Cand>& cands) {
+                       const std::unordered_map<std::string, Cand>& cands,
+                       bool query_mentions_test) {
   const auto query = embed(tokens, 1.0F);
   std::vector<std::pair<std::string, double>> scored;
   Statement q(db, "SELECT symbol_id, vec FROM symbol_vec WHERE project_id = ?");
   q.bind(1, pid);
   while (q.step()) {
-    if (cands.count(q.text(0)) == 0) continue;
+    const auto it = cands.find(q.text(0));
+    if (it == cands.end()) continue;
     const std::string blob = q.blob(1);
     if (blob.size() != sizeof(float) * kVectorDims) continue;
     std::array<float, kVectorDims> v{};
     std::memcpy(v.data(), blob.data(), blob.size());
-    const double score = static_cast<double>(dot(query, v));
-    if (score > 0.0) scored.emplace_back(q.text(0), score);
+    double score = static_cast<double>(dot(query, v));
+    if (score > 0.0) {
+      if (!query_mentions_test) {
+        const std::string& p = it->second.path;
+        if (p.find("test") != std::string::npos ||
+            p.find("conftest") != std::string::npos) {
+          score *= 0.5;
+        }
+      }
+      scored.emplace_back(q.text(0), score);
+    }
   }
   sort_by_score(scored);
   Ranking out;
@@ -244,11 +255,13 @@ std::vector<Hit> retrieve(Database& db, const std::filesystem::path& root,
   if (options.mode != Mode::vector) {
     lexical = lexical_ranking(db, pid, tokens, cands, mentions_test);
   }
-  if (options.mode != Mode::lexical) vec = vector_ranking(db, pid, tokens, cands);
+  if (options.mode != Mode::lexical) {
+    vec = vector_ranking(db, pid, tokens, cands, mentions_test);
+  }
 
   if (options.mode == Mode::hybrid) {
     fuse(score, lexical, 1.0);
-    fuse(score, vec, 1.0);
+    fuse(score, vec, 0.5);
     Ranking seeds;
     std::unordered_map<std::string, bool> seen;
     for (const Ranking* list : {&lexical, &vec}) {
