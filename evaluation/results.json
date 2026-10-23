@@ -35,9 +35,9 @@
         "hybrid_recall_at_10": 1.0,
         "hybrid_reciprocal_rank": 1.0,
         "hybrid_top_3": [
-          "auth.tokens.verify_token",
           "auth.tokens.issue_token",
-          "auth.tokens.TokenStore.load"
+          "auth.tokens.verify_token",
+          "auth.tokens.TokenStore"
         ],
         "lexical_recall_at_10": 1.0,
         "vector_recall_at_10": 1.0
@@ -52,8 +52,8 @@
         "hybrid_recall_at_10": 1.0,
         "hybrid_reciprocal_rank": 1.0,
         "hybrid_top_3": [
-          "auth.passwords.check_password",
           "auth.passwords.hash_password",
+          "auth.passwords.check_password",
           "auth.passwords.check_password_async"
         ],
         "lexical_recall_at_10": 1.0,

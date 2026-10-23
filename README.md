@@ -142,9 +142,10 @@ results are in `docs/research/`.
 ## Offline file-localisation benchmark (SWE-bench Lite sample)
 
 On a stratified 25-issue sample across 8 SWE-bench Lite repositories (`flask`,
-`seaborn`, `xarray`, `astropy`, `requests`, `pylint`, `sphinx`, `pytest`),
-ranking repository files directly from the first 512 characters of each raw
-GitHub issue description (`problem_statement[:512]`, no LLM):
+`seaborn`, `xarray`, `astropy`, `requests`, `pylint`, `sphinx`, `pytest`; not a
+held-out test — retrieval weights were tuned against this sample), ranking
+repository files directly from the first 512 characters of each raw GitHub issue
+description (`problem_statement[:512]`, no LLM):
 
 | Method | Acc@1 | Acc@5 | Acc@10 | MRR |
 |---|---:|---:|---:|---:|
@@ -158,10 +159,24 @@ Stopword filtering, compound identifier tokenization (`snake_case` and
 `camelCase` preserved alongside split sub-tokens), IDF and field weighting
 (symbol name 8×, FQN 5×, file path 3×, body 1×), test-file de-boosting when the
 query does not mention tests, and per-file diversification (`≤ 8` symbols per
-file before overflow) raised `hybrid_first512` top-1 accuracy from 12.0% to
-40.0% and MRR from 0.245 to 0.463. Reusing prepared SQLite statements during
-indexing reduced total indexing time across the 25 checkouts from 731.5 s to
-282.6 s (2.59× faster).
+file before overflow) raised `hybrid_first512` top-1 accuracy on these 25 issues
+from 12.0% (3/25) to 40.0% (10/25) and MRR from 0.245 to 0.463. Compared with
+the whole-file BM25 baseline (32.0%, 8/25), hybrid Acc@1 is a tie within noise
+on this 25-issue sample (paired difference +8.0 percentage points, 4 wins / 19
+ties / 2 losses; 95% confidence interval roughly −12 to +28 percentage points,
+or −8 to +28 points depending on the interval method), and BM25 remains higher
+at Acc@5 (60.0% vs 52.0%) and Acc@10 (72.0% vs 68.0%).
+
+In a controlled Release-mode indexing benchmark on an idle machine (alternating
+old and new binaries across 3 repeats from a fresh database on 6 repositories:
+`flask`, `seaborn`, `requests`, `sphinx`, `astropy`, `pylint`), commit `6562e9b`
+is about 2–4% slower than commit `3136b00` on the medium and large repositories
+(median old/new ratios: `sphinx` 31.17 s vs 32.08 s, `0.97×`; `astropy` 79.87 s
+vs 81.26 s, `0.98×`; `pylint` 25.65 s vs 26.05 s, `0.98×`; `seaborn` 7.02 s vs
+7.40 s, `0.95×`; `requests` 1.38 s vs 1.36 s, `1.01×`; `flask` 2.42 s vs 2.98 s,
+`0.81×`), because emitting both compound identifiers and split sub-tokens
+increases the number of unique tokens written per symbol despite prepared-statement
+reuse.
 
 ## Agent study results
 
