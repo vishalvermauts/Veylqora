@@ -195,7 +195,7 @@ Database::Database(const std::filesystem::path& file) {
     throw Error("cannot open " + file.string() + ": " + msg);
   }
   exec(
-      "PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;");
+      "PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA temp_store = MEMORY; PRAGMA cache_size = -65536; PRAGMA busy_timeout = 5000;");
   migrate();
 }
 

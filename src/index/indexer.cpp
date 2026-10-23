@@ -349,6 +349,7 @@ IndexStats index_project(Database& db, const Clock& clock, const fs::path& root,
     return options.cancel != nullptr && options.cancel->load();
   };
 
+  db.exec("PRAGMA wal_autocheckpoint = 0;");
   std::size_t done = 0;
   while (done < total && !cancelled()) {
     Transaction tx(db);
