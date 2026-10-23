@@ -106,10 +106,10 @@ gcc 15.2 and clang 21.1):
 | Job | Result |
 |---|---|
 | clang-format check | PASS |
-| gcc 15 build, `-Werror`, all tests | PASS — 105 / 105 |
-| clang 21 build, `-Werror`, all tests | PASS — 105 / 105 |
-| AddressSanitizer + UndefinedBehaviorSanitizer, all tests | PASS — 105 / 105 |
-| MCP server end-to-end (`pytest mcp/tests`) | PASS — 20 / 20 |
+| gcc 15 build, `-Werror`, all tests | PASS — 105 / 105 (measured 2026-10-22 at `6562e9b`) |
+| clang 21 build, `-Werror`, all tests | PASS — 105 / 105 (measured 2026-10-22 at `6562e9b`) |
+| AddressSanitizer + UndefinedBehaviorSanitizer, all tests | PASS — 105 / 105 (measured 2026-10-22 at `6562e9b`) |
+| MCP server end-to-end (`pytest mcp/tests`) | PASS — 20 / 20 (measured 2026-10-22 at `6562e9b`) |
 | Offline evaluation (`scripts/evaluate.py`) | PASS — hybrid recall@10 `1.000`, MRR `0.938`, stale precision `1.000`, recall `1.000` |
 | End-to-end packaging & backup/restore (`scripts/e2e.sh`) | PASS |
 | Web dashboard build + Vitest + Playwright browser suite | PASS — 9 unit + 6 browser tests |
@@ -136,10 +136,14 @@ privacy-preserving query logs; the single-writer lock; and CLI integration.
 | pallets/flask | 83 | 1,705 | 0.3 s | 0.0 s |
 | django/django | 2,933 | 46,906 | 24 s | 0.3 s |
 
+_The three rows above were measured earlier (2026-10-20, older build, not on an idle machine). Re-measure before relying on the timings._
+
 Graph lookups on django take 5–40 ms, including opening the database. The
 results are in `docs/research/`.
 
 ## Offline file-localisation benchmark (SWE-bench Lite sample)
+
+Measured 2026-10-22 on commits `3136b00` (before) and `6562e9b` (after). Sample: 25 issues, tuned on, **not a held-out test**.
 
 On a stratified 25-issue sample across 8 SWE-bench Lite repositories (`flask`,
 `seaborn`, `xarray`, `astropy`, `requests`, `pylint`, `sphinx`, `pytest`; not a
