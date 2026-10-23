@@ -1,0 +1,731 @@
+
+[1m== format[0m
+[32m   PASS[0m  format
+
+[1m== gcc[0m
+Test project /home/agent/ci-work/build-gcc
+        Start   1: empty source yields only the module symbol and no errors
+  1/105 Test   #1: empty source yields only the module symbol and no errors ...........................   Passed    0.00 sec
+        Start   2: calls, bases and imports are recorded as facts with their caller
+  2/105 Test   #2: calls, bases and imports are recorded as facts with their caller ...................   Passed    0.00 sec
+        Start   3: from-imports bind local names to fully qualified targets
+  3/105 Test   #3: from-imports bind local names to fully qualified targets ...........................   Passed    0.00 sec
+        Start   4: body fingerprint ignores formatting-only changes
+  4/105 Test   #4: body fingerprint ignores formatting-only changes ...................................   Passed    0.00 sec
+        Start   5: comments inside a body belong to it
+  5/105 Test   #5: comments inside a body belong to it ................................................   Passed    0.00 sec
+        Start   6: a def inside a string is not a symbol
+  6/105 Test   #6: a def inside a string is not a symbol ..............................................   Passed    0.00 sec
+        Start   7: syntax errors are reported, and parsing still yields the valid parts
+  7/105 Test   #7: syntax errors are reported, and parsing still yields the valid parts ...............   Passed    0.00 sec
+        Start   8: empty and whitespace-only bodies fingerprint identically
+  8/105 Test   #8: empty and whitespace-only bodies fingerprint identically ...........................   Passed    0.00 sec
+        Start   9: fixed clock returns exactly the instant it was given
+  9/105 Test   #9: fixed clock returns exactly the instant it was given ...............................   Passed    0.00 sec
+        Start  10: timestamps format as UTC ISO-8601 to the second
+ 10/105 Test  #10: timestamps format as UTC ISO-8601 to the second ....................................   Passed    0.00 sec
+        Start  11: symbol ids are stable and well formed
+ 11/105 Test  #11: symbol ids are stable and well formed ..............................................   Passed    0.00 sec
+        Start  12: relative imports resolve against the importing module's package
+ 12/105 Test  #12: relative imports resolve against the importing module's package ....................   Passed    0.00 sec
+        Start  13: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences
+ 13/105 Test  #13: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences ...........   Passed    0.00 sec
+        Start  14: field boundaries cannot be forged by moving text between fields
+ 14/105 Test  #14: field boundaries cannot be forged by moving text between fields ....................   Passed    0.00 sec
+        Start  15: deeply nested input is cut off instead of exhausting the stack
+ 15/105 Test  #15: deeply nested input is cut off instead of exhausting the stack .....................   Passed    0.01 sec
+        Start  16: functions, classes, methods and nested functions get dotted names
+ 16/105 Test  #16: functions, classes, methods and nested functions get dotted names ..................   Passed    0.00 sec
+        Start  17: body fingerprint detects real changes
+ 17/105 Test  #17: body fingerprint detects real changes ..............................................   Passed    0.00 sec
+        Start  18: CRLF line endings produce the same symbols
+ 18/105 Test  #18: CRLF line endings produce the same symbols .........................................   Passed    0.00 sec
+        Start  19: a definition's lines and body come from the syntax tree
+ 19/105 Test  #19: a definition's lines and body come from the syntax tree ............................   Passed    0.00 sec
+        Start  20: repeated names in one scope get distinct overloads
+ 20/105 Test  #20: repeated names in one scope get distinct overloads .................................   Passed    0.00 sec
+        Start  21: malformed UTF-8 is rejected
+ 21/105 Test  #21: malformed UTF-8 is rejected ........................................................   Passed    0.00 sec
+        Start  22: identity distinguishes every identity-bearing field
+ 22/105 Test  #22: identity distinguishes every identity-bearing field ................................   Passed    0.00 sec
+        Start  23: slice: a deleted file's symbols disappear from search
+ 23/105 Test  #23: slice: a deleted file's symbols disappear from search ..............................   Passed    0.02 sec
+        Start  24: slice: projects sharing one database do not see each other
+ 24/105 Test  #24: slice: projects sharing one database do not see each other .........................   Passed    0.02 sec
+        Start  25: static web mount: traversal to a file outside the root is never served
+ 25/105 Test  #25: static web mount: traversal to a file outside the root is never served .............   Passed    0.01 sec
+        Start  26: slice: an edited file is re-parsed and its symbols replaced
+ 26/105 Test  #26: slice: an edited file is re-parsed and its symbols replaced ........................   Passed    0.01 sec
+        Start  27: a TypeScript file with a syntax error keeps its valid definitions
+ 27/105 Test  #27: a TypeScript file with a syntax error keeps its valid definitions ..................   Passed    0.01 sec
+        Start  28: a corrupt import file is rejected as a whole
+ 28/105 Test  #28: a corrupt import file is rejected as a whole .......................................   Passed    0.00 sec
+        Start  29: service: status, index, search and graph agree with the library
+ 29/105 Test  #29: service: status, index, search and graph agree with the library ....................   Passed    0.01 sec
+        Start  30: a query for a project that was never indexed is not logged and does not fail
+ 30/105 Test  #30: a query for a project that was never indexed is not logged and does not fail .......   Passed    0.00 sec
+        Start  31: labelled dataset: precision and recall meet the gate (ADR-0014)
+ 31/105 Test  #31: labelled dataset: precision and recall meet the gate (ADR-0014) ....................   Passed    0.06 sec
+        Start  32: TypeScript graph meets the labelled gate (ADR-0019)
+ 32/105 Test  #32: TypeScript graph meets the labelled gate (ADR-0019) ................................   Passed    0.01 sec
+        Start  33: change impact: editing util.py puts its dependents in doubt
+ 33/105 Test  #33: change impact: editing util.py puts its dependents in doubt ........................   Passed    0.01 sec
+        Start  34: create, read back and list a memory
+ 34/105 Test  #34: create, read back and list a memory ................................................   Passed    0.00 sec
+        Start  35: every calls edge carries a resolution level
+ 35/105 Test  #35: every calls edge carries a resolution level ........................................   Passed    0.01 sec
+        Start  36: concurrent writers from separate connections never lose an update
+ 36/105 Test  #36: concurrent writers from separate connections never lose an update ..................   Passed    0.00 sec
+        Start  37: forward lookup: what main depends on
+ 37/105 Test  #37: forward lookup: what main depends on ...............................................   Passed    0.01 sec
+        Start  38: consistency holds after edits and deletions
+ 38/105 Test  #38: consistency holds after edits and deletions ........................................   Passed    0.01 sec
+        Start  39: labelled queries: hybrid recall@10 meets the gate (ADR-0015)
+ 39/105 Test  #39: labelled queries: hybrid recall@10 meets the gate (ADR-0015) .......................   Passed    0.02 sec
+        Start  40: an interrupted write leaves no partial memory behind
+ 40/105 Test  #40: an interrupted write leaves no partial memory behind ...............................   Passed    0.00 sec
+        Start  41: opting out of the query log writes nothing
+ 41/105 Test  #41: opting out of the query log writes nothing .........................................   Passed    0.01 sec
+        Start  42: reverse lookup: what depends on helper
+ 42/105 Test  #42: reverse lookup: what depends on helper .............................................   Passed    0.01 sec
+        Start  43: binary file with a .py name is skipped, not parsed
+ 43/105 Test  #43: binary file with a .py name is skipped, not parsed .................................   Passed    0.01 sec
+        Start  44: top_k is capped at the maximum
+ 44/105 Test  #44: top_k is capped at the maximum .....................................................   Passed    0.01 sec
+        Start  45: API path inputs that look like traversal fail cleanly, never with a server error
+ 45/105 Test  #45: API path inputs that look like traversal fail cleanly, never with a server error ...   Passed    0.01 sec
+        Start  46: an approved memory is hidden until approved, and approval is cleared by a change
+ 46/105 Test  #46: an approved memory is hidden until approved, and approval is cleared by a change ...   Passed    0.01 sec
+        Start  47: file lock: a second holder is refused while the first is alive
+ 47/105 Test  #47: file lock: a second holder is refused while the first is alive .....................   Passed    0.00 sec
+        Start  48: neighbourhood reaches symbols within the hop limit
+ 48/105 Test  #48: neighbourhood reaches symbols within the hop limit .................................   Passed    0.01 sec
+        Start  49: empty directory indexes to nothing without error
+ 49/105 Test  #49: empty directory indexes to nothing without error ...................................   Passed    0.01 sec
+        Start  50: valid multi-byte UTF-8 is indexed
+ 50/105 Test  #50: valid multi-byte UTF-8 is indexed ..................................................   Passed    0.01 sec
+        Start  51: deleted file: its symbols disappear and the removal is counted
+ 51/105 Test  #51: deleted file: its symbols disappear and the removal is counted .....................   Passed    0.01 sec
+        Start  52: re-exported names resolve to their defining module
+ 52/105 Test  #52: re-exported names resolve to their defining module .................................   Passed    0.01 sec
+        Start  53: an incremental update gives the same retrieval as a full rebuild
+ 53/105 Test  #53: an incremental update gives the same retrieval as a full rebuild ...................   Passed    0.03 sec
+        Start  54: empty, punctuation-only and over-long queries are refused
+ 54/105 Test  #54: empty, punctuation-only and over-long queries are refused ..........................   Passed    0.01 sec
+        Start  55: archived memories are read-only
+ 55/105 Test  #55: archived memories are read-only ....................................................   Passed    0.01 sec
+        Start  56: empty python file is indexed with no symbols
+ 56/105 Test  #56: empty python file is indexed with no symbols .......................................   Passed    0.01 sec
+        Start  57: symlinks are never followed, even to files outside the project
+ 57/105 Test  #57: symlinks are never followed, even to files outside the project .....................   Passed    0.01 sec
+        Start  58: large repository is processed in batches with progress
+ 58/105 Test  #58: large repository is processed in batches with progress .............................   Passed    0.79 sec
+        Start  59: retention purges only archived memories older than the cutoff
+ 59/105 Test  #59: retention purges only archived memories older than the cutoff ......................   Passed    0.01 sec
+        Start  60: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept
+ 60/105 Test  #60: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept ...   Passed    0.01 sec
+        Start  61: state transitions follow the table; illegal ones and missing reasons are refused
+ 61/105 Test  #61: state transitions follow the table; illegal ones and missing reasons are refused ...   Passed    0.01 sec
+        Start  62: service: memory operations and their error kinds
+ 62/105 Test  #62: service: memory operations and their error kinds ...................................   Passed    0.01 sec
+        Start  63: accepting a flagged memory returns it to active and keeps it there
+ 63/105 Test  #63: accepting a flagged memory returns it to active and keeps it there .................   Passed    0.01 sec
+        Start  64: unreadable file keeps its previously indexed symbols
+ 64/105 Test  #64: unreadable file keeps its previously indexed symbols ...............................   Passed    0.01 sec
+        Start  65: audit rows record who did what, never the payload
+ 65/105 Test  #65: audit rows record who did what, never the payload ..................................   Passed    0.01 sec
+        Start  66: the index is consistent after a fresh index
+ 66/105 Test  #66: the index is consistent after a fresh index ........................................   Passed    0.01 sec
+        Start  67: supersession links the old memory to its replacement
+ 67/105 Test  #67: supersession links the old memory to its replacement ...............................   Passed    0.00 sec
+        Start  68: server: JSON over HTTP, with stable error codes
+ 68/105 Test  #68: server: JSON over HTTP, with stable error codes ....................................   Passed    0.02 sec
+        Start  69: JavaScript files are recorded with the javascript language
+ 69/105 Test  #69: JavaScript files are recorded with the javascript language .........................   Passed    0.01 sec
+        Start  70: the sample decision is deterministic and follows the rate
+ 70/105 Test  #70: the sample decision is deterministic and follows the rate ..........................   Passed    0.00 sec
+        Start  71: server: refuses a non-loopback bind
+ 71/105 Test  #71: server: refuses a non-loopback bind ................................................   Passed    0.00 sec
+        Start  72: deleting a file removes its symbols and the edges that pointed at them
+ 72/105 Test  #72: deleting a file removes its symbols and the edges that pointed at them .............   Passed    0.01 sec
+        Start  73: a malformed file does not stop the rest of the graph from being built
+ 73/105 Test  #73: a malformed file does not stop the rest of the graph from being built ..............   Passed    0.01 sec
+        Start  74: labelled fixture: symbol and edge precision and recall meet the gate
+ 74/105 Test  #74: labelled fixture: symbol and edge precision and recall meet the gate ...............   Passed    0.01 sec
+        Start  75: metrics values are counts of rows that exist
+ 75/105 Test  #75: metrics values are counts of rows that exist .......................................   Passed    0.01 sec
+        Start  76: a backup restores to the same index, memories and history
+ 76/105 Test  #76: a backup restores to the same index, memories and history ..........................   Passed    0.02 sec
+        Start  77: the query log stores a hash, never the query text
+ 77/105 Test  #77: the query log stores a hash, never the query text ..................................   Passed    0.01 sec
+        Start  78: backup refuses to overwrite an existing file
+ 78/105 Test  #78: backup refuses to overwrite an existing file .......................................   Passed    0.00 sec
+        Start  79: JavaScript graph meets the labelled gate (ADR-0019)
+ 79/105 Test  #79: JavaScript graph meets the labelled gate (ADR-0019) ................................   Passed    0.01 sec
+        Start  80: metadata filters restrict kind and path
+ 80/105 Test  #80: metadata filters restrict kind and path ............................................   Passed    0.01 sec
+        Start  81: an interrupted update leaves a consistent index that a re-run completes
+ 81/105 Test  #81: an interrupted update leaves a consistent index that a re-run completes ............   Passed    0.03 sec
+        Start  82: invalid UTF-8 is skipped and does not stop the run
+ 82/105 Test  #82: invalid UTF-8 is skipped and does not stop the run .................................   Passed    0.01 sec
+        Start  83: a private memory is invisible to other agents, and they cannot change it
+ 83/105 Test  #83: a private memory is invisible to other agents, and they cannot change it ...........   Passed    0.00 sec
+        Start  84: projects sharing a database do not see each other's symbols
+ 84/105 Test  #84: projects sharing a database do not see each other's symbols ........................   Passed    0.03 sec
+        Start  85: a backup is a snapshot: later writes to the live database are not in it
+ 85/105 Test  #85: a backup is a snapshot: later writes to the live database are not in it ............   Passed    0.01 sec
+        Start  86: slice: re-indexing an unchanged tree parses nothing
+ 86/105 Test  #86: slice: re-indexing an unchanged tree parses nothing ................................   Passed    0.01 sec
+        Start  87: 40 agents on one shared memory: no lost updates, every write in the history
+ 87/105 Test  #87: 40 agents on one shared memory: no lost updates, every write in the history ........   Passed    0.10 sec
+        Start  88: required fields are validated
+ 88/105 Test  #88: required fields are validated ......................................................   Passed    0.00 sec
+        Start  89: retrieval is deterministic for a fixed index, query and options
+ 89/105 Test  #89: retrieval is deterministic for a fixed index, query and options ....................   Passed    0.02 sec
+        Start  90: interrupted run keeps committed batches and does not remove anything
+ 90/105 Test  #90: interrupted run keeps committed batches and does not remove anything ...............   Passed    0.01 sec
+        Start  91: a damaged backup is refused and the target database is left unchanged
+ 91/105 Test  #91: a damaged backup is refused and the target database is left unchanged ..............   Passed    0.00 sec
+        Start  92: slice: unknown names and unknown projects return no hits
+ 92/105 Test  #92: slice: unknown names and unknown projects return no hits ...........................   Passed    0.01 sec
+        Start  93: export, import into an empty database, and export again: byte-identical
+ 93/105 Test  #93: export, import into an empty database, and export again: byte-identical ............   Passed    0.01 sec
+        Start  94: memories survive a restart
+ 94/105 Test  #94: memories survive a restart .........................................................   Passed    0.00 sec
+        Start  95: two projects in one database have separate graphs
+ 95/105 Test  #95: two projects in one database have separate graphs ..................................   Passed    0.01 sec
+        Start  96: renamed file: old path disappears, new path is indexed
+ 96/105 Test  #96: renamed file: old path disappears, new path is indexed .............................   Passed    0.01 sec
+        Start  97: projects are isolated: another project's memory is not found
+ 97/105 Test  #97: projects are isolated: another project's memory is not found .......................   Passed    0.00 sec
+        Start  98: editing a file rewires its edges, with no stale ones left behind
+ 98/105 Test  #98: editing a file rewires its edges, with no stale ones left behind ...................   Passed    0.01 sec
+        Start  99: slice: index, search, restart, and get the same answers
+ 99/105 Test  #99: slice: index, search, restart, and get the same answers ............................   Passed    0.01 sec
+        Start 100: update with the current revision succeeds and keeps history
+100/105 Test #100: update with the current revision succeeds and keeps history ........................   Passed    0.00 sec
+        Start 101: decorated Python definition survives rename and triggers on decorator edit
+101/105 Test #101: decorated Python definition survives rename and triggers on decorator edit .........   Passed    0.01 sec
+        Start 102: evidence must name an indexed symbol, or the memory is not created at all
+102/105 Test #102: evidence must name an indexed symbol, or the memory is not created at all ..........   Passed    0.01 sec
+        Start 103: a stale revision is a conflict and nothing is written
+103/105 Test #103: a stale revision is a conflict and nothing is written ..............................   Passed    0.00 sec
+        Start 104: retention deletes rows past their period and keeps the rest
+104/105 Test #104: retention deletes rows past their period and keeps the rest ........................   Passed    0.01 sec
+        Start 105: cli_slice
+105/105 Test #105: cli_slice ..........................................................................   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 105
+
+Total Test time (real) =   1.86 sec
+[32m   PASS[0m  gcc
+
+[1m== clang[0m
+Test project /home/agent/ci-work/build-clang
+        Start   1: identity distinguishes every identity-bearing field
+  1/105 Test   #1: identity distinguishes every identity-bearing field ................................   Passed    0.00 sec
+        Start   2: CRLF line endings produce the same symbols
+  2/105 Test   #2: CRLF line endings produce the same symbols .........................................   Passed    0.00 sec
+        Start   3: syntax errors are reported, and parsing still yields the valid parts
+  3/105 Test   #3: syntax errors are reported, and parsing still yields the valid parts ...............   Passed    0.00 sec
+        Start   4: timestamps format as UTC ISO-8601 to the second
+  4/105 Test   #4: timestamps format as UTC ISO-8601 to the second ....................................   Passed    0.00 sec
+        Start   5: malformed UTF-8 is rejected
+  5/105 Test   #5: malformed UTF-8 is rejected ........................................................   Passed    0.00 sec
+        Start   6: a def inside a string is not a symbol
+  6/105 Test   #6: a def inside a string is not a symbol ..............................................   Passed    0.00 sec
+        Start   7: relative imports resolve against the importing module's package
+  7/105 Test   #7: relative imports resolve against the importing module's package ....................   Passed    0.00 sec
+        Start   8: symbol ids are stable and well formed
+  8/105 Test   #8: symbol ids are stable and well formed ..............................................   Passed    0.00 sec
+        Start   9: body fingerprint detects real changes
+  9/105 Test   #9: body fingerprint detects real changes ..............................................   Passed    0.00 sec
+        Start  10: repeated names in one scope get distinct overloads
+ 10/105 Test  #10: repeated names in one scope get distinct overloads .................................   Passed    0.00 sec
+        Start  11: fixed clock returns exactly the instant it was given
+ 11/105 Test  #11: fixed clock returns exactly the instant it was given ...............................   Passed    0.00 sec
+        Start  12: from-imports bind local names to fully qualified targets
+ 12/105 Test  #12: from-imports bind local names to fully qualified targets ...........................   Passed    0.00 sec
+        Start  13: a definition's lines and body come from the syntax tree
+ 13/105 Test  #13: a definition's lines and body come from the syntax tree ............................   Passed    0.00 sec
+        Start  14: comments inside a body belong to it
+ 14/105 Test  #14: comments inside a body belong to it ................................................   Passed    0.00 sec
+        Start  15: calls, bases and imports are recorded as facts with their caller
+ 15/105 Test  #15: calls, bases and imports are recorded as facts with their caller ...................   Passed    0.00 sec
+        Start  16: empty source yields only the module symbol and no errors
+ 16/105 Test  #16: empty source yields only the module symbol and no errors ...........................   Passed    0.00 sec
+        Start  17: deeply nested input is cut off instead of exhausting the stack
+ 17/105 Test  #17: deeply nested input is cut off instead of exhausting the stack .....................   Passed    0.05 sec
+        Start  18: body fingerprint ignores formatting-only changes
+ 18/105 Test  #18: body fingerprint ignores formatting-only changes ...................................   Passed    0.00 sec
+        Start  19: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences
+ 19/105 Test  #19: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences ...........   Passed    0.00 sec
+        Start  20: field boundaries cannot be forged by moving text between fields
+ 20/105 Test  #20: field boundaries cannot be forged by moving text between fields ....................   Passed    0.00 sec
+        Start  21: functions, classes, methods and nested functions get dotted names
+ 21/105 Test  #21: functions, classes, methods and nested functions get dotted names ..................   Passed    0.00 sec
+        Start  22: empty and whitespace-only bodies fingerprint identically
+ 22/105 Test  #22: empty and whitespace-only bodies fingerprint identically ...........................   Passed    0.00 sec
+        Start  23: update with the current revision succeeds and keeps history
+ 23/105 Test  #23: update with the current revision succeeds and keeps history ........................   Passed    0.01 sec
+        Start  24: projects are isolated: another project's memory is not found
+ 24/105 Test  #24: projects are isolated: another project's memory is not found .......................   Passed    0.00 sec
+        Start  25: interrupted run keeps committed batches and does not remove anything
+ 25/105 Test  #25: interrupted run keeps committed batches and does not remove anything ...............   Passed    0.01 sec
+        Start  26: re-exported names resolve to their defining module
+ 26/105 Test  #26: re-exported names resolve to their defining module .................................   Passed    0.01 sec
+        Start  27: invalid UTF-8 is skipped and does not stop the run
+ 27/105 Test  #27: invalid UTF-8 is skipped and does not stop the run .................................   Passed    0.01 sec
+        Start  28: a backup restores to the same index, memories and history
+ 28/105 Test  #28: a backup restores to the same index, memories and history ..........................   Passed    0.02 sec
+        Start  29: server: JSON over HTTP, with stable error codes
+ 29/105 Test  #29: server: JSON over HTTP, with stable error codes ....................................   Passed    0.02 sec
+        Start  30: supersession links the old memory to its replacement
+ 30/105 Test  #30: supersession links the old memory to its replacement ...............................   Passed    0.00 sec
+        Start  31: an interrupted write leaves no partial memory behind
+ 31/105 Test  #31: an interrupted write leaves no partial memory behind ...............................   Passed    0.00 sec
+        Start  32: export, import into an empty database, and export again: byte-identical
+ 32/105 Test  #32: export, import into an empty database, and export again: byte-identical ............   Passed    0.02 sec
+        Start  33: two projects in one database have separate graphs
+ 33/105 Test  #33: two projects in one database have separate graphs ..................................   Passed    0.01 sec
+        Start  34: accepting a flagged memory returns it to active and keeps it there
+ 34/105 Test  #34: accepting a flagged memory returns it to active and keeps it there .................   Passed    0.01 sec
+        Start  35: file lock: a second holder is refused while the first is alive
+ 35/105 Test  #35: file lock: a second holder is refused while the first is alive .....................   Passed    0.00 sec
+        Start  36: renamed file: old path disappears, new path is indexed
+ 36/105 Test  #36: renamed file: old path disappears, new path is indexed .............................   Passed    0.01 sec
+        Start  37: consistency holds after edits and deletions
+ 37/105 Test  #37: consistency holds after edits and deletions ........................................   Passed    0.01 sec
+        Start  38: metrics values are counts of rows that exist
+ 38/105 Test  #38: metrics values are counts of rows that exist .......................................   Passed    0.01 sec
+        Start  39: unreadable file keeps its previously indexed symbols
+ 39/105 Test  #39: unreadable file keeps its previously indexed symbols ...............................   Passed    0.01 sec
+        Start  40: symlinks are never followed, even to files outside the project
+ 40/105 Test  #40: symlinks are never followed, even to files outside the project .....................   Passed    0.01 sec
+        Start  41: forward lookup: what main depends on
+ 41/105 Test  #41: forward lookup: what main depends on ...............................................   Passed    0.01 sec
+        Start  42: editing a file rewires its edges, with no stale ones left behind
+ 42/105 Test  #42: editing a file rewires its edges, with no stale ones left behind ...................   Passed    0.01 sec
+        Start  43: the sample decision is deterministic and follows the rate
+ 43/105 Test  #43: the sample decision is deterministic and follows the rate ..........................   Passed    0.00 sec
+        Start  44: a private memory is invisible to other agents, and they cannot change it
+ 44/105 Test  #44: a private memory is invisible to other agents, and they cannot change it ...........   Passed    0.00 sec
+        Start  45: deleting a file removes its symbols and the edges that pointed at them
+ 45/105 Test  #45: deleting a file removes its symbols and the edges that pointed at them .............   Passed    0.01 sec
+        Start  46: retention deletes rows past their period and keeps the rest
+ 46/105 Test  #46: retention deletes rows past their period and keeps the rest ........................   Passed    0.01 sec
+        Start  47: an incremental update gives the same retrieval as a full rebuild
+ 47/105 Test  #47: an incremental update gives the same retrieval as a full rebuild ...................   Passed    0.03 sec
+        Start  48: JavaScript files are recorded with the javascript language
+ 48/105 Test  #48: JavaScript files are recorded with the javascript language .........................   Passed    0.02 sec
+        Start  49: labelled fixture: symbol and edge precision and recall meet the gate
+ 49/105 Test  #49: labelled fixture: symbol and edge precision and recall meet the gate ...............   Passed    0.01 sec
+        Start  50: audit rows record who did what, never the payload
+ 50/105 Test  #50: audit rows record who did what, never the payload ..................................   Passed    0.01 sec
+        Start  51: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept
+ 51/105 Test  #51: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept ...   Passed    0.01 sec
+        Start  52: reverse lookup: what depends on helper
+ 52/105 Test  #52: reverse lookup: what depends on helper .............................................   Passed    0.01 sec
+        Start  53: change impact: editing util.py puts its dependents in doubt
+ 53/105 Test  #53: change impact: editing util.py puts its dependents in doubt ........................   Passed    0.01 sec
+        Start  54: a TypeScript file with a syntax error keeps its valid definitions
+ 54/105 Test  #54: a TypeScript file with a syntax error keeps its valid definitions ..................   Passed    0.01 sec
+        Start  55: a damaged backup is refused and the target database is left unchanged
+ 55/105 Test  #55: a damaged backup is refused and the target database is left unchanged ..............   Passed    0.01 sec
+        Start  56: valid multi-byte UTF-8 is indexed
+ 56/105 Test  #56: valid multi-byte UTF-8 is indexed ..................................................   Passed    0.01 sec
+        Start  57: evidence must name an indexed symbol, or the memory is not created at all
+ 57/105 Test  #57: evidence must name an indexed symbol, or the memory is not created at all ..........   Passed    0.01 sec
+        Start  58: retention purges only archived memories older than the cutoff
+ 58/105 Test  #58: retention purges only archived memories older than the cutoff ......................   Passed    0.00 sec
+        Start  59: slice: a deleted file's symbols disappear from search
+ 59/105 Test  #59: slice: a deleted file's symbols disappear from search ..............................   Passed    0.02 sec
+        Start  60: the query log stores a hash, never the query text
+ 60/105 Test  #60: the query log stores a hash, never the query text ..................................   Passed    0.01 sec
+        Start  61: service: status, index, search and graph agree with the library
+ 61/105 Test  #61: service: status, index, search and graph agree with the library ....................   Passed    0.01 sec
+        Start  62: projects sharing a database do not see each other's symbols
+ 62/105 Test  #62: projects sharing a database do not see each other's symbols ........................   Passed    0.03 sec
+        Start  63: empty python file is indexed with no symbols
+ 63/105 Test  #63: empty python file is indexed with no symbols .......................................   Passed    0.01 sec
+        Start  64: JavaScript graph meets the labelled gate (ADR-0019)
+ 64/105 Test  #64: JavaScript graph meets the labelled gate (ADR-0019) ................................   Passed    0.01 sec
+        Start  65: an interrupted update leaves a consistent index that a re-run completes
+ 65/105 Test  #65: an interrupted update leaves a consistent index that a re-run completes ............   Passed    0.03 sec
+        Start  66: the index is consistent after a fresh index
+ 66/105 Test  #66: the index is consistent after a fresh index ........................................   Passed    0.01 sec
+        Start  67: neighbourhood reaches symbols within the hop limit
+ 67/105 Test  #67: neighbourhood reaches symbols within the hop limit .................................   Passed    0.01 sec
+        Start  68: top_k is capped at the maximum
+ 68/105 Test  #68: top_k is capped at the maximum .....................................................   Passed    0.01 sec
+        Start  69: slice: index, search, restart, and get the same answers
+ 69/105 Test  #69: slice: index, search, restart, and get the same answers ............................   Passed    0.01 sec
+        Start  70: opting out of the query log writes nothing
+ 70/105 Test  #70: opting out of the query log writes nothing .........................................   Passed    0.01 sec
+        Start  71: TypeScript graph meets the labelled gate (ADR-0019)
+ 71/105 Test  #71: TypeScript graph meets the labelled gate (ADR-0019) ................................   Passed    0.01 sec
+        Start  72: retrieval is deterministic for a fixed index, query and options
+ 72/105 Test  #72: retrieval is deterministic for a fixed index, query and options ....................   Passed    0.02 sec
+        Start  73: a query for a project that was never indexed is not logged and does not fail
+ 73/105 Test  #73: a query for a project that was never indexed is not logged and does not fail .......   Passed    0.00 sec
+        Start  74: deleted file: its symbols disappear and the removal is counted
+ 74/105 Test  #74: deleted file: its symbols disappear and the removal is counted .....................   Passed    0.01 sec
+        Start  75: slice: unknown names and unknown projects return no hits
+ 75/105 Test  #75: slice: unknown names and unknown projects return no hits ...........................   Passed    0.01 sec
+        Start  76: empty directory indexes to nothing without error
+ 76/105 Test  #76: empty directory indexes to nothing without error ...................................   Passed    0.01 sec
+        Start  77: decorated Python definition survives rename and triggers on decorator edit
+ 77/105 Test  #77: decorated Python definition survives rename and triggers on decorator edit .........   Passed    0.01 sec
+        Start  78: every calls edge carries a resolution level
+ 78/105 Test  #78: every calls edge carries a resolution level ........................................   Passed    0.01 sec
+        Start  79: 40 agents on one shared memory: no lost updates, every write in the history
+ 79/105 Test  #79: 40 agents on one shared memory: no lost updates, every write in the history ........   Passed    0.10 sec
+        Start  80: state transitions follow the table; illegal ones and missing reasons are refused
+ 80/105 Test  #80: state transitions follow the table; illegal ones and missing reasons are refused ...   Passed    0.01 sec
+        Start  81: backup refuses to overwrite an existing file
+ 81/105 Test  #81: backup refuses to overwrite an existing file .......................................   Passed    0.00 sec
+        Start  82: API path inputs that look like traversal fail cleanly, never with a server error
+ 82/105 Test  #82: API path inputs that look like traversal fail cleanly, never with a server error ...   Passed    0.01 sec
+        Start  83: slice: an edited file is re-parsed and its symbols replaced
+ 83/105 Test  #83: slice: an edited file is re-parsed and its symbols replaced ........................   Passed    0.02 sec
+        Start  84: server: refuses a non-loopback bind
+ 84/105 Test  #84: server: refuses a non-loopback bind ................................................   Passed    0.00 sec
+        Start  85: a corrupt import file is rejected as a whole
+ 85/105 Test  #85: a corrupt import file is rejected as a whole .......................................   Passed    0.00 sec
+        Start  86: slice: re-indexing an unchanged tree parses nothing
+ 86/105 Test  #86: slice: re-indexing an unchanged tree parses nothing ................................   Passed    0.02 sec
+        Start  87: large repository is processed in batches with progress
+ 87/105 Test  #87: large repository is processed in batches with progress .............................   Passed    0.79 sec
+        Start  88: create, read back and list a memory
+ 88/105 Test  #88: create, read back and list a memory ................................................   Passed    0.01 sec
+        Start  89: static web mount: traversal to a file outside the root is never served
+ 89/105 Test  #89: static web mount: traversal to a file outside the root is never served .............   Passed    0.01 sec
+        Start  90: required fields are validated
+ 90/105 Test  #90: required fields are validated ......................................................   Passed    0.01 sec
+        Start  91: service: memory operations and their error kinds
+ 91/105 Test  #91: service: memory operations and their error kinds ...................................   Passed    0.01 sec
+        Start  92: a malformed file does not stop the rest of the graph from being built
+ 92/105 Test  #92: a malformed file does not stop the rest of the graph from being built ..............   Passed    0.01 sec
+        Start  93: empty, punctuation-only and over-long queries are refused
+ 93/105 Test  #93: empty, punctuation-only and over-long queries are refused ..........................   Passed    0.02 sec
+        Start  94: a backup is a snapshot: later writes to the live database are not in it
+ 94/105 Test  #94: a backup is a snapshot: later writes to the live database are not in it ............   Passed    0.01 sec
+        Start  95: concurrent writers from separate connections never lose an update
+ 95/105 Test  #95: concurrent writers from separate connections never lose an update ..................   Passed    0.01 sec
+        Start  96: slice: projects sharing one database do not see each other
+ 96/105 Test  #96: slice: projects sharing one database do not see each other .........................   Passed    0.02 sec
+        Start  97: an approved memory is hidden until approved, and approval is cleared by a change
+ 97/105 Test  #97: an approved memory is hidden until approved, and approval is cleared by a change ...   Passed    0.00 sec
+        Start  98: memories survive a restart
+ 98/105 Test  #98: memories survive a restart .........................................................   Passed    0.00 sec
+        Start  99: metadata filters restrict kind and path
+ 99/105 Test  #99: metadata filters restrict kind and path ............................................   Passed    0.01 sec
+        Start 100: binary file with a .py name is skipped, not parsed
+100/105 Test #100: binary file with a .py name is skipped, not parsed .................................   Passed    0.01 sec
+        Start 101: archived memories are read-only
+101/105 Test #101: archived memories are read-only ....................................................   Passed    0.00 sec
+        Start 102: labelled queries: hybrid recall@10 meets the gate (ADR-0015)
+102/105 Test #102: labelled queries: hybrid recall@10 meets the gate (ADR-0015) .......................   Passed    0.02 sec
+        Start 103: a stale revision is a conflict and nothing is written
+103/105 Test #103: a stale revision is a conflict and nothing is written ..............................   Passed    0.00 sec
+        Start 104: labelled dataset: precision and recall meet the gate (ADR-0014)
+104/105 Test #104: labelled dataset: precision and recall meet the gate (ADR-0014) ....................   Passed    0.07 sec
+        Start 105: cli_slice
+105/105 Test #105: cli_slice ..........................................................................   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 105
+
+Total Test time (real) =   1.95 sec
+[32m   PASS[0m  clang
+
+[1m== san[0m
+Test project /home/agent/ci-work/build-san
+        Start   1: repeated names in one scope get distinct overloads
+  1/105 Test   #1: repeated names in one scope get distinct overloads .................................   Passed    0.02 sec
+        Start   2: from-imports bind local names to fully qualified targets
+  2/105 Test   #2: from-imports bind local names to fully qualified targets ...........................   Passed    0.01 sec
+        Start   3: malformed UTF-8 is rejected
+  3/105 Test   #3: malformed UTF-8 is rejected ........................................................   Passed    0.02 sec
+        Start   4: body fingerprint ignores formatting-only changes
+  4/105 Test   #4: body fingerprint ignores formatting-only changes ...................................   Passed    0.01 sec
+        Start   5: symbol ids are stable and well formed
+  5/105 Test   #5: symbol ids are stable and well formed ..............................................   Passed    0.01 sec
+        Start   6: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences
+  6/105 Test   #6: well-formed UTF-8 is accepted, including multi-byte and 4-byte sequences ...........   Passed    0.01 sec
+        Start   7: timestamps format as UTC ISO-8601 to the second
+  7/105 Test   #7: timestamps format as UTC ISO-8601 to the second ....................................   Passed    0.01 sec
+        Start   8: comments inside a body belong to it
+  8/105 Test   #8: comments inside a body belong to it ................................................   Passed    0.01 sec
+        Start   9: empty and whitespace-only bodies fingerprint identically
+  9/105 Test   #9: empty and whitespace-only bodies fingerprint identically ...........................   Passed    0.01 sec
+        Start  10: empty source yields only the module symbol and no errors
+ 10/105 Test  #10: empty source yields only the module symbol and no errors ...........................   Passed    0.01 sec
+        Start  11: deeply nested input is cut off instead of exhausting the stack
+ 11/105 Test  #11: deeply nested input is cut off instead of exhausting the stack .....................   Passed    0.17 sec
+        Start  12: fixed clock returns exactly the instant it was given
+ 12/105 Test  #12: fixed clock returns exactly the instant it was given ...............................   Passed    0.01 sec
+        Start  13: relative imports resolve against the importing module's package
+ 13/105 Test  #13: relative imports resolve against the importing module's package ....................   Passed    0.01 sec
+        Start  14: a def inside a string is not a symbol
+ 14/105 Test  #14: a def inside a string is not a symbol ..............................................   Passed    0.01 sec
+        Start  15: body fingerprint detects real changes
+ 15/105 Test  #15: body fingerprint detects real changes ..............................................   Passed    0.01 sec
+        Start  16: calls, bases and imports are recorded as facts with their caller
+ 16/105 Test  #16: calls, bases and imports are recorded as facts with their caller ...................   Passed    0.01 sec
+        Start  17: CRLF line endings produce the same symbols
+ 17/105 Test  #17: CRLF line endings produce the same symbols .........................................   Passed    0.01 sec
+        Start  18: syntax errors are reported, and parsing still yields the valid parts
+ 18/105 Test  #18: syntax errors are reported, and parsing still yields the valid parts ...............   Passed    0.01 sec
+        Start  19: field boundaries cannot be forged by moving text between fields
+ 19/105 Test  #19: field boundaries cannot be forged by moving text between fields ....................   Passed    0.01 sec
+        Start  20: identity distinguishes every identity-bearing field
+ 20/105 Test  #20: identity distinguishes every identity-bearing field ................................   Passed    0.01 sec
+        Start  21: functions, classes, methods and nested functions get dotted names
+ 21/105 Test  #21: functions, classes, methods and nested functions get dotted names ..................   Passed    0.01 sec
+        Start  22: a definition's lines and body come from the syntax tree
+ 22/105 Test  #22: a definition's lines and body come from the syntax tree ............................   Passed    0.01 sec
+        Start  23: deleting a file removes its symbols and the edges that pointed at them
+ 23/105 Test  #23: deleting a file removes its symbols and the edges that pointed at them .............   Passed    0.09 sec
+        Start  24: symlinks are never followed, even to files outside the project
+ 24/105 Test  #24: symlinks are never followed, even to files outside the project .....................   Passed    0.03 sec
+        Start  25: consistency holds after edits and deletions
+ 25/105 Test  #25: consistency holds after edits and deletions ........................................   Passed    0.13 sec
+        Start  26: TypeScript graph meets the labelled gate (ADR-0019)
+ 26/105 Test  #26: TypeScript graph meets the labelled gate (ADR-0019) ................................   Passed    0.06 sec
+        Start  27: update with the current revision succeeds and keeps history
+ 27/105 Test  #27: update with the current revision succeeds and keeps history ........................   Passed    0.03 sec
+        Start  28: retrieval is deterministic for a fixed index, query and options
+ 28/105 Test  #28: retrieval is deterministic for a fixed index, query and options ....................   Passed    0.10 sec
+        Start  29: a stale revision is a conflict and nothing is written
+ 29/105 Test  #29: a stale revision is a conflict and nothing is written ..............................   Passed    0.03 sec
+        Start  30: deleted file: its symbols disappear and the removal is counted
+ 30/105 Test  #30: deleted file: its symbols disappear and the removal is counted .....................   Passed    0.04 sec
+        Start  31: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept
+ 31/105 Test  #31: git repository: .gitignore is honoured, untracked-but-not-ignored files are kept ...   Passed    0.04 sec
+        Start  32: required fields are validated
+ 32/105 Test  #32: required fields are validated ......................................................   Passed    0.03 sec
+        Start  33: a TypeScript file with a syntax error keeps its valid definitions
+ 33/105 Test  #33: a TypeScript file with a syntax error keeps its valid definitions ..................   Passed    0.05 sec
+        Start  34: slice: projects sharing one database do not see each other
+ 34/105 Test  #34: slice: projects sharing one database do not see each other .........................   Passed    0.16 sec
+        Start  35: a corrupt import file is rejected as a whole
+ 35/105 Test  #35: a corrupt import file is rejected as a whole .......................................   Passed    0.03 sec
+        Start  36: empty, punctuation-only and over-long queries are refused
+ 36/105 Test  #36: empty, punctuation-only and over-long queries are refused ..........................   Passed    0.07 sec
+        Start  37: unreadable file keeps its previously indexed symbols
+ 37/105 Test  #37: unreadable file keeps its previously indexed symbols ...............................   Passed    0.04 sec
+        Start  38: re-exported names resolve to their defining module
+ 38/105 Test  #38: re-exported names resolve to their defining module .................................   Passed    0.04 sec
+        Start  39: slice: an edited file is re-parsed and its symbols replaced
+ 39/105 Test  #39: slice: an edited file is re-parsed and its symbols replaced ........................   Passed    0.09 sec
+        Start  40: an interrupted write leaves no partial memory behind
+ 40/105 Test  #40: an interrupted write leaves no partial memory behind ...............................   Passed    0.03 sec
+        Start  41: supersession links the old memory to its replacement
+ 41/105 Test  #41: supersession links the old memory to its replacement ...............................   Passed    0.03 sec
+        Start  42: accepting a flagged memory returns it to active and keeps it there
+ 42/105 Test  #42: accepting a flagged memory returns it to active and keeps it there .................   Passed    0.05 sec
+        Start  43: top_k is capped at the maximum
+ 43/105 Test  #43: top_k is capped at the maximum .....................................................   Passed    0.08 sec
+        Start  44: binary file with a .py name is skipped, not parsed
+ 44/105 Test  #44: binary file with a .py name is skipped, not parsed .................................   Passed    0.03 sec
+        Start  45: an interrupted update leaves a consistent index that a re-run completes
+ 45/105 Test  #45: an interrupted update leaves a consistent index that a re-run completes ............   Passed    0.17 sec
+        Start  46: invalid UTF-8 is skipped and does not stop the run
+ 46/105 Test  #46: invalid UTF-8 is skipped and does not stop the run .................................   Passed    0.03 sec
+        Start  47: forward lookup: what main depends on
+ 47/105 Test  #47: forward lookup: what main depends on ...............................................   Passed    0.05 sec
+        Start  48: state transitions follow the table; illegal ones and missing reasons are refused
+ 48/105 Test  #48: state transitions follow the table; illegal ones and missing reasons are refused ...   Passed    0.03 sec
+        Start  49: JavaScript graph meets the labelled gate (ADR-0019)
+ 49/105 Test  #49: JavaScript graph meets the labelled gate (ADR-0019) ................................   Passed    0.05 sec
+        Start  50: concurrent writers from separate connections never lose an update
+ 50/105 Test  #50: concurrent writers from separate connections never lose an update ..................   Passed    0.03 sec
+        Start  51: empty directory indexes to nothing without error
+ 51/105 Test  #51: empty directory indexes to nothing without error ...................................   Passed    0.03 sec
+        Start  52: the sample decision is deterministic and follows the rate
+ 52/105 Test  #52: the sample decision is deterministic and follows the rate ..........................   Passed    0.04 sec
+        Start  53: the index is consistent after a fresh index
+ 53/105 Test  #53: the index is consistent after a fresh index ........................................   Passed    0.08 sec
+        Start  54: service: memory operations and their error kinds
+ 54/105 Test  #54: service: memory operations and their error kinds ...................................   Passed    0.03 sec
+        Start  55: retention purges only archived memories older than the cutoff
+ 55/105 Test  #55: retention purges only archived memories older than the cutoff ......................   Passed    0.03 sec
+        Start  56: archived memories are read-only
+ 56/105 Test  #56: archived memories are read-only ....................................................   Passed    0.03 sec
+        Start  57: an incremental update gives the same retrieval as a full rebuild
+ 57/105 Test  #57: an incremental update gives the same retrieval as a full rebuild ...................   Passed    0.17 sec
+        Start  58: opting out of the query log writes nothing
+ 58/105 Test  #58: opting out of the query log writes nothing .........................................   Passed    0.09 sec
+        Start  59: 40 agents on one shared memory: no lost updates, every write in the history
+ 59/105 Test  #59: 40 agents on one shared memory: no lost updates, every write in the history ........   Passed    0.26 sec
+        Start  60: create, read back and list a memory
+ 60/105 Test  #60: create, read back and list a memory ................................................   Passed    0.03 sec
+        Start  61: metrics values are counts of rows that exist
+ 61/105 Test  #61: metrics values are counts of rows that exist .......................................   Passed    0.08 sec
+        Start  62: JavaScript files are recorded with the javascript language
+ 62/105 Test  #62: JavaScript files are recorded with the javascript language .........................   Passed    0.08 sec
+        Start  63: large repository is processed in batches with progress
+ 63/105 Test  #63: large repository is processed in batches with progress .............................   Passed    3.46 sec
+        Start  64: memories survive a restart
+ 64/105 Test  #64: memories survive a restart .........................................................   Passed    0.03 sec
+        Start  65: slice: a deleted file's symbols disappear from search
+ 65/105 Test  #65: slice: a deleted file's symbols disappear from search ..............................   Passed    0.09 sec
+        Start  66: decorated Python definition survives rename and triggers on decorator edit
+ 66/105 Test  #66: decorated Python definition survives rename and triggers on decorator edit .........   Passed    0.05 sec
+        Start  67: valid multi-byte UTF-8 is indexed
+ 67/105 Test  #67: valid multi-byte UTF-8 is indexed ..................................................   Passed    0.03 sec
+        Start  68: an approved memory is hidden until approved, and approval is cleared by a change
+ 68/105 Test  #68: an approved memory is hidden until approved, and approval is cleared by a change ...   Passed    0.03 sec
+        Start  69: empty python file is indexed with no symbols
+ 69/105 Test  #69: empty python file is indexed with no symbols .......................................   Passed    0.03 sec
+        Start  70: renamed file: old path disappears, new path is indexed
+ 70/105 Test  #70: renamed file: old path disappears, new path is indexed .............................   Passed    0.04 sec
+        Start  71: labelled queries: hybrid recall@10 meets the gate (ADR-0015)
+ 71/105 Test  #71: labelled queries: hybrid recall@10 meets the gate (ADR-0015) .......................   Passed    0.10 sec
+        Start  72: file lock: a second holder is refused while the first is alive
+ 72/105 Test  #72: file lock: a second holder is refused while the first is alive .....................   Passed    0.02 sec
+        Start  73: evidence must name an indexed symbol, or the memory is not created at all
+ 73/105 Test  #73: evidence must name an indexed symbol, or the memory is not created at all ..........   Passed    0.08 sec
+        Start  74: change impact: editing util.py puts its dependents in doubt
+ 74/105 Test  #74: change impact: editing util.py puts its dependents in doubt ........................   Passed    0.04 sec
+        Start  75: slice: unknown names and unknown projects return no hits
+ 75/105 Test  #75: slice: unknown names and unknown projects return no hits ...........................   Passed    0.08 sec
+        Start  76: audit rows record who did what, never the payload
+ 76/105 Test  #76: audit rows record who did what, never the payload ..................................   Passed    0.08 sec
+        Start  77: server: refuses a non-loopback bind
+ 77/105 Test  #77: server: refuses a non-loopback bind ................................................   Passed    0.03 sec
+        Start  78: every calls edge carries a resolution level
+ 78/105 Test  #78: every calls edge carries a resolution level ........................................   Passed    0.05 sec
+        Start  79: slice: index, search, restart, and get the same answers
+ 79/105 Test  #79: slice: index, search, restart, and get the same answers ............................   Passed    0.08 sec
+        Start  80: service: status, index, search and graph agree with the library
+ 80/105 Test  #80: service: status, index, search and graph agree with the library ....................   Passed    0.08 sec
+        Start  81: two projects in one database have separate graphs
+ 81/105 Test  #81: two projects in one database have separate graphs ..................................   Passed    0.06 sec
+        Start  82: interrupted run keeps committed batches and does not remove anything
+ 82/105 Test  #82: interrupted run keeps committed batches and does not remove anything ...............   Passed    0.06 sec
+        Start  83: neighbourhood reaches symbols within the hop limit
+ 83/105 Test  #83: neighbourhood reaches symbols within the hop limit .................................   Passed    0.05 sec
+        Start  84: reverse lookup: what depends on helper
+ 84/105 Test  #84: reverse lookup: what depends on helper .............................................   Passed    0.05 sec
+        Start  85: retention deletes rows past their period and keeps the rest
+ 85/105 Test  #85: retention deletes rows past their period and keeps the rest ........................   Passed    0.07 sec
+        Start  86: static web mount: traversal to a file outside the root is never served
+ 86/105 Test  #86: static web mount: traversal to a file outside the root is never served .............   Passed    0.05 sec
+        Start  87: export, import into an empty database, and export again: byte-identical
+ 87/105 Test  #87: export, import into an empty database, and export again: byte-identical ............   Passed    0.09 sec
+        Start  88: a query for a project that was never indexed is not logged and does not fail
+ 88/105 Test  #88: a query for a project that was never indexed is not logged and does not fail .......   Passed    0.03 sec
+        Start  89: labelled fixture: symbol and edge precision and recall meet the gate
+ 89/105 Test  #89: labelled fixture: symbol and edge precision and recall meet the gate ...............   Passed    0.04 sec
+        Start  90: metadata filters restrict kind and path
+ 90/105 Test  #90: metadata filters restrict kind and path ............................................   Passed    0.08 sec
+        Start  91: labelled dataset: precision and recall meet the gate (ADR-0014)
+ 91/105 Test  #91: labelled dataset: precision and recall meet the gate (ADR-0014) ....................   Passed    0.28 sec
+        Start  92: editing a file rewires its edges, with no stale ones left behind
+ 92/105 Test  #92: editing a file rewires its edges, with no stale ones left behind ...................   Passed    0.06 sec
+        Start  93: API path inputs that look like traversal fail cleanly, never with a server error
+ 93/105 Test  #93: API path inputs that look like traversal fail cleanly, never with a server error ...   Passed    0.04 sec
+        Start  94: backup refuses to overwrite an existing file
+ 94/105 Test  #94: backup refuses to overwrite an existing file .......................................   Passed    0.03 sec
+        Start  95: server: JSON over HTTP, with stable error codes
+ 95/105 Test  #95: server: JSON over HTTP, with stable error codes ....................................   Passed    0.10 sec
+        Start  96: a backup is a snapshot: later writes to the live database are not in it
+ 96/105 Test  #96: a backup is a snapshot: later writes to the live database are not in it ............   Passed    0.03 sec
+        Start  97: the query log stores a hash, never the query text
+ 97/105 Test  #97: the query log stores a hash, never the query text ..................................   Passed    0.08 sec
+        Start  98: slice: re-indexing an unchanged tree parses nothing
+ 98/105 Test  #98: slice: re-indexing an unchanged tree parses nothing ................................   Passed    0.08 sec
+        Start  99: a malformed file does not stop the rest of the graph from being built
+ 99/105 Test  #99: a malformed file does not stop the rest of the graph from being built ..............   Passed    0.05 sec
+        Start 100: projects sharing a database do not see each other's symbols
+100/105 Test #100: projects sharing a database do not see each other's symbols ........................   Passed    0.20 sec
+        Start 101: projects are isolated: another project's memory is not found
+101/105 Test #101: projects are isolated: another project's memory is not found .......................   Passed    0.03 sec
+        Start 102: a damaged backup is refused and the target database is left unchanged
+102/105 Test #102: a damaged backup is refused and the target database is left unchanged ..............   Passed    0.03 sec
+        Start 103: a backup restores to the same index, memories and history
+103/105 Test #103: a backup restores to the same index, memories and history ..........................   Passed    0.09 sec
+        Start 104: a private memory is invisible to other agents, and they cannot change it
+104/105 Test #104: a private memory is invisible to other agents, and they cannot change it ...........   Passed    0.03 sec
+        Start 105: cli_slice
+105/105 Test #105: cli_slice ..........................................................................   Passed    0.51 sec
+
+100% tests passed, 0 tests failed out of 105
+
+Total Test time (real) =   9.69 sec
+[32m   PASS[0m  san
+
+[1m== certs[0m
+WARN  docs/certification/0.1/23ba93b7e5dcf76d902a6705461baff9ba3e15dc/manifest.json: stale, module sources changed since commit 23ba93b7e5dc
+WARN  docs/certification/0.1/98ba21e776bb81d3939c5301f0db86cb82e34266/manifest.json: stale, module sources changed since commit 98ba21e776bb
+WARN  docs/certification/0.1/ea0c9f8f04bcb9860da8ad07828adc8e0bb7a960/manifest.json: stale, module sources changed since commit ea0c9f8f04bc
+WARN  docs/certification/1.1/33d38a0a495cf881ccfbd51a4e372d0d35d2b602/manifest.json: stale, module sources changed since commit 33d38a0a495c
+WARN  docs/certification/1.1/3f5597596262c8c260351730bd2bed383167ca8f/manifest.json: stale, module sources changed since commit 3f5597596262
+WARN  docs/certification/1.1/82fc1fc57e631fc35afca7679b7e85acfc3e57ab/manifest.json: stale, module sources changed since commit 82fc1fc57e63
+WARN  docs/certification/1.1/d827704fda2dd7aa1f3d8c860bf2b86c253dbb6b/manifest.json: stale, module sources changed since commit d827704fda2d
+WARN  docs/certification/1.2/71f7318d511d519e7cb50921ea8c4c93bf3f0494/manifest.json: stale, module sources changed since commit 71f7318d511d
+WARN  docs/certification/1.2/f96228c73a17d11b09d2685024d6ea91a80fc34f/manifest.json: stale, module sources changed since commit f96228c73a17
+WARN  docs/certification/1.2/fb96b72e832dc56932d9b5b8e2f9a75462fe6844/manifest.json: stale, module sources changed since commit fb96b72e832d
+WARN  docs/certification/1.3a/5d8962783a34ec544e6241a1a904b1516d21c3a2/manifest.json: stale, module sources changed since commit 5d8962783a34
+WARN  docs/certification/1.3a/71b59f18d17bd3b858db1159f3b9fbc28df011c7/manifest.json: stale, module sources changed since commit 71b59f18d17b
+WARN  docs/certification/1.3a/9003aff16c3e51e68f04646ff6f41f3418aa0366/manifest.json: stale, module sources changed since commit 9003aff16c3e
+WARN  docs/certification/1.3a/994f85bff7ffb46505d3225203aa23c3298bd0e5/manifest.json: stale, module sources changed since commit 994f85bff7ff
+WARN  docs/certification/1.3b/25d3a7fc320c555ec9bb4c0a2bf7fabe5a28c827/manifest.json: stale, module sources changed since commit 25d3a7fc320c
+WARN  docs/certification/1.4/2c84c516f32841544306485b7a5e731e5acc68d2/manifest.json: stale, module sources changed since commit 2c84c516f328
+WARN  docs/certification/1.4/be804fcce28c270bd76a23d56d72b9cccfccde49/manifest.json: stale, module sources changed since commit be804fcce28c
+WARN  docs/certification/1.4/e749c3d57367b8a740eb70f599d313dac61580c6/manifest.json: stale, module sources changed since commit e749c3d57367
+WARN  docs/certification/1.5/6027d9ad183bc9bbb05ebe7ef636f8bba84defca/manifest.json: stale, module sources changed since commit 6027d9ad183b
+WARN  docs/certification/1.5/7e758603fbbc3964200d0437775440f1a069d093/manifest.json: stale, module sources changed since commit 7e758603fbbc
+WARN  docs/certification/1.5/d7a960c888070d18a85746cd729eed772e9d09d8/manifest.json: stale, module sources changed since commit d7a960c88807
+WARN  docs/certification/1.6/193d3e600c35fbcd4c463a2b258e2700494a1bbe/manifest.json: stale, module sources changed since commit 193d3e600c35
+WARN  docs/certification/1.6/19f50cff88fb879364f61d3680c4da4b2e29b0ae/manifest.json: stale, module sources changed since commit 19f50cff88fb
+WARN  docs/certification/1.6/53fecc6707df927057a4f7cabc4e8a436081cf87/manifest.json: stale, module sources changed since commit 53fecc6707df
+WARN  docs/certification/2.1/9815f070e460cae393cad2d147e6eacf844c73a2/manifest.json: stale, module sources changed since commit 9815f070e460
+WARN  docs/certification/2.1/f64db1ab4953067ca41167b57df5350abe6406c7/manifest.json: stale, module sources changed since commit f64db1ab4953
+WARN  docs/certification/2.2/4c171c1c5545559c328f969b53441841a9160f73/manifest.json: stale, module sources changed since commit 4c171c1c5545
+WARN  docs/certification/2.2/b14fed9cf2fde7490cf6362735463cf9dc6c03cc/manifest.json: stale, module sources changed since commit b14fed9cf2fd
+WARN  docs/certification/2.2/c9f47622ff8c1567171a7d3aa4b413bddb1aea54/manifest.json: stale, module sources changed since commit c9f47622ff8c
+WARN  docs/certification/2.3/964f97dea5ba0efe7abd90c55dd7561c4ca2c4c1/manifest.json: stale, module sources changed since commit 964f97dea5ba
+WARN  docs/certification/2.3/bd869e9539a88ca5de8aae323e03df92490f10ee/manifest.json: stale, module sources changed since commit bd869e9539a8
+WARN  docs/certification/2.4/5bf15bfae49dcdcb1ee834eac1f2fafa0752cc49/manifest.json: stale, module sources changed since commit 5bf15bfae49d
+WARN  docs/certification/2.5/3b5866c31cded8587fcf9c6b150389a8fb260eca/manifest.json: stale, module sources changed since commit 3b5866c31cde
+WARN  docs/certification/2.5/82b583d9f03099c0f72afe951b42b5e2c6084a8b/manifest.json: stale, module sources changed since commit 82b583d9f030
+WARN  docs/certification/2.5/dc6628ee9f17ed4f633ef2a62f90aa7733808865/manifest.json: stale, module sources changed since commit dc6628ee9f17
+WARN  docs/certification/2.6/22075fd5032f450992f56b739b46b6bb9026fca7/manifest.json: stale, module sources changed since commit 22075fd5032f
+WARN  docs/certification/2.6/f9d52633ae4b188e346ead3b9b7d430029714074/manifest.json: stale, module sources changed since commit f9d52633ae4b
+WARN  docs/certification/2.6/fd7de473be06e567117cee28b867990d5e218bf3/manifest.json: stale, module sources changed since commit fd7de473be06
+WARN  docs/certification/2.6/ff8ca4d1ee671e26a9b23566107b22ed55d5d91e/manifest.json: stale, module sources changed since commit ff8ca4d1ee67
+WARN  docs/certification/2.7/903a267c53c67371a050da8534a4009df192062e/manifest.json: stale, module sources changed since commit 903a267c53c6
+WARN  docs/certification/3.1/76c9451c6c78deb3fa06b3ab8ff4dd8a95bf21b3/manifest.json: stale, module sources changed since commit 76c9451c6c78
+WARN  docs/certification/3.2/d91d5f73377dce9565be0b4502ccaed779a84b08/manifest.json: stale, module sources changed since commit d91d5f73377d
+WARN  docs/certification/3.3/2ee858bf108836d23f334aeb9ed03125078d4e72/manifest.json: stale, module sources changed since commit 2ee858bf1088
+WARN  docs/certification/3.4/26e3c9a01840594a031a67b69fd848e289a45b82/manifest.json: stale, module sources changed since commit 26e3c9a01840
+WARN  docs/certification/3.4/8b60f70a44dc5f4ebc65d5f07107ea5cca786a8d/manifest.json: stale, module sources changed since commit 8b60f70a44dc
+WARN  docs/certification/3.5a/f9dc48c40045cda236b785a34885467653437c69/manifest.json: stale, module sources changed since commit f9dc48c40045
+WARN  docs/certification/3.6a/e36277e22908715b79fc908c7efc24d300826624/manifest.json: stale, module sources changed since commit e36277e22908
+WARN  module 0.1: no PASS manifest matches HEAD sources
+WARN  module 1.1: no PASS manifest matches HEAD sources
+WARN  module 1.2: no PASS manifest matches HEAD sources
+WARN  module 1.3a: no PASS manifest matches HEAD sources
+WARN  module 1.3b: no PASS manifest matches HEAD sources
+WARN  module 1.4: no PASS manifest matches HEAD sources
+WARN  module 1.5: no PASS manifest matches HEAD sources
+WARN  module 1.6: no PASS manifest matches HEAD sources
+WARN  module 2.1: no PASS manifest matches HEAD sources
+WARN  module 2.2: no PASS manifest matches HEAD sources
+WARN  module 2.3: no PASS manifest matches HEAD sources
+WARN  module 2.4: no PASS manifest matches HEAD sources
+WARN  module 2.5: no PASS manifest matches HEAD sources
+WARN  module 2.6: no PASS manifest matches HEAD sources
+WARN  module 2.7: no PASS manifest matches HEAD sources
+WARN  module 3.1: no PASS manifest matches HEAD sources
+WARN  module 3.2: no PASS manifest matches HEAD sources
+WARN  module 3.3: no PASS manifest matches HEAD sources
+WARN  module 3.4: no PASS manifest matches HEAD sources
+WARN  module 3.5a: no PASS manifest matches HEAD sources
+WARN  module 3.6a: no PASS manifest matches HEAD sources
+[32m   PASS[0m  certs
+
+[1m== summary[0m
+[32m   PASS[0m  all jobs passed
