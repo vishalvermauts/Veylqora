@@ -75,16 +75,11 @@ class Appender:
 def probe_vey(vey):
     rc, out, err, _ = run([vey, '--help'])
     text = (out + err).lower()
-    missing = [s for s in ('init', 'index', 'memory') if s not in text]
-    if rc != 0 or missing:
+    missing = [s for s in ('init', 'index', 'memory add',
+                           'memory list', 'memory inspect') if s not in text]
+    if missing:
         raise SystemExit(f'veylqora probe failed: rc={rc} missing={missing}\n'
                          f'{out}\n{err}')
-    rc, out, err, _ = run([vey, 'memory', '--help'])
-    text = (out + err).lower()
-    missing = [s for s in ('add', 'list', 'inspect') if s not in text]
-    if rc != 0 or missing:
-        raise SystemExit('veylqora memory probe failed: '
-                         f'rc={rc} missing={missing}\n{out}\n{err}')
     return True
 
 
