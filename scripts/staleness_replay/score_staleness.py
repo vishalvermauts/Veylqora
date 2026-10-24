@@ -288,8 +288,9 @@ def dump_or(item, field):
     val = getattr(item['node'], field, None)
     if val is None:
         return None
-    if field in ('args', 'decorator_list'):
-        return ast.dump(val, include_attributes=False)
+    if isinstance(val, list):
+        return '|'.join(ast.dump(x, include_attributes=False)
+                        for x in val)
     return ast.dump(val, include_attributes=False)
 
 
