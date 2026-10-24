@@ -204,7 +204,7 @@ def candidates_type_b(repo, v, ex, level):
             if hi - lo < min_gap:
                 continue
             file_bounds = [i for i in v['bounds_by_fid'][c['fid']]
-                           if lo < i <= hi]
+                           if lo < i < hi]
             if len(file_bounds) < min_bounds:
                 continue
             m1 = file_bounds[0]
@@ -302,7 +302,7 @@ def candidates_callee(repo, v, ex):
                     if s_ev['kind'] != 'body_changed':
                         continue
                     c2 = s_ev['i']
-                    if not (prev < c2 <= nxt_i):
+                    if not (prev < c2 < nxt_i):
                         continue
                     t0 = max(prev, c2 - 5)
                     if t0 >= c2 or c2 - t0 > K:

@@ -542,7 +542,14 @@ def label_repo(repo_dir: str, repo_name: str):
             cid = chain_of_local.get((fid, local))
             if cid is None:
                 continue  # shadowed defs are markers only
-            if p_item['ssid'] == c_item['ssid']:
+            if p_item['ssid'] != c_item['ssid']:
+                # span fingerprint changed; keep live_index faithful even
+                # when only the span bytes (comments) change
+                bump(p_item['ssid'], -1)
+                bump(c_item['ssid'], 1)
+            if dump_masked(p_item['node']) == dump_masked(c_item['node']):
+                # canonical bodies equal (LABEL RULE): comment-only span
+                # changes are NOT body changes
                 if is_move:
                     ev = {'i': i, 'kind': 'moved', 'fqn': mod_new + '.' + local,
                           'old_fqn': mod_old + '.' + local,
@@ -551,8 +558,6 @@ def label_repo(repo_dir: str, repo_name: str):
                     push(ev, cid)
                     pending.append(ev)
                 continue
-            bump(p_item['ssid'], -1)
-            bump(c_item['ssid'], 1)
             if ev_ok:
                 push({'i': i, 'kind': 'body_changed', 'fqn': mod_new + '.' + local,
                       'moved': is_move, 'callees': c_item['callees'],
