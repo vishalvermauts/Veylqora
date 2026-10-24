@@ -295,13 +295,15 @@ def dump_or(item, field):
 
 def ann_dump(item):
     node = item['node']
+    args = getattr(node, 'args', None)
     bits = []
     if getattr(node, 'returns', None) is not None:
         bits.append(ast.dump(node.returns, include_attributes=False))
-    for arg in ast.walk(node.args):
-        ann = getattr(arg, 'annotation', None)
-        if ann is not None:
-            bits.append(ast.dump(ann, include_attributes=False))
+    if args is not None:
+        for arg in ast.walk(args):
+            ann = getattr(arg, 'annotation', None)
+            if ann is not None:
+                bits.append(ast.dump(ann, include_attributes=False))
     return ';'.join(bits)
 
 

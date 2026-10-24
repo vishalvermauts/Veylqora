@@ -34,7 +34,12 @@ staleness_replay/README.md and docs/research/staleness-replay-summary.md):
                          t0 = m1-1 where m1 is the first file-change bound
                          of the same file identity inside the gap; the
                          window must contain at least one more file-change
-                         bound m2 <= t0+K; horizon = min(t0+K, m2);
+                         bound m2 <= t0+K; horizon = min(K, m2-t0)
+                         (deviation fix 2026-10-24: first coded as
+                         min(t0+K, m2) - an absolute index - while every
+                         other case type stores step offsets and replay
+                         and scorer consume offsets; case selection
+                         unaffected; see the summary doc);
                          expect never flagged (the cited definition's
                          span bytes do not change in the window).
     c renamed            name_changed event with matches == 1; cite_fqn =
@@ -208,7 +213,7 @@ def candidates_type_b(repo, v, ex, level):
             if t0 < 0 or t0 < lo or m2 > t0 + K:
                 note(ex, 'b_window_over_cap')
                 continue
-            horizon = min(t0 + K, m2)
+            horizon = min(K, m2 - t0)
             at_t0 = [e for e in evs if e['i'] <= t0]
             path_at_t0 = at_t0[-1]['path'] if at_t0 else evs[0]['path']
             fqn = module_fqm(path_at_t0) + '.' + c['local']
