@@ -4,7 +4,7 @@
 
 Veylqora indexes a repository's code, stores what an agent learns as structured memories, and ties each memory to the exact code it depends on. When that code changes, the affected memories are flagged `suspected_stale` instead of being trusted blindly.
 
-> **Status (October 2026):** Phases 1 and 2 are certified. Search and indexing speed are verified on held-out data. Whether Veylqora makes AI agents more successful is **not yet proven**. See [What is proven](#-what-is-proven).
+> **Status (October 2026):** 20 of 21 modules are certified at `ccdd012`: Phase 1, Phase 2 and Phase 3 except `1.6`, whose UI tests pass in CI but whose local certification check could not run on this machine. Search and indexing speed are verified on held-out data. Whether Veylqora makes AI agents more successful is **not yet proven**. See [What is proven](#-what-is-proven).
 
 ---
 
@@ -169,7 +169,7 @@ No difference is distinguishable from chance. Several tasks were too easy, some 
 
 Certification manifests live in [`docs/certification/`](docs/certification/). Verify them with `python3 scripts/verify_certs.py`.
 
-> ℹ️ `verify_certs.py` reports that the merged code (`b220f0a`) has no PASS record for several modules yet. Records for those modules must be created at the new commit before the merged state can be called certified.
+> ℹ️ `verify_certs.py` still warns for module `1.6` at `ccdd012a`: its compile, MCP, web-CI and adapter checks pass, but the local web check runs `npx vitest` over the whole `web/` project, which also collects the browser suite in `web/e2e`; that suite needs a daemon binary and fixtures that were not available on the certifying machine. The dashboard itself passed in CI (9 unit, 6 browser tests). Every other module has a PASS record at `ccdd012a`.
 
 ### 🧩 What is proven
 
@@ -178,8 +178,8 @@ Certification manifests live in [`docs/certification/`](docs/certification/). Ve
 | Search finds the right file more often than plain text search | ✅ **proven** on 113 held-out issues, rerun reproduced exactly |
 | Indexing is faster and gives the same answers | ✅ **proven** on 6 checkouts |
 | The code passes its own tests on each commit | ✅ **proven** at `0239d13` |
-| Memories flag themselves when the code they cite changes | 🟡 implemented and unit-tested; not measured on real history |
-| AI agents fix more bugs with Veylqora | ❌ **not proven** |
+| Memories flag themselves when the code they cite changes | 🟡 measured on 84 real-history cases: precision 88% (79-97%), recall 100%, known limitation: moved code is inconsistent (2 of 3 flagged wrongly) |
+| AI agents fix more bugs with Veylqora | ❌ **not proven** — pilot, not certified: 50% without Veylqora, 39% with it |
 
 ---
 
