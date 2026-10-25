@@ -1,0 +1,82 @@
+gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+Ubuntu clang version 21.1.8 (6ubuntu1)
+cmake version 4.2.3
+testing c911c51 Merge pull request #8 from vishalvermauts/docs/readme-redesign
+
+[1m== adapters[0m
+.........                                                                [100%]
+9 passed in 1.79s
+[32m   PASS[0m  adapters
+
+[1m== certs[0m
+WARN  docs/certification/0.1/23ba93b7e5dcf76d902a6705461baff9ba3e15dc/manifest.json: stale, module sources changed since commit 23ba93b7e5dc
+WARN  docs/certification/0.1/98ba21e776bb81d3939c5301f0db86cb82e34266/manifest.json: stale, module sources changed since commit 98ba21e776bb
+WARN  docs/certification/0.1/ea0c9f8f04bcb9860da8ad07828adc8e0bb7a960/manifest.json: stale, module sources changed since commit ea0c9f8f04bc
+WARN  docs/certification/1.1/33d38a0a495cf881ccfbd51a4e372d0d35d2b602/manifest.json: stale, module sources changed since commit 33d38a0a495c
+WARN  docs/certification/1.1/3f5597596262c8c260351730bd2bed383167ca8f/manifest.json: stale, module sources changed since commit 3f5597596262
+WARN  docs/certification/1.1/82fc1fc57e631fc35afca7679b7e85acfc3e57ab/manifest.json: stale, module sources changed since commit 82fc1fc57e63
+WARN  docs/certification/1.1/d827704fda2dd7aa1f3d8c860bf2b86c253dbb6b/manifest.json: stale, module sources changed since commit d827704fda2d
+WARN  docs/certification/1.2/71f7318d511d519e7cb50921ea8c4c93bf3f0494/manifest.json: stale, module sources changed since commit 71f7318d511d
+WARN  docs/certification/1.2/f96228c73a17d11b09d2685024d6ea91a80fc34f/manifest.json: stale, module sources changed since commit f96228c73a17
+WARN  docs/certification/1.2/fb96b72e832dc56932d9b5b8e2f9a75462fe6844/manifest.json: stale, module sources changed since commit fb96b72e832d
+WARN  docs/certification/1.3a/5d8962783a34ec544e6241a1a904b1516d21c3a2/manifest.json: stale, module sources changed since commit 5d8962783a34
+WARN  docs/certification/1.3a/71b59f18d17bd3b858db1159f3b9fbc28df011c7/manifest.json: stale, module sources changed since commit 71b59f18d17b
+WARN  docs/certification/1.3a/9003aff16c3e51e68f04646ff6f41f3418aa0366/manifest.json: stale, module sources changed since commit 9003aff16c3e
+WARN  docs/certification/1.3a/994f85bff7ffb46505d3225203aa23c3298bd0e5/manifest.json: stale, module sources changed since commit 994f85bff7ff
+WARN  docs/certification/1.3b/25d3a7fc320c555ec9bb4c0a2bf7fabe5a28c827/manifest.json: stale, module sources changed since commit 25d3a7fc320c
+WARN  docs/certification/1.4/2c84c516f32841544306485b7a5e731e5acc68d2/manifest.json: stale, module sources changed since commit 2c84c516f328
+WARN  docs/certification/1.4/be804fcce28c270bd76a23d56d72b9cccfccde49/manifest.json: stale, module sources changed since commit be804fcce28c
+WARN  docs/certification/1.4/e749c3d57367b8a740eb70f599d313dac61580c6/manifest.json: stale, module sources changed since commit e749c3d57367
+WARN  docs/certification/1.5/6027d9ad183bc9bbb05ebe7ef636f8bba84defca/manifest.json: stale, module sources changed since commit 6027d9ad183b
+WARN  docs/certification/1.5/7e758603fbbc3964200d0437775440f1a069d093/manifest.json: stale, module sources changed since commit 7e758603fbbc
+WARN  docs/certification/1.5/d7a960c888070d18a85746cd729eed772e9d09d8/manifest.json: stale, module sources changed since commit d7a960c88807
+WARN  docs/certification/1.6/193d3e600c35fbcd4c463a2b258e2700494a1bbe/manifest.json: stale, module sources changed since commit 193d3e600c35
+WARN  docs/certification/1.6/19f50cff88fb879364f61d3680c4da4b2e29b0ae/manifest.json: stale, module sources changed since commit 19f50cff88fb
+WARN  docs/certification/1.6/53fecc6707df927057a4f7cabc4e8a436081cf87/manifest.json: stale, module sources changed since commit 53fecc6707df
+WARN  docs/certification/2.1/9815f070e460cae393cad2d147e6eacf844c73a2/manifest.json: stale, module sources changed since commit 9815f070e460
+WARN  docs/certification/2.1/f64db1ab4953067ca41167b57df5350abe6406c7/manifest.json: stale, module sources changed since commit f64db1ab4953
+WARN  docs/certification/2.2/4c171c1c5545559c328f969b53441841a9160f73/manifest.json: stale, module sources changed since commit 4c171c1c5545
+WARN  docs/certification/2.2/b14fed9cf2fde7490cf6362735463cf9dc6c03cc/manifest.json: stale, module sources changed since commit b14fed9cf2fd
+WARN  docs/certification/2.2/c9f47622ff8c1567171a7d3aa4b413bddb1aea54/manifest.json: stale, module sources changed since commit c9f47622ff8c
+WARN  docs/certification/2.3/964f97dea5ba0efe7abd90c55dd7561c4ca2c4c1/manifest.json: stale, module sources changed since commit 964f97dea5ba
+WARN  docs/certification/2.3/bd869e9539a88ca5de8aae323e03df92490f10ee/manifest.json: stale, module sources changed since commit bd869e9539a8
+WARN  docs/certification/2.4/5bf15bfae49dcdcb1ee834eac1f2fafa0752cc49/manifest.json: stale, module sources changed since commit 5bf15bfae49d
+WARN  docs/certification/2.5/3b5866c31cded8587fcf9c6b150389a8fb260eca/manifest.json: stale, module sources changed since commit 3b5866c31cde
+WARN  docs/certification/2.5/82b583d9f03099c0f72afe951b42b5e2c6084a8b/manifest.json: stale, module sources changed since commit 82b583d9f030
+WARN  docs/certification/2.5/dc6628ee9f17ed4f633ef2a62f90aa7733808865/manifest.json: stale, module sources changed since commit dc6628ee9f17
+WARN  docs/certification/2.6/22075fd5032f450992f56b739b46b6bb9026fca7/manifest.json: stale, module sources changed since commit 22075fd5032f
+WARN  docs/certification/2.6/f9d52633ae4b188e346ead3b9b7d430029714074/manifest.json: stale, module sources changed since commit f9d52633ae4b
+WARN  docs/certification/2.6/fd7de473be06e567117cee28b867990d5e218bf3/manifest.json: stale, module sources changed since commit fd7de473be06
+WARN  docs/certification/2.6/ff8ca4d1ee671e26a9b23566107b22ed55d5d91e/manifest.json: stale, module sources changed since commit ff8ca4d1ee67
+WARN  docs/certification/2.7/903a267c53c67371a050da8534a4009df192062e/manifest.json: stale, module sources changed since commit 903a267c53c6
+WARN  docs/certification/3.1/76c9451c6c78deb3fa06b3ab8ff4dd8a95bf21b3/manifest.json: stale, module sources changed since commit 76c9451c6c78
+WARN  docs/certification/3.2/d91d5f73377dce9565be0b4502ccaed779a84b08/manifest.json: stale, module sources changed since commit d91d5f73377d
+WARN  docs/certification/3.3/2ee858bf108836d23f334aeb9ed03125078d4e72/manifest.json: stale, module sources changed since commit 2ee858bf1088
+WARN  docs/certification/3.4/26e3c9a01840594a031a67b69fd848e289a45b82/manifest.json: stale, module sources changed since commit 26e3c9a01840
+WARN  docs/certification/3.4/8b60f70a44dc5f4ebc65d5f07107ea5cca786a8d/manifest.json: stale, module sources changed since commit 8b60f70a44dc
+WARN  docs/certification/3.5a/f9dc48c40045cda236b785a34885467653437c69/manifest.json: stale, module sources changed since commit f9dc48c40045
+WARN  docs/certification/3.6a/e36277e22908715b79fc908c7efc24d300826624/manifest.json: stale, module sources changed since commit e36277e22908
+WARN  module 0.1: no PASS manifest matches HEAD sources
+WARN  module 1.2: no PASS manifest matches HEAD sources
+WARN  module 1.3a: no PASS manifest matches HEAD sources
+WARN  module 1.3b: no PASS manifest matches HEAD sources
+WARN  module 1.4: no PASS manifest matches HEAD sources
+WARN  module 1.5: no PASS manifest matches HEAD sources
+WARN  module 1.6: no PASS manifest matches HEAD sources
+WARN  module 2.3: no PASS manifest matches HEAD sources
+WARN  module 2.4: no PASS manifest matches HEAD sources
+WARN  module 2.5: no PASS manifest matches HEAD sources
+WARN  module 2.6: no PASS manifest matches HEAD sources
+WARN  module 2.7: no PASS manifest matches HEAD sources
+WARN  module 3.1: no PASS manifest matches HEAD sources
+WARN  module 3.2: no PASS manifest matches HEAD sources
+WARN  module 3.3: no PASS manifest matches HEAD sources
+WARN  module 3.4: no PASS manifest matches HEAD sources
+WARN  module 3.5a: no PASS manifest matches HEAD sources
+[32m   PASS[0m  certs
+
+[1m== summary[0m
+[32m   PASS[0m  all jobs passed
+
+[1m== stopping shell/veylqora-ci[0m
+E: The repository 'https://cli.github.com/packages stable Release' no longer has a Release file.

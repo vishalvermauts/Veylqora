@@ -1,0 +1,27 @@
+{
+  "checks": [
+    {
+      "cmd": "C:\\Program Files\\Git\\bin\\bash.EXE scripts/ci.sh adapters certs",
+      "exit": 0,
+      "log": "logs/ci.log",
+      "name": "ci"
+    }
+  ],
+  "commit": "c911c514a79bd3d773af60848f1682144cba28f7",
+  "generated_at": "2026-10-24T18:27:16+00:00",
+  "generated_by": "scripts/certify.py",
+  "manifest_sha256": "b90b9e52b240bb40714bb59d7f6f5b5b2da571ba8ed5d8e8d85f05ac610cd66b",
+  "module": "3.5a",
+  "module_blobs": {
+    "adapters/bridge.py": "a86dbc73bd252535b5524dbef100ddfa11e4bf11",
+    "adapters/contracts/outbound-v1.schema.json": "9370a3e2c309308764ab31b3db10c01be783efdb",
+    "adapters/requirements.txt": "552ad0c38ea5abc5f3cc4bbfa7a84810f355ed40",
+    "adapters/tests/test_bridge.py": "e2e18ce7952eddd36dd52dfc6a0f837a176d04cc",
+    "scripts/certify.py": "ec3ddfefdf950096ba60e5d725b6319b3310dc09",
+    "scripts/ci.sh": "c49bfc5c91c3a428835c27c08331b928fee1c9bd",
+    "scripts/verify_certs.py": "426464e2f7c28d5284e89d6b48a87079dae3b028"
+  },
+  "status": "PASS",
+  "title": "Outbound bridge: product-neutral contract, shared-only sharing, https-only remotes",
+  "tree_dirty": false
+}
